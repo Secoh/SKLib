@@ -1,0 +1,228 @@
+Types of project: MFC App, Console App
+
+Listed only properties that are explicitly set.
+
+
+CHANGE section
+==============================
+
+A. All Configurations / All Platforms
+-------------------------------------
+
+1. Configuration Properties
+
+  a) General
+Output Directory       = $(SolutionDir)\_bin\$(Configuration)_$(Platform)\
+Intermediate Directory = $(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\
+
+C++ Language Standard  = ISO C++14 Standard
+
+(!) NOTE: For Library
+Set Output Directory equal to Intermediate Directory
+
+
+2. Advanced
+
+Character Set - Review
+
+
+3. C/C++
+
+  a) General
+Additional Include Directories = $(SolutionDir);$(SolutionDir)\..
+Debug Information Format       = Program Database (/Zi)
+
+  b) Output Files
+Assembler Output         - consider: Assembly, Machine Code and Source
+
+
+4. Linker
+
+  a) General
+Enable Incremental Linking = No
+
+  b) Debugging
+Generate Debug Info = Generate Debug Information optimized for sharing and publishing (/DEBUG:FULL)
+// comment: in Release mode, it doesn't increase size
+
+  c) Optimization
+Profile Guided Database = $(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\$(TargetName).pgd
+
+
+B. Release Only / All Platforms
+-------------------------------------
+
+1. C/C++
+
+  a) General
+Treat Warnings As Errors = Yes
+
+  b) Optimization
+Favor Size Or Speed      = Favor fast code
+
+
+2. Librarian
+
+  a) General
+Treat Lib Warnings As Errors = Yes
+
+
+3. Linker
+
+  a) Debugging
+Generate Program Database File = $(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\$(TargetName).pdb
+
+  b) Optimization
+Link Time Code Generation = Use Link Time Code Generation (/LTCG)
+
+
+4. Resource
+Null Terminate Strings = Yes
+
+
+
+EXTERNAL PACKAGES section
+==============================
+
+1. Configuration Properties
+
+  a) VC++ Directories
+
+Environmental variables are accessed by expression: $(VARIABLE)
+Example of directory reference: $(PACKAGES_THIRD_PARTY)\OpenCV\include
+
+Include Directories - ALL
+  Add references to external packages as needed
+  Include source is likely the same for all variants
+
+Library Directories - Per Config
+  Different platforms and/or targets may require different library directories
+
+
+2. Librarian
+
+  a) General
+Additional Dependencies - Per Config
+
+
+3. Linker
+
+  a) Input
+
+Additional Dependencies - Per Config
+  Add external libraries to be linked to the project
+
+
+
+REVIEW section
+==============================
+
+A. All Configurations / All Platforms
+-------------------------------------
+
+1. Configuration Properties
+
+  a) Advanced
+
+Use of MFC - ALL - selected in Wizard - consider Per Config
+  Use MFC in a Shared DLL
+  Use MFC in a Static Library (large executable)
+
+Character Set - ALL - initial Wizard
+  Not Set - single-byte (DOS style with codepages or ASCII)
+  Use Unicode Character Set - wchar_t is 16 bit (Windows does NOT support 32-bit Unicode); extended tables use 16-bit surrogates
+
+
+2. C/C++
+
+  a) General
+
+Warning Level - ALL - initial Wizard
+  Level3 / consider ALL
+  
+  b) Precompiled Headers
+
+Precompiled Header File - ALL - initial Wizard
+  new: pch.h
+  old: stdafx.h
+
+
+3. Resource
+
+Culture - ALL - shall be selected Wizard but choice is not available
+  Regional Settings (Codepage? Resource Language?)
+
+
+
+LEAVE DEFAULT section
+==============================
+
+1. Configuration Properties
+
+a) General
+
+Configuration Type
+Windows SDK
+Platform Toolset
+
+b) Advanced
+
+Use Debug Libraries
+  Release All = No
+  Debug All = Yes
+
+Whole Program Optimization
+  Release = Use Link Time Code Generation
+
+2. C/C++
+
+a) General
+
+SDL checks
+  ALL = Yes
+
+b) Optimization
+
+Optimization
+  Release All = Maximum Optimization (Favor Speed) (/O2)
+  Debug All = Disabled (/Od)
+
+Enable Intrinsic Functions
+  Release All = Yes
+
+c) Preprocessor
+
+Preprocessor Definitions
+  Per Config - standard
+
+d) Code Generation
+
+Enable Function-Level Linking
+  Release All = Yes
+
+e) Precompiled Headers
+
+Precompiled Header
+  ALL = Use
+
+3. Linker
+
+d) System
+
+SubSystem
+  ALL = Windows
+
+e) Optimization
+
+Reference
+  Release All = Yes
+
+Enable COMDAT Folding
+  Release All = Yes
+
+4. Resource
+
+Preprocessor Definitions
+Additional Include Directories
+
+
