@@ -1,7 +1,7 @@
 // This file is part of SKLib: https://github.com/Secoh/SKLib
 // Copyright [2020-2021] Secoh
 //
-// Licensed under the GNU Lesser General Public License, Version 2.1 or later.
+// Licensed under the GNU Lesser General Public License, Version 2.1 or later: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
 // You may not use this file except in compliance with the License.
 // Software is distributed on "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // Special exception from GNU LGPL terms: you don't have to publish the compiled object binary file(s).
@@ -13,8 +13,6 @@
 
 #ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include <utility>
-
-#include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <string>
