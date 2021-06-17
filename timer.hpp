@@ -47,6 +47,7 @@ constexpr auto operator "" _hours_sklib  (long double t)         { using namespa
 
 #pragma warning(pop)
 
+
 // 2. For better readability, time conversion analogs with underscores
 
 namespace sklib
@@ -72,45 +73,61 @@ namespace sklib
         constexpr auto operator "" _hours  (long double t)        { return operator""_hours_sklib(t);   }
     };
 
+    template<class T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
+    constexpr auto seconds(T t)
+    { return operator""_s_sklib((unsigned long long)t);  }
+
+    template<class T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
+    constexpr auto milliseconds(T t)
+    { return operator""_ms_sklib((unsigned long long)t); }
+
+    template<class T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
+    constexpr auto microseconds(T t)
+    { return operator""_us_sklib((unsigned long long)t); }
+
+    template<class T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
+    constexpr auto nanoseconds(T t)
+    { return operator""_ns_sklib((unsigned long long)t); }
+
+    template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
+    constexpr auto seconds(T t)
+    { return operator""_s_sklib((long double)t);         }
+
+    template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
+    constexpr auto milliseconds(T t)
+    { return operator""_ms_sklib((long double)t);        }
+
+    template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
+    constexpr auto microseconds(T t)
+    { return operator""_us_sklib((long double)t);        }
+
+    template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
+    constexpr auto nanoseconds(T t)
+    { return operator""_ns_sklib((long double)t);        }
+
+
 // 3. Platform-independent Sleep() analog
 
     template<class tRep, class tPeriod = std::ratio<1>>
     inline void delay(const std::chrono::duration<tRep, tPeriod>& t)
-    {
-        std::this_thread::sleep_for(t);
-    }
+    { std::this_thread::sleep_for(t); }
 
-// 4. If requested by caller, SkLib provides Sleep() analogs with classical calling parameters (either milliseconds or seconds)
-//    one appropriate #define, but not both, shall appear in compilation unit before #include
 
-#if defined(SKLIB_TIMER_DEFAULT_UNIT_SECONDS)
- #if defined(SKLIB_TIMER_DEFAULT_UNIT_MILLISECONDS)
- #error SkLib Error -- Both macros SKLIB_TIMER_DEFAULT_UNIT_SECONDS and SKLIB_TIMER_DEFAULT_UNIT_MILLISECONDS cannot be defined in the same time
- #else
-    inline void delay(double t_sec)
-    {
-        std::this_thread::sleep_for(std::chrono::duration<double>(t_sec));
-    }
- #endif
-#elif defined(SKLIB_TIMER_DEFAULT_UNIT_MILLISECONDS)
+// 4. Measure Sleep() time, or equivalent, in milliseconds is the long standing tradition in computing.
+//    If different unit is required, and using time literals not possible, use conversion functions:
+//    seconds, microseconds, etc, see above
+
     inline void delay(size_t t_msec)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(t_msec));
-    }
-#endif
+    { std::this_thread::sleep_for(std::chrono::milliseconds(t_msec)); }
 
-// 5. Timeout and/or counter timer class
 
-// Timeout and Stopwatch timers implemented around std::chrono::steady_clock
-//
-// Copyright [2019-2020] Secoh
-//
-// Licensed under the Apache License, Version 2.0 (the "License") - see http://www.apache.org/licenses/LICENSE-2.0
-// You may not use this file except in compliance with the License.
-// Software is distributed on "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// 5. Timeout and/or counter timer class implemented around std::chrono::steady_clock
+
+//sk TODO: allow entry and readout of intervals in chrono time units(!)
+
 //
 // Interface:
-//      TimerWatch      Create timer, either stopped or running. Optional: specify timeout
+//      stopwatch_t     Create timer, either stopped or running. Optional: specify timeout
 //      reset           Reset Stopwatch and Timeout timer. Start or stop according to the initial state. Optional: specify new timeout
 //      start           Start Stopwatch, reset timeout start time (if wasn't running). Optional: specify new timeout
 //      stop            Stop Stopwatch, returns the most recent interval duration
@@ -119,39 +136,30 @@ namespace sklib
 //      is_timeout      Returns True if time elapsed since the timeout start time is greater than the set time (Timeout event).
 //                      Optional: specify alternative timeout period
 //
-// Define SKLIB_TIMER_STOPWATCH_DISABLE_EXPLICIT_CAST to *disable* direct conversions from class instance to query functions
-//
-// Define _SKLIB_ENABLE_DEMO to enable example_TimerWatch() function with demo and test code
-//
 // Use case: typical timeout monitor
 //
-//    TimerWatch check(delay_seconds);
+//    stopwatch_t timeout(delay_seconds);
 //    while (...condition...)
 //    {
-//        if (check.is_timeout()) { ...handle timeout event... }
+//        if (timeout) { ...handle timeout event... }   // explicit bool() in the name!
 //        ...keep processing and/or waiting...
 //    }
 //
 // Use case: typical elapsed time monitor
 //
-//    TimerWatch elapsed;
+//    stopwatch_t elapsed;
 //    while (...condition...) { ...do something... }
-//    double time_interval = elapsed.read();
+//    double time_interval = elapsed.read();            // also, has explicit double() in the name
 //
-
-// ??? #if ((defined(_MSVC_LANG) && _MSVC_LANG > 201700L) || __cplusplus > 201700L)
 
     // Timeout and Stopwatch timers implemented around std::chrono::steady_clock
     // Intended for use either in timeout, or stopwatch mode, however mixed operation is possible in certain cases
-    // Timer declaration:  TimerWatch [<false>] variable [(timeout_interval)] ;
+    // Timer declaration:  stopwatch_t [<false>] variable [(timeout_interval)] ;
     // Timeout start time is captured at the time of creation (or can be set by start() member function)
     // Timer is started at creation by default, or created stopped if <false> is specified
     // All time intervals are floating point values in seconds
-    // Define _SKLIB_TIMEWATCH_ALLOW_EXPLICIT_CAST to enable shortcuts for is_timeout() and read() functions
-    // Requires C++17 or later to compile
     //
-    template<bool create_running = true>
-    class stopwatch
+    class stopwatch_t
     {
     private:
         bool timer_active = false;
@@ -175,18 +183,19 @@ namespace sklib
 
     public:
         // Create Timeout / Stopwatch timer
-        // Timer is running by default or stopped if TimerWatch<false> is used
+        // Timer is running by default or stopped if stopwatch_t<false> is used
         // Timeout start time is captured at the time of creation
         // Timeout interval in seconds is set by the parameter
         // See the description of the class for more details
         //
-        stopwatch(double timeout_s = 0) { reset(timeout_s); }
+        stopwatch_t(double timeout_s = 0, reset_mode_t mode = reset_mode_t::running) { reset(timeout_s, mode); }
+        stopwatch_t(reset_mode_t mode) { reset(0, mode); }
+
+        enum class reset_mode_t { running, idle };
 
         //
-        void reset() { configure(true, create_running, false); }
-
-        //
-        void reset(double timeout_s) { configure(true, create_running, true, timeout_s); }
+        void reset(double timeout_s = 0, reset_mode_t mode = reset_mode_t::running) { configure(true, (mode == reset_mode_t::running), true, timeout_s); }
+        void reset(reset_mode_t mode) { configure(true, (mode == reset_mode_t::running), false); }
 
         // If timer is stopped, start stopwatch and reset (refresh) timeout start time
         // If timer is running, do nothing
@@ -211,12 +220,11 @@ namespace sklib
         //
         bool is_timeout(double timeout_s) const { return (get_dt() > timeout_s); }
 
-#ifndef SKLIB_TIMER_STOPWATCH_DISABLE_EXPLICIT_CAST
         // synonym for is_timeout()
         explicit operator bool() const { return is_timeout(); }
+
         // synonym for read()
         explicit operator double() const { return read(); }
-#endif
 
         // Returns true if the timer is running
         //
