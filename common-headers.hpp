@@ -25,6 +25,7 @@
 #include <mutex>
 #include <thread>
 #include <chrono>
+#include <ratio>
 
 #else
 #error SkLib: This cannot happen. Common Headers are loaded twice despite pragma once.
