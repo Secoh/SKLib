@@ -74,75 +74,76 @@ namespace sklib
         constexpr auto operator "" _hours  (long double t)        { return operator""_hours_sklib(t);   }
     };
 
+
+// 3. For completeness, time conversion as explicit functions
+
     template<class T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
-    constexpr auto seconds_to_chrono(T t)
+    constexpr auto time_seconds(T t)
     { return operator""_s_sklib((unsigned long long)t);  }
 
     template<class T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
-    constexpr auto milliseconds_to_chrono(T t)
+    constexpr auto time_milliseconds(T t)
     { return operator""_ms_sklib((unsigned long long)t); }
 
     template<class T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
-    constexpr auto microseconds_to_chrono(T t)
+    constexpr auto time_microseconds(T t)
     { return operator""_us_sklib((unsigned long long)t); }
 
     template<class T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
-    constexpr auto nanoseconds_to_chrono(T t)
+    constexpr auto time_nanoseconds(T t)
     { return operator""_ns_sklib((unsigned long long)t); }
 
     template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
-    constexpr auto seconds_to_chrono(T t)
+    constexpr auto time_seconds(T t)
     { return operator""_s_sklib((long double)t);         }
 
     template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
-    constexpr auto milliseconds_to_chrono(T t)
+    constexpr auto time_milliseconds(T t)
     { return operator""_ms_sklib((long double)t);        }
 
     template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
-    constexpr auto microseconds_to_chrono(T t)
+    constexpr auto time_microseconds(T t)
     { return operator""_us_sklib((long double)t);        }
 
     template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
-    constexpr auto nanoseconds_to_chrono(T t)
+    constexpr auto time_nanoseconds(T t)
     { return operator""_ns_sklib((long double)t);        }
 
 
-// 4. Conversion *from* intervals in time units to number of seconds, milliseconds, minutes, etc
-// NB: This arrangement is inherently problematic because integer time amounts (especially shorter ints)
-//     don't convert nicely to larger units, unless destination is floating point
-// Use either high-resolution types, or floating-point underlying types, or use explicit casts
+// 4. Conversion from intervals in time units to number of seconds, milliseconds, minutes, etc
+//    Working with timers (class timer_stopwatch_t), see section 7
 
     template<class tTarget, class tRep, class tPeriod = std::ratio<1>, std::enable_if_t<std::is_integral_v<tTarget>, bool> = true>
-    constexpr tTarget chrono_to_microseconds(const std::chrono::duration<tRep, tPeriod>& t)
+    constexpr tTarget time_to_nanoseconds(const std::chrono::duration<tRep, tPeriod>& t)
+    { return tTarget((std::chrono::duration_cast<std::chrono::nanoseconds>(t)).count()); }
+
+    template<class tTarget, class tRep, class tPeriod = std::ratio<1>, std::enable_if_t<std::is_integral_v<tTarget>, bool> = true>
+    constexpr tTarget time_to_microseconds(const std::chrono::duration<tRep, tPeriod>& t)
     { return tTarget((std::chrono::duration_cast<std::chrono::microseconds>(t)).count()); }
 
     template<class tTarget, class tRep, class tPeriod = std::ratio<1>, std::enable_if_t<std::is_integral_v<tTarget>, bool> = true>
-    constexpr tTarget chrono_to_milliseconds(const std::chrono::duration<tRep, tPeriod>& t)
+    constexpr tTarget time_to_milliseconds(const std::chrono::duration<tRep, tPeriod>& t)
     { return tTarget((std::chrono::duration_cast<std::chrono::milliseconds>(t)).count()); }
 
     template<class tTarget, class tRep, class tPeriod = std::ratio<1>, std::enable_if_t<std::is_integral_v<tTarget>, bool> = true>
-    constexpr tTarget chrono_to_seconds(const std::chrono::duration<tRep, tPeriod>& t)
+    constexpr tTarget time_to_seconds(const std::chrono::duration<tRep, tPeriod>& t)
     { return tTarget((std::chrono::duration_cast<std::chrono::seconds>(t)).count()); }
 
     template<class tTarget, class tRep, class tPeriod = std::ratio<1>, std::enable_if_t<std::is_floating_point_v<tTarget>, bool> = true>
-    constexpr tTarget chrono_to_microseconds(const std::chrono::duration<tRep, tPeriod>& t)
+    constexpr tTarget time_to_nanoseconds(const std::chrono::duration<tRep, tPeriod>& t)
+    { return (std::chrono::duration_cast<std::chrono::duration<tTarget, std::nano>>(t)).count(); }
+
+    template<class tTarget, class tRep, class tPeriod = std::ratio<1>, std::enable_if_t<std::is_floating_point_v<tTarget>, bool> = true>
+    constexpr tTarget time_to_microseconds(const std::chrono::duration<tRep, tPeriod>& t)
     { return (std::chrono::duration_cast<std::chrono::duration<tTarget, std::micro>>(t)).count(); }
 
     template<class tTarget, class tRep, class tPeriod = std::ratio<1>, std::enable_if_t<std::is_floating_point_v<tTarget>, bool> = true>
-    constexpr tTarget chrono_to_milliseconds(const std::chrono::duration<tRep, tPeriod>& t)
+    constexpr tTarget time_to_milliseconds(const std::chrono::duration<tRep, tPeriod>& t)
     { return (std::chrono::duration_cast<std::chrono::duration<tTarget, std::milli>>(t)).count(); }
 
     template<class tTarget, class tRep, class tPeriod = std::ratio<1>, std::enable_if_t<std::is_floating_point_v<tTarget>, bool> = true>
-    constexpr tTarget chrono_to_seconds(const std::chrono::duration<tRep, tPeriod>& t)
+    constexpr tTarget time_to_seconds(const std::chrono::duration<tRep, tPeriod>& t)
     { return (std::chrono::duration_cast<std::chrono::duration<tTarget>>(t)).count(); }
-
-//    template<class tTarget, std::enable_if_t<std::is_floating_point_v<tTarget>, bool> = true>
-//    constexpr tTarget chrono_to_seconds(const std::chrono::steady_clock::duration& t)
-//    { return (std::chrono::duration_cast<std::chrono::duration<tTarget>>(t)).count(); }
-
-//    template<class tTarget, std::enable_if_t<std::is_floating_point_v<tTarget>, bool> = true>
-//    constexpr tTarget chrono_to_seconds<tTarget, std::chrono::steady_clock::duration::rep, std::chrono::steady_clock::duration::period, true>(const std::chrono::steady_clock::duration& t)
-//    { return (std::chrono::duration_cast<std::chrono::duration<tTarget>>(t)).count(); }
 
 
 // 5. Platform-independent Sleep() analog
@@ -151,8 +152,7 @@ namespace sklib
     inline void time_wait(const std::chrono::duration<tRep, tPeriod>& t)
     { std::this_thread::sleep_for(t); }
 
-
-// 5. Measure Sleep() time, or equivalent, in milliseconds is the long standing tradition in computing.
+//    Measure Sleep() time, or equivalent, in milliseconds is the long standing tradition in computing.
 //    If different unit is required, and using time literals not possible, use conversion functions:
 //    seconds, microseconds, etc, see above
 
@@ -162,9 +162,8 @@ namespace sklib
 
 // 6. Timeout and/or counter timer class implemented around std::chrono::steady_clock
 
-//sk TODO: allow entry and readout of intervals in chrono time units(!)
+//sk TODO replace description
 
-//
 // Interface:
 //      stopwatch_t     Create timer, either stopped or running. Optional: specify timeout
 //      reset           Reset Stopwatch and Timeout timer. Start or stop according to the initial state. Optional: specify new timeout
@@ -215,7 +214,7 @@ namespace sklib
             duration_helper_t(const std::chrono::duration<tRep, tPeriod>& input) : value(std::chrono::duration_cast<std::chrono::steady_clock::duration>(input)) {}
 
             template<class T, std::enable_if_t<(std::is_integral_v<T> || std::is_floating_point_v<T>), bool> = true>
-            duration_helper_t(const T& input) : value(std::chrono::duration_cast<std::chrono::steady_clock::duration>(::sklib::milliseconds_to_chrono(input))) {}
+            duration_helper_t(const T& input) : value(std::chrono::duration_cast<std::chrono::steady_clock::duration>(::sklib::time_milliseconds(input))) {}
         };
 
     private:
@@ -340,10 +339,27 @@ namespace sklib
         }
     };
 
-    // some extra?!
+// 7. Conversions directly from class timer_stopwatch_t type
 
-    template<class tTarget, std::enable_if_t<std::is_floating_point_v<tTarget>, bool> = true>
-    constexpr tTarget chrono_to_seconds(const timer_stopwatch_t& t)
-    { return (std::chrono::duration_cast<std::chrono::duration<tTarget>>(t.read())).count(); }
+//    template<class tTarget, std::enable_if_t<std::is_floating_point_v<tTarget>, bool> = true>
+//    constexpr tTarget time_to_seconds(const timer_stopwatch_t& t)
+//    { return (std::chrono::duration_cast<std::chrono::duration<tTarget>>(t.read())).count(); }
+
+    template<class tTarget>
+    constexpr tTarget time_to_nanoseconds(const timer_stopwatch_t& t)
+    { return time_to_nanoseconds<tTarget>(t.read()); }
+
+    template<class tTarget>
+    constexpr tTarget time_to_microseconds(const timer_stopwatch_t& t)
+    { return time_to_microseconds<tTarget>(t.read()); }
+
+    template<class tTarget>
+    constexpr tTarget time_to_milliseconds(const timer_stopwatch_t& t)
+    { return time_to_milliseconds<tTarget>(t.read()); }
+
+    template<class tTarget>
+    constexpr tTarget time_to_seconds(const timer_stopwatch_t& t)
+    { return time_to_seconds<tTarget>(t.read()); }
+
 
 };
