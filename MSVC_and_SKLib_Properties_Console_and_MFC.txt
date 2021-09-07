@@ -1,3 +1,13 @@
+// This file is part of SKLib: https://github.com/Secoh/SKLib
+// Copyright [2020-2021] Secoh
+//
+// Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
+// You may not use this file except in compliance with the License.
+// This file is distributed on "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// Modified content and/or any derivative work requirements are in effect. All such file(s) must be openly
+// published under the same terms as the original one.
+//
+
 Types of project: MFC App, Console App
 
 Listed only properties that are explicitly set.

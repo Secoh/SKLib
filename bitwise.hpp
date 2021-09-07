@@ -230,6 +230,13 @@ namespace sklib
                 return true;
             }
 
+            template<size_t N>
+            bool check(const bit_cpack_t<N>& readout)
+            {
+                bit_pack_t R{ N, 0 };
+                return check(R);
+            }
+
             bit_stream_base_t& operator>> (bit_pack_t& readout)   // size is input, data is output
             {
                 auto data_size = readout.size;
@@ -258,7 +265,7 @@ namespace sklib
             bit_stream_base_t& operator>> (bit_cpack_t<N>& input)
             {
                 bit_pack_t R{ N, 0 };
-                operator<< (R);
+                operator>> (R);
                 input.data = R.data;
                 return *this;
             }

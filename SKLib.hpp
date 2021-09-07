@@ -20,3 +20,5 @@
 #include "./bitwise.hpp"
 #include "./timer.hpp"
 
+#include "./comms.hpp"
+

@@ -165,7 +165,7 @@ namespace sklib
 //sk TODO replace description
 
 // Interface:
-//      stopwatch_t     Create timer, either stopped or running. Optional: specify timeout
+//      timer_stopwatch_t  Create timer, either stopped or running. Can specify timeout
 //      reset           Reset Stopwatch and Timeout timer. Start or stop according to the initial state. Optional: specify new timeout
 //      start           Start Stopwatch, reset timeout start time (if wasn't running). Optional: specify new timeout
 //      stop            Stop Stopwatch, returns the most recent interval duration
@@ -176,7 +176,7 @@ namespace sklib
 //
 // Use case: typical timeout monitor
 //
-//    stopwatch_t timeout(delay_seconds);
+//    timer_stopwatch_t timeout(delay_seconds);
 //    while (...condition...)
 //    {
 //        if (timeout) { ...handle timeout event... }   // explicit bool() in the name!
@@ -185,9 +185,9 @@ namespace sklib
 //
 // Use case: typical elapsed time monitor
 //
-//    stopwatch_t elapsed;
+//    timer_stopwatch_t elapsed;
 //    while (...condition...) { ...do something... }
-//    double time_interval = elapsed.read();            // also, has explicit double() in the name
+//    double time_interval = elapsed.read();            // also, has explicit double() cast in the name
 //
 
     // Timeout and Stopwatch timers implemented around std::chrono::steady_clock
@@ -341,10 +341,6 @@ namespace sklib
 
 // 7. Conversions directly from class timer_stopwatch_t type
 
-//    template<class tTarget, std::enable_if_t<std::is_floating_point_v<tTarget>, bool> = true>
-//    constexpr tTarget time_to_seconds(const timer_stopwatch_t& t)
-//    { return (std::chrono::duration_cast<std::chrono::duration<tTarget>>(t.read())).count(); }
-
     template<class tTarget>
     constexpr tTarget time_to_nanoseconds(const timer_stopwatch_t& t)
     { return time_to_nanoseconds<tTarget>(t.read()); }
@@ -360,6 +356,5 @@ namespace sklib
     template<class tTarget>
     constexpr tTarget time_to_seconds(const timer_stopwatch_t& t)
     { return time_to_seconds<tTarget>(t.read()); }
-
 
 };
