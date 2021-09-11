@@ -16,8 +16,12 @@
 // SKLib uses headers-only approach where possible. Instead of using precompiled libraries, the suggested use
 // is as follows (see "test-comms-sockets" project for example): 
 // - use this file: "comms.hpp" anywhere where you USE sockets;
-// - dedicate a single *.cpp file with only line in it: #include <SKLib/comms-code.hpp>.
-// This way all code that can clobber otherwise usable names is contained in its own compilation unit.
+// - dedicate a single .cpp file for implementation, and place the single line in it: #include <SKLib/comms-code.hpp>
+// This way, all code that can clobber usable names is contained in its own compilation unit.
+
+// For more information on WinSock itself, refer to MSDN, and also:
+//      FAQ: https://tangentsoft.net/wskfaq/
+//      I/O example: https://tangentsoft.net/wskfaq/examples/basics/select-server.cpp
 
 #pragma once
 
@@ -58,7 +62,7 @@ namespace sklib
     private:
         static const int MAXSOCKS_PIPE = 3;   // some small number
 
-        std::unique_ptr<sklib::internal::stream_tcpip_opaque_workspace_type> stream_data;
+        std::unique_ptr<::sklib::internal::stream_tcpip_opaque_workspace_type> stream_data;
 
         // close all sockets, shutdown service, and set error state
         bool net_cleanup_with_error();

@@ -9,7 +9,13 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
-#pragma once
+// define macro SKLIB_BITWISE_DISABLE_TABLES to help perform certain self tests
+
+// conventions:  count of bits  - unsigned
+//               count of bytes - size_t
+
+#ifndef SKLIB_INCLUDED_BITWISE_HPP
+#define SKLIB_INCLUDED_BITWISE_HPP
 
 #ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include <utility>
@@ -22,88 +28,146 @@
 
 namespace sklib
 {
-    namespace bitwise
+    static_assert(sizeof(char) == 1, "SKLIB ** INTERNAL ERROR ** sizeof(char) must be equal to 1");
+
+    // -------------------------------------------------
+    // Integer type traits
+    // (constants for a given type T if T is integer)
+
+    static constexpr unsigned OCTET_BITS = 8;
+
+    namespace supplement
     {
-        static constexpr uint8_t BYTE_BITS  = 8;
-        static constexpr uint8_t INT16_BITS = 2 * BYTE_BITS;
-        static constexpr uint8_t INT32_BITS = 4 * BYTE_BITS;
-        static constexpr uint8_t INT64_BITS = 8 * BYTE_BITS;
+        //template<class T is integer>
+        SKLIB_INTERNAL_FEATURE_IF_INT_T unsigned bits_data_width() { return OCTET_BITS * (unsigned)sizeof(T); }
+        SKLIB_INTERNAL_FEATURE_IF_INT_T   T  bits_data_high_1()    { return (T(1) << (bits_data_width<T>()-1)); }
+        SKLIB_INTERNAL_FEATURE_IF_INT_T   T  bits_data_mask()      { return (bits_data_high_1<T>() | T(bits_data_high_1<T>()-1)); }
 
-        static constexpr uint8_t BYTE_MASK  = (1 << BYTE_BITS) - 1;
-        static constexpr uint8_t BYTE_MAX   = BYTE_MASK;
-        static constexpr size_t  BYTE_ADDRESS_SPAN = BYTE_MAX + 1;
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T  T  bits_data_low_half()  { return ((T(1) << (bits_data_width<T>()/2)) - 1); }
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T  T  bits_data_high_half() { return (bits_data_low_half<T>() << (bits_data_width<T>()/2)); }
+    };
 
-#include "./bitwise/tables.hpp"     // load internal reference tables in ::sklib::bitwise::internal::tables - flip, rank
+    static constexpr uint8_t OCTET_MASK         = ::sklib::supplement::bits_data_mask<uint8_t>();           //sk? to supplement
+    static constexpr size_t  OCTET_ADDRESS_SPAN = OCTET_MASK + 1;
 
-        // -------------------
-        // Bits manipulation
+    // --------------------------------
+    // Helper/reference tables
+    // used for: flip, distance, rank
 
-        template<class T, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), bool> = true>
-        constexpr T low_half_bits() { return T((T(1) << ((BYTE_BITS/2)*sizeof(T))) - 1); }
+#include "./bitwise/tables.hpp"
 
-        template<class T, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), bool> = true>
-        static constexpr T high_half_bits() { return T(low_half_bits<T>() << ((BYTE_BITS/2)*sizeof(T))); }
+    // ----------------------------------------------------------
+    // Flip bits in integer, eg write bits in opposite direction
 
-        // ----------------------------------------------------------
-        // FLIP bits in integer, eg write bits in opposite direction
-
+    namespace supplement
+    {
         template<size_t N, class T>
-        inline T flip(T data)
+        inline T bits_flip(T data)
         {
-            static_assert(sizeof(T) >= N, "Size of data type must be enough to hold specified number of bytes");
+            static_assert(sizeof(T) >= N, "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bytes");
             static_assert(N > 0, "Data length in bytes must be positive integer");
 
-            T val = (T)::sklib::bitwise::internal::tables::flip[data & BYTE_MASK];
+            T val = (T)::sklib::internal::tables::flip[data & OCTET_MASK];
 
-            for (size_t k = 1; k < N; k++)
+            for (size_t k=1; k<N; k++)
             {
-                data >>= BYTE_BITS;
-                val = (val << BYTE_BITS) | ::sklib::bitwise::internal::tables::flip[data & BYTE_MASK];
+                data >>= OCTET_BITS;
+                val = (val << OCTET_BITS) | ::sklib::internal::tables::flip[data & OCTET_MASK];
             }
+
             return val;
         }
 
-        template<class T, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), bool> = true>
-        inline T flip(::sklib::internal::do_not_deduce<T> data) { return flip<sizeof(T), T>(data); }
-
-        template<class T, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), bool> = true>
-        inline T flip_bruteforce(::sklib::internal::do_not_deduce<T> data)
+        SKLIB_INTERNAL_TEMPLATE_IF_UINT_T T bits_flip_bruteforce(::sklib::internal::do_not_deduce<T> data)
         {
             T R = 0;
-            const size_t N = BYTE_BITS * sizeof(T);
-            for (size_t i = 0; i < N; i++, data >>= 1) R = T((R << 1) | (data & 1));
+            static const unsigned N = ::sklib::supplement::bits_data_width<T>();
+            for (unsigned i=0; i<N; i++, data >>= 1) R = T((R << 1) | (data & 1));
             return R;
         }
 
-        inline void generate_table_flip(uint8_t(&U)[BYTE_ADDRESS_SPAN])
+        void bits_flip_generate_table(uint8_t(&U)[OCTET_ADDRESS_SPAN])
         {
-            for (size_t k = 0; k < BYTE_ADDRESS_SPAN; k++) U[k] = flip_bruteforce<uint8_t>(uint8_t(k));
+            for (size_t k=0; k<OCTET_ADDRESS_SPAN; k++) U[k] = bits_flip_bruteforce<uint8_t>(uint8_t(k));
+        }
+    };
+
+    //template<class T is integer>
+    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T inline T bits_flip(::sklib::internal::do_not_deduce<T> data)
+    {
+        return ::sklib::supplement::bits_flip<sizeof(T), T>(data);
+    }
+
+    // -----------------------------------------
+    // Hamming distance between integer and 0
+    // (between 2 integers - use XOR)
+
+    //template<class T>
+    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T inline unsigned bits_distance(T data)
+    {
+        unsigned R = 0;
+        for (size_t k=0; k<sizeof(T); k++, data >>= OCTET_BITS) R += ::sklib::internal::tables::distance[data & OCTET_MASK];
+        return R;
+    }
+
+    //template<class T is integer>
+    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T inline unsigned bits_distance(T data1, T data2)    // for completeness
+    {
+        return bits_distance(data1 ^ data2);
+    }
+
+    namespace supplement
+    {
+        SKLIB_INTERNAL_TEMPLATE_IF_UINT_T unsigned bits_distance_bruteforce(T data)
+        {
+            unsigned R = 0;
+            static const unsigned N = ::sklib::supplement::bits_data_width<T>();
+            for (unsigned i=0; i<N; i++, data >>= 1) if (data & 1) R++;
+            return R;
         }
 
-        // --------------------------------
-        // Calculate RANK of an integer
-        // return 1-based position of the most significant bit
-        // return 0 if input equals 0
+        void bits_distance_generate_table(char(&U)[OCTET_ADDRESS_SPAN])
+        {
+            for (size_t k=0; k<OCTET_ADDRESS_SPAN; k++) U[k] = bits_distance_bruteforce(uint8_t(k));
+        }
+    };
 
-        inline uint8_t rank8(uint8_t v)    { return ::sklib::bitwise::internal::tables::rank[v]; }
+    // --------------------------------
+    // Calculate RANK of an integer
+    // return 1-based position of the most significant bit
+    // return 0 if input equals 0
 
-        inline uint8_t rank16(uint16_t v)  { return ((v & high_half_bits<uint16_t>()) ? rank8(uint8_t(v>>BYTE_BITS))+BYTE_BITS : rank8(uint8_t(v))); }
-        inline uint8_t rank32(uint32_t v)  { return ((v & high_half_bits<uint32_t>()) ? rank16(uint16_t(v>>INT16_BITS))+INT16_BITS : rank16(uint16_t(v))); }
-        inline uint8_t rank64(uint64_t v)  { return ((v & high_half_bits<uint64_t>()) ? rank32(uint32_t(v>>INT32_BITS))+INT32_BITS : rank32(uint32_t(v))); }
+    namespace internal
+    {
+        inline unsigned rank8(uint8_t v)
+        {
+            return ::sklib::internal::tables::rank[v];
+        }
+        inline unsigned rank16(uint16_t v)
+        {
+            return ((v & ::sklib::supplement::bits_data_high_half<uint16_t>()) ? rank8(uint8_t(v >> OCTET_BITS)) + OCTET_BITS : rank8(uint8_t(v)));
+        }
+        inline unsigned rank32(uint32_t v)
+        {
+            static const unsigned N_half = ::sklib::supplement::bits_data_width<uint16_t>();
+            return ((v & ::sklib::supplement::bits_data_high_half<uint32_t>()) ? rank16(uint16_t(v >> N_half)) + N_half : rank16(uint16_t(v)));
+        }
+        inline unsigned rank64(uint64_t v)
+        {
+            static const unsigned N_half = ::sklib::supplement::bits_data_width<uint32_t>();
+            return ((v & ::sklib::supplement::bits_data_high_half<uint64_t>()) ? rank32(uint32_t(v >> N_half)) + N_half : rank32(uint32_t(v)));
+        }
+    };
 
-        template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, uint8_t), bool> = true>
-        inline uint8_t rank(T v) { return rank8(uint8_t(v)); }
+    //template<class T is integer given size>
+    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint8_t)  inline unsigned bits_rank(T v) { return ::sklib::internal::rank8(uint8_t(v)); }
+    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint16_t) inline unsigned bits_rank(T v) { return ::sklib::internal::rank16(uint16_t(v)); }
+    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint32_t) inline unsigned bits_rank(T v) { return ::sklib::internal::rank32(uint32_t(v)); }
+    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint64_t) inline unsigned bits_rank(T v) { return ::sklib::internal::rank64(uint64_t(v)); }
 
-        template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, uint16_t), bool> = true>
-        inline uint8_t rank(T v) { return rank16(uint16_t(v)); }
-
-        template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, uint32_t), bool> = true>
-        inline uint8_t rank(T v) { return rank32(uint32_t(v)); }
-
-        template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, uint64_t), bool> = true>
-        inline uint8_t rank(T v) { return rank64(uint64_t(v)); }
-
-        inline uint8_t rank8_fork(uint8_t v)
+    namespace supplement
+    {
+        inline unsigned bits_rank8_fork(uint8_t v)
         {
             if (!v) return 0;
 
@@ -119,11 +183,11 @@ namespace sklib
             }
         }
 
-        template<class T, size_t N = BYTE_BITS * sizeof(T)>
-        inline size_t rank_bruteforce(T data, size_t max_bits_count = N)
+        template<class T, unsigned N = bits_data_width<T>()>
+        unsigned bits_rank_bruteforce(T data, unsigned max_bits_count = N)
         {
             auto udata = std::make_unsigned_t<T>(data);
-            for (size_t k=0; k<max_bits_count; k++)
+            for (unsigned k=0; k<max_bits_count; k++)
             {
                 if (!udata) return k;
                 udata >>= 1;
@@ -131,215 +195,225 @@ namespace sklib
             return max_bits_count;
         }
 
-        inline void generate_table_rank(uint8_t(&U)[BYTE_ADDRESS_SPAN])
+        void bits_rank_generate_table(char(&U)[OCTET_ADDRESS_SPAN])
         {
-            for (size_t k = 0; k < BYTE_ADDRESS_SPAN; k++) U[k] = rank<uint8_t>(uint8_t(k));
+            for (size_t k=0; k<OCTET_ADDRESS_SPAN; k++) U[k] = bits_rank_bruteforce(uint8_t(k));
+        }
+    };
+
+    // ---------------------------------------
+    // Objects representing series of bits
+    // Pack sequence of such objects into sequence of bytes, in MSB mode
+    // Unpack byte stream into sequence of objects representing bit packs
+    // (bytes are considered MSB; leading bit in the stream corresponds to leading bit in the pack)
+
+
+// special purpose
+#define SKLIB_INTERNAL_TEMPLATE_W_SIZE_I_N_IF_INT_T template<int N, class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
+
+// https://stackoverflow.com/questions/1005476/how-to-detect-whether-there-is-a-specific-member-variable-in-class
+#define SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK template<class TT,                                    \
+    typename std::enable_if_t<std::is_same_v<std::remove_cv_t<decltype(TT::bit_count)>, unsigned> && \
+                              SKLIB_TYPES_IS_INTEGER(decltype(TT::data)), bool> = true>
+
+    namespace supplement
+    {
+        //template<class T is integer>
+        SKLIB_INTERNAL_TEMPLATE_IF_INT_T class bits_variable_pack_type
+        {
+        public:
+            unsigned bit_count;
+            T data;
+
+            bits_variable_pack_type(T v, unsigned N = ::sklib::supplement::bits_data_width<T>()) : data(v), bit_count(N) {}
+        };
+
+        SKLIB_INTERNAL_TEMPLATE_W_SIZE_I_N_IF_INT_T class bits_fixed_pack_type
+        {
+            static_assert(N <= ::sklib::supplement::bits_data_width<T>(), "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bits");
+
+        public:
+            static constexpr unsigned bit_count = N;
+            T data;
+
+            bits_fixed_pack_type(T v) : data(v) {}
+        };
+    };
+
+    SKLIB_INTERNAL_TEMPLATE_W_SIZE_I_N_IF_INT_T
+    constexpr auto bits_pack(T v)
+    { return ::sklib::supplement::bits_fixed_pack_type<N, T>(v); }
+
+    SKLIB_INTERNAL_TEMPLATE_IF_INT_T
+    constexpr auto bits_pack(T v, unsigned N = ::sklib::supplement::bits_data_width<T>())
+    { return ::sklib::supplement::bits_variable_pack_type<T>(v, N); }
+
+    class bits_stream_base_type     // using big-endian model
+    {
+    protected:
+        virtual void push_byte(uint8_t /*data*/) {}
+        virtual bool pop_byte(uint8_t& /*data*/) { return false; }
+
+        virtual void hook_after_reset() {}
+        virtual void hook_after_flush() {}
+        virtual void hook_before_rewind() {}
+
+    public:
+        void reset()
+        {
+            accumulator_sender = 0;
+            clear_bits_sender = OCTET_BITS;
+            accumulator_receiver = 0;
+            available_bits_receiver = 0;
+            hook_after_reset();
         }
 
-        // ---------------------------------------
-        // Objects representing series of bits
-        // Pack sequence of such objects into sequence of bytes, in MSB mode
-        // Unpack byte stream into sequence of objects representing bit packs
-        // (bytes are considered MSB; leading bit in the stream corresponds to leading bit in the pack)
-
-        template<size_t N>
-        struct bit_cpack_t
+        SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bits_stream_base_type& write(const TT& input)
         {
-            static constexpr size_t size = N;
-            uint64_t data;
-
-            bit_cpack_t(uint64_t v) : data(v) {}
-            operator uint64_t() { return data; }
-        };
-
-        struct bit_pack_t
-        {
-            uint8_t size;
-            uint64_t data;
-            operator uint64_t() { return data; }
-        };
-
-        class bit_stream_base_t     // using big-endian model
-        {
-        protected:
-            virtual void push_byte(uint8_t /*data*/) {}
-            virtual bool pop_byte(uint8_t& /*data*/) { return false; }
-
-            virtual void hook_after_reset()     {}
-            virtual void hook_after_flush()     {}
-            virtual void hook_before_rewind()   {}
-
-        public:
-            void reset()
+            auto data_size = input.bit_count;
+            while (data_size)
             {
-                accumulator_sender = 0;
-                clear_bits_sender = BYTE_BITS;
-                accumulator_receiver = 0;
-                available_bits_receiver = 0;
-                hook_after_reset();
-            }
+                auto load_size = std::min(data_size, clear_bits_sender);
+                data_size -= load_size;
 
-            bit_stream_base_t& operator<< (const bit_pack_t& input)
-            {
-                auto data_size = input.size;
-                while (data_size)
+                accumulator_sender = uint8_t((accumulator_sender << load_size) + (uint8_t(input.data >> data_size) & byte_low_mask[load_size]));
+
+                clear_bits_sender -= load_size;
+                if (!clear_bits_sender)
                 {
-                    auto load_size = std::min(data_size, clear_bits_sender);
-                    data_size -= load_size;
-
-                    accumulator_sender = uint8_t((accumulator_sender << load_size) + (uint8_t(input.data >> data_size) & byte_low_mask[load_size]));
-
-                    clear_bits_sender -= load_size;
-                    if (!clear_bits_sender)
-                    {
-                        push_byte(accumulator_sender);
-                        accumulator_sender = 0;
-                        clear_bits_sender = BYTE_BITS;
-                    }
+                    push_byte(accumulator_sender);
+                    accumulator_sender = 0;
+                    clear_bits_sender = OCTET_BITS;
                 }
-
-                return *this;
             }
 
-            template<size_t N>
-            bit_stream_base_t& operator<< (const bit_cpack_t<N>& input)
-            {
-                return operator<< (bit_pack_t{ N, input.data });
-            }
+            return *this;
+        }
 
-            void flush()
-            {
-                if (clear_bits_sender < BYTE_BITS) push_byte(accumulator_sender << clear_bits_sender);
-                clear_bits_sender = BYTE_BITS;
-                accumulator_sender = 0;
-                hook_after_flush();
-            }
+        SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bits_stream_base_type& operator<< (const TT& input) { return write(input); }
 
-            void rewind()
-            {
-                hook_before_rewind();
-                uint8_t accumulator_receiver = 0;
-                uint8_t available_bits_receiver = 0;
-            }
+        void write_flush()
+        {
+            if (clear_bits_sender < OCTET_BITS) push_byte(accumulator_sender << clear_bits_sender);
+            clear_bits_sender = OCTET_BITS;
+            accumulator_sender = 0;
+            hook_after_flush();
+        }
 
-            bool check(const bit_pack_t& readout)
-            {
-                if (!readout.size || available_bits_receiver) return true;
-                if (!pop_byte(accumulator_receiver)) return false;
-                available_bits_receiver = BYTE_BITS;
-                return true;
-            }
-
-            template<size_t N>
-            bool check(const bit_cpack_t<N>& readout)
-            {
-                bit_pack_t R{ N, 0 };
-                return check(R);
-            }
-
-            bit_stream_base_t& operator>> (bit_pack_t& readout)   // size is input, data is output
-            {
-                auto data_size = readout.size;
-                while (data_size)
-                {
-                    if (!available_bits_receiver)
-                    {
-                        if (!pop_byte(accumulator_receiver)) accumulator_receiver = 0;
-                        available_bits_receiver = BYTE_BITS;
-                    }
-
-                    auto load_size = std::min(data_size, available_bits_receiver);
-                    available_bits_receiver -= load_size;
-
-                    auto receiver_split = uint16_t(accumulator_receiver << load_size);
-                    readout.data = (readout.data << load_size) + (receiver_split >> BYTE_BITS);
-                    accumulator_receiver = uint8_t(receiver_split);
-
-                    data_size -= load_size;
-                }
-
-                return *this;
-            }
-
-            template<size_t N>
-            bit_stream_base_t& operator>> (bit_cpack_t<N>& input)
-            {
-                bit_pack_t R{ N, 0 };
-                operator>> (R);
-                input.data = R.data;
-                return *this;
-            }
-
-        private:
-            static constexpr uint8_t byte_low_mask[BYTE_BITS + 1] = { 0, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F, 0xFF };
-
-            uint8_t accumulator_sender = 0;
-            uint8_t clear_bits_sender = BYTE_BITS;
+        void read_rewind()
+        {
+            hook_before_rewind();
             uint8_t accumulator_receiver = 0;
             uint8_t available_bits_receiver = 0;
-        };
+        }
 
-        class bit_file_t : public bit_stream_base_t
+        bool can_read(unsigned bit_count)
         {
-        private:
-            std::fstream fs;
-            std::ios_base::openmode fs_mode;
+            if (!bit_count || available_bits_receiver) return true;
+            if (!pop_byte(accumulator_receiver)) return false;
+            available_bits_receiver = OCTET_BITS;
+            return true;
+        }
 
-            bool can_read() const { return (fs_mode & std::ios_base::in); }
-            bool can_write() const { return (fs_mode & std::ios_base::out); }
+        SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bool can_read(const TT& request) { return can_read(request.bit_count); }
 
-        public:
-            bit_file_t();
-
-            template<class T, std::enable_if_t<SKLIB_TYPES_IS_ANYSTRING(T), bool> = true>
-            explicit bit_file_t(const T& filename, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
-                : fs_mode(mode), fs(filename, mode | std::ios_base::binary)
+        SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bits_stream_base_type& read(TT& request)    // size is input, data is output
+        {
+            request.data = 0;
+            auto data_size = request.bit_count;
+            while (data_size)
             {
-                if (can_read() && can_write() && !fs.is_open())  // extend RW mode: if file doesn't exist, create
+                if (!available_bits_receiver)
                 {
-                    fs.open(filename, std::ios_base::out);
-                    fs.close();
-                    fs.open(filename, mode | std::ios_base::binary);
+                    if (!pop_byte(accumulator_receiver)) accumulator_receiver = 0;
+                    available_bits_receiver = OCTET_BITS;
                 }
+
+                auto load_size = std::min(data_size, available_bits_receiver);
+                available_bits_receiver -= load_size;
+
+                auto receiver_split = uint16_t(accumulator_receiver << load_size);
+                request.data = (request.data << load_size) + (receiver_split >> OCTET_BITS);
+                accumulator_receiver = uint8_t(receiver_split);
+
+                data_size -= load_size;
             }
 
-            std::fstream& file_stream() { return fs; }
+            return *this;
+        }
 
-        protected:
-            void hook_after_reset()
+        SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bits_stream_base_type& operator>> (TT& request) { return read(request); }
+
+    private:
+        static constexpr uint8_t byte_low_mask[OCTET_BITS + 1] = { 0, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F, 0xFF };
+
+        uint8_t  accumulator_sender = 0;
+        unsigned clear_bits_sender = OCTET_BITS;
+        uint8_t  accumulator_receiver = 0;
+        unsigned available_bits_receiver = 0;
+    };
+
+    class bits_file_type : public bits_stream_base_type
+    {
+    private:
+        std::fstream fs;
+        std::ios_base::openmode fs_mode;
+
+        bool can_read() const { return (fs_mode & std::ios_base::in); }
+        bool can_write() const { return (fs_mode & std::ios_base::out); }
+
+    public:
+        bits_file_type();
+
+        template<class T, std::enable_if_t<SKLIB_TYPES_IS_ANYSTRING(T), bool> = true>
+        explicit bits_file_type(const T& filename, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+            : fs_mode(mode), fs(filename, mode | std::ios_base::binary)
+        {
+            if (can_read() && can_write() && !fs.is_open())  // extend RW mode: if file doesn't exist, create
             {
-                if (can_read()) fs.seekg(0);
-                if (can_write()) fs.seekp(0);
+                fs.open(filename, std::ios_base::out);
+                fs.close();
+                fs.open(filename, mode | std::ios_base::binary);
             }
+        }
 
-            void hook_after_flush()
-            {
-                if (can_write()) fs.flush();
-            }
+        std::fstream& file_stream() { return fs; }
 
-            void hook_before_rewind()
-            {
-                if (can_read()) fs.seekg(0);
-            }
+    protected:
+        void hook_after_reset()
+        {
+            if (can_read()) fs.seekg(0);
+            if (can_write()) fs.seekp(0);
+        }
 
-            void push_byte(uint8_t data)
-            {
-                char c = data;
-                if (can_write()) fs.write(&c, 1);
-            }
+        void hook_after_flush()
+        {
+            if (can_write()) fs.flush();
+        }
 
-            bool pop_byte(uint8_t& data)
-            {
-                if (!can_read() || fs.eof()) return false;
+        void hook_before_rewind()
+        {
+            if (can_read()) fs.seekg(0);
+        }
 
-                char c = 0;
-                fs.read(&c, 1);
-                if (fs.eof()) return false;
+        void push_byte(uint8_t data)
+        {
+            char c = data;
+            if (can_write()) fs.write(&c, 1);
+        }
 
-                data = c;
-                return true;
-            }
-        };
+        bool pop_byte(uint8_t& data)
+        {
+            if (!can_read() || fs.eof()) return false;
+
+            char c = 0;
+            fs.read(&c, 1);
+            if (fs.eof()) return false;
+
+            data = c;
+            return true;
+        }
     };
 };
 
+#endif // SKLIB_INCLUDED_BITWISE_HPP

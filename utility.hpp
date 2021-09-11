@@ -9,14 +9,14 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
-#pragma once
 
+#ifndef SKLIB_INCLUDED_UTILITY_HPP
+#define SKLIB_INCLUDED_UTILITY_HPP
 
 #ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include <type_traits>
 #include <string>
 #endif
-
 
 
 #define SKLIB_TYPES_IS_INTEGER(T)           (std::is_integral_v<T> && !std::is_same_v<T, bool>)
@@ -33,6 +33,18 @@
 #define SKLIB_TYPES_IS_STDWSTRING(T)        (std::is_same_v<T, std::wstring>)
 #define SKLIB_TYPES_IS_STDSTRING(T)         (SKLIB_TYPES_IS_STDCSTRING(T) || SKLIB_TYPES_IS_STDWSTRING(T)) 
 #define SKLIB_TYPES_IS_ANYSTRING(T)         (SKLIB_TYPES_IS_STRING(T) || SKLIB_TYPES_IS_STDSTRING(T))
+
+#define SKLIB_INTERNAL_TEMPLATE_IF_INT_T    template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
+#define SKLIB_INTERNAL_TEMPLATE_IF_UINT_T   template<class T, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), bool> = true>
+
+#define SKLIB_INTERNAL_FEATURE_IF_INT_T     SKLIB_INTERNAL_TEMPLATE_IF_INT_T static constexpr       /* useful shortcuts */
+#define SKLIB_INTERNAL_FEATURE_IF_UINT_T    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T static constexpr
+
+#define SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(match_type)  template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, match_type), bool> = true>
+
+
+
+
 
 namespace sklib
 {
@@ -53,3 +65,5 @@ namespace sklib
     };
 };
 
+
+#endif // SKLIB_INCLUDED_UTILITY_HPP
