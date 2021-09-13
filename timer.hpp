@@ -9,13 +9,16 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
-#pragma once
+#ifndef SKLIB_INCLUDED_TIMER_HPP
+#define SKLIB_INCLUDED_TIMER_HPP
 
 #ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include <thread>
 #include <chrono>
 #include <ratio>
 #endif
+
+#include "./helpers.hpp"     // this also loads <type_traits>
 
 // 1. Convert time in certain real-world units to C++ time representation
 
@@ -77,6 +80,24 @@ namespace sklib
 
 // 3. For completeness, time conversion as explicit functions
 
+// special: template active for integer or floating type T, makes up type LGT=unsigned long long or long double for respective T, return type is constexpr auto
+#define SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_FROM_UNITS(funkname,opconv)                                           \
+    template<class T, class LGT = std::conditional_t<SKLIB_TYPES_IS_INTEGER(T), unsigned long long, long double>,    \
+                      std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T) || SKLIB_TYPES_IS_FLOATING_POINT(T), bool> = true>  \
+    constexpr auto funkname (T t) { return operator""opconv (LGT(t)); }    // NB: no spaces around ""
+
+    SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_FROM_UNITS( time_seconds,      _s_sklib  );
+    SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_FROM_UNITS( time_milliseconds, _ms_sklib );
+    SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_FROM_UNITS( time_microseconds, _us_sklib );
+    SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_FROM_UNITS( time_nanoseconds,  _ns_sklib );
+
+/*
+    SKLIB_INTERNAL_TEMPLATE_CE_A_IF_INT_OR_FLOAT_T_SELECT_LGT time_seconds(T t)      { return operator""_s_sklib(LGT(t)); }
+    SKLIB_INTERNAL_TEMPLATE_CE_A_IF_INT_OR_FLOAT_T_SELECT_LGT time_milliseconds(T t) { return operator""_ms_sklib(LGT(t)); }
+    SKLIB_INTERNAL_TEMPLATE_CE_A_IF_INT_OR_FLOAT_T_SELECT_LGT time_microseconds(T t) { return operator""_us_sklib(LGT(t)); }
+    SKLIB_INTERNAL_TEMPLATE_CE_A_IF_INT_OR_FLOAT_T_SELECT_LGT time_nanoseconds(T t)  { return operator""_ns_sklib(LGT(t)); }
+*/
+/*
     template<class T, std::enable_if_t<std::is_integral_v<T>, bool> = true>
     constexpr auto time_seconds(T t)
     { return operator""_s_sklib((unsigned long long)t);  }
@@ -108,11 +129,43 @@ namespace sklib
     template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
     constexpr auto time_nanoseconds(T t)
     { return operator""_ns_sklib((long double)t);        }
+*/
 
 
 // 4. Conversion from intervals in time units to number of seconds, milliseconds, minutes, etc
-//    Working with timers (class timer_stopwatch_t), see section 7
+//    Working with timers (class timer_stopwatch_type), see section 7
 
+// template active for integer or floating return type TT, gets duration<tRep, tPeriod> param,
+// makes up type LGT=unsigned long long or long double for respective T, return type is constexpr auto
+#define SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_TO_UNITS(funkname,unitref)                                \
+    template<class TT, class tRep, class tPeriod = std::ratio<1>,                                        \
+        class LGT = std::conditional_t<SKLIB_TYPES_IS_INTEGER(TT), unsigned long long, long double>,     \
+        std::enable_if_t<SKLIB_TYPES_IS_INTEGER(TT) || SKLIB_TYPES_IS_FLOATING_POINT(TT), bool> = true>  \
+    constexpr TT funkname (const std::chrono::duration<tRep, tPeriod>& t)                                \
+    { return TT((std::chrono::duration_cast<std::chrono::duration<LGT, unitref>>(t)).count()); }
+
+    SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_TO_UNITS( time_to_nanoseconds,  std::nano     );
+    SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_TO_UNITS( time_to_microseconds, std::micro    );
+    SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_TO_UNITS( time_to_milliseconds, std::milli    );
+    SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_TO_UNITS( time_to_seconds,      std::ratio<1> );
+
+#undef SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_FROM_UNITS
+#undef SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_TO_UNITS
+
+/*/
+    SKLIB_INTERNAL_TEMPLATE_CE_IF_INT_OR_FLOAT_TT_DURATN_SELECT_LGT TT time_to_nanoseconds(const std::chrono::duration<tRep, tPeriod>& t)
+    { return TT((std::chrono::duration_cast<std::chrono::duration<LGT, std::nano>(t)).count()); }
+
+    SKLIB_INTERNAL_TEMPLATE_CE_IF_INT_OR_FLOAT_TT_DURATN_SELECT_LGT TT time_to_microseconds(const std::chrono::duration<tRep, tPeriod>& t)
+    { return TT((std::chrono::duration_cast<std::chrono::duration<LGT, std::micro>(t)).count()); }
+
+    SKLIB_INTERNAL_TEMPLATE_CE_IF_INT_OR_FLOAT_TT_DURATN_SELECT_LGT TT time_to_milliseconds(const std::chrono::duration<tRep, tPeriod>& t)
+    { return TT((std::chrono::duration_cast<std::chrono::duration<LGT, std::milli>(t)).count()); }
+
+    SKLIB_INTERNAL_TEMPLATE_CE_IF_INT_OR_FLOAT_TT_DURATN_SELECT_LGT TT time_to_seconds(const std::chrono::duration<tRep, tPeriod>& t)
+    { return TT((std::chrono::duration_cast<std::chrono::duration<LGT>(t)).count()); }
+*/
+/*
     template<class tTarget, class tRep, class tPeriod = std::ratio<1>, std::enable_if_t<std::is_integral_v<tTarget>, bool> = true>
     constexpr tTarget time_to_nanoseconds(const std::chrono::duration<tRep, tPeriod>& t)
     { return tTarget((std::chrono::duration_cast<std::chrono::nanoseconds>(t)).count()); }
@@ -144,6 +197,7 @@ namespace sklib
     template<class tTarget, class tRep, class tPeriod = std::ratio<1>, std::enable_if_t<std::is_floating_point_v<tTarget>, bool> = true>
     constexpr tTarget time_to_seconds(const std::chrono::duration<tRep, tPeriod>& t)
     { return (std::chrono::duration_cast<std::chrono::duration<tTarget>>(t)).count(); }
+*/
 
 
 // 5. Platform-independent Sleep() analog
@@ -165,7 +219,7 @@ namespace sklib
 //sk TODO replace description
 
 // Interface:
-//      timer_stopwatch_t  Create timer, either stopped or running. Can specify timeout
+//      timer_stopwatch_type  Create timer, either stopped or running. Can specify timeout
 //      reset           Reset Stopwatch and Timeout timer. Start or stop according to the initial state. Optional: specify new timeout
 //      start           Start Stopwatch, reset timeout start time (if wasn't running). Optional: specify new timeout
 //      stop            Stop Stopwatch, returns the most recent interval duration
@@ -176,7 +230,7 @@ namespace sklib
 //
 // Use case: typical timeout monitor
 //
-//    timer_stopwatch_t timeout(delay_seconds);
+//    timer_stopwatch_type timeout(delay_seconds);
 //    while (...condition...)
 //    {
 //        if (timeout) { ...handle timeout event... }   // explicit bool() in the name!
@@ -185,9 +239,9 @@ namespace sklib
 //
 // Use case: typical elapsed time monitor
 //
-//    timer_stopwatch_t elapsed;
+//    timer_stopwatch_type elapsed;
 //    while (...condition...) { ...do something... }
-//    double time_interval = elapsed.read();            // also, has explicit double() cast in the name
+//    std::chrono::steady_clock::duration measured_time = elapsed.read();            // also, has explicit duration() cast in the name
 //
 
     // Timeout and Stopwatch timers implemented around std::chrono::steady_clock
@@ -197,24 +251,26 @@ namespace sklib
     // Timer is started at creation by default, or created stopped if <false> is specified
     // All time intervals are floating point values in seconds
     //
-    class timer_stopwatch_t
+    class timer_stopwatch_type
     {
     public:
-        enum class create_mode_t { running, idle };
+        enum class create_mode_type { running, idle };
+        static constexpr create_mode_type create_mode_idle    = create_mode_type::idle;
+        static constexpr create_mode_type create_mode_running = create_mode_type::running;
 
-        class duration_helper_t
+        class duration_helper_type
         {
-            friend timer_stopwatch_t;
+            friend timer_stopwatch_type;
 
         private:
             std::chrono::steady_clock::duration value;
 
         public:
             template<class tRep, class tPeriod = std::ratio<1>>
-            duration_helper_t(const std::chrono::duration<tRep, tPeriod>& input) : value(std::chrono::duration_cast<std::chrono::steady_clock::duration>(input)) {}
+            duration_helper_type(const std::chrono::duration<tRep, tPeriod>& input) : value(std::chrono::duration_cast<std::chrono::steady_clock::duration>(input)) {}
 
             template<class T, std::enable_if_t<(std::is_integral_v<T> || std::is_floating_point_v<T>), bool> = true>
-            duration_helper_t(const T& input) : value(std::chrono::duration_cast<std::chrono::steady_clock::duration>(::sklib::time_milliseconds(input))) {}
+            duration_helper_type(const T& input) : value(std::chrono::duration_cast<std::chrono::steady_clock::duration>(::sklib::time_milliseconds(input))) {}
         };
 
     private:
@@ -224,7 +280,7 @@ namespace sklib
         bool timer_active;
         bool created_active;
 
-        void configure(bool initialize, bool start, bool update_timeout = false, const duration_helper_t& timeout = 0)
+        void configure(bool initialize, bool start, bool update_timeout = false, const duration_helper_type& timeout = 0)
         {
             if (initialize) time_accumulator = std::chrono::steady_clock::duration(0);
             if (initialize || (start && !timer_active)) start_time = std::chrono::steady_clock::now();
@@ -236,9 +292,9 @@ namespace sklib
         std::chrono::steady_clock::duration get_dt() const
         { return std::chrono::steady_clock::now() - start_time; }
 
-        void create(const duration_helper_t& timeout, create_mode_t mode)
+        void create(const duration_helper_type& timeout, create_mode_type mode)
         {
-            created_active = (mode == create_mode_t::running);
+            created_active = (mode == create_mode_running);
             reset(timeout, mode);
         }
 
@@ -255,10 +311,10 @@ namespace sklib
         // timer(time, mode)
         // timer(mode) - create with mode, 0 timeout
 
-        timer_stopwatch_t(const duration_helper_t& timeout, create_mode_t mode = create_mode_t::running)
+        timer_stopwatch_type(const duration_helper_type& timeout, create_mode_type mode = create_mode_running)
         { create(timeout, mode); }
 
-        timer_stopwatch_t(create_mode_t mode = create_mode_t::running)
+        timer_stopwatch_type(create_mode_type mode = create_mode_running)
         { create(0, mode); }
 
         // reset() - restart timer with creation params
@@ -269,11 +325,11 @@ namespace sklib
         void reset()
         { configure(true, created_active); }
 
-        void reset(const duration_helper_t& timeout, create_mode_t mode = create_mode_t::running)
-        { configure(true, (mode == create_mode_t::running), true, timeout); }
+        void reset(const duration_helper_type& timeout, create_mode_type mode = create_mode_running)
+        { configure(true, (mode == create_mode_running), true, timeout); }
 
-        void reset(create_mode_t mode)
-        { configure(true, (mode == create_mode_t::running)); }
+        void reset(create_mode_type mode)
+        { configure(true, (mode == create_mode_running)); }
 
         //
 
@@ -288,7 +344,7 @@ namespace sklib
         // If timer is running, timeout start time does NOT change
         // Timeout interval is updated to the new value
         //
-        void start(const duration_helper_t& update_timeout)
+        void start(const duration_helper_type& update_timeout)
         { configure(false, true, true, update_timeout); }
 
         // Returns true if timeout has occured, i.e.
@@ -301,14 +357,11 @@ namespace sklib
         // Returns true if timeout has occured, i.e.
         // more than timeout_s seconds have elapsed since timer creation or last update
         //
-        bool is_timeout(const duration_helper_t& timeout) const
+        bool is_timeout(const duration_helper_type& timeout) const
         { return (read() > timeout.value); }
 
         // synonym for is_timeout()
         explicit operator bool() const { return is_timeout(); }
-
-        // synonym for read()
-        explicit operator std::chrono::steady_clock::duration() const { return read(); }
 
         // Returns true if the timer is running
         //
@@ -337,24 +390,29 @@ namespace sklib
         {
             return time_accumulator + (timer_active ? get_dt() : std::chrono::steady_clock::duration(0));
         }
+
+        // synonym for read()
+        explicit operator std::chrono::steady_clock::duration() const { return read(); }
     };
 
-// 7. Conversions directly from class timer_stopwatch_t type
+// 7. Conversions directly from class timer_stopwatch_type type
 
     template<class tTarget>
-    constexpr tTarget time_to_nanoseconds(const timer_stopwatch_t& t)
+    constexpr tTarget time_to_nanoseconds(const timer_stopwatch_type& t)
     { return time_to_nanoseconds<tTarget>(t.read()); }
 
     template<class tTarget>
-    constexpr tTarget time_to_microseconds(const timer_stopwatch_t& t)
+    constexpr tTarget time_to_microseconds(const timer_stopwatch_type& t)
     { return time_to_microseconds<tTarget>(t.read()); }
 
     template<class tTarget>
-    constexpr tTarget time_to_milliseconds(const timer_stopwatch_t& t)
+    constexpr tTarget time_to_milliseconds(const timer_stopwatch_type& t)
     { return time_to_milliseconds<tTarget>(t.read()); }
 
     template<class tTarget>
-    constexpr tTarget time_to_seconds(const timer_stopwatch_t& t)
+    constexpr tTarget time_to_seconds(const timer_stopwatch_type& t)
     { return time_to_seconds<tTarget>(t.read()); }
 
 };
+
+#endif // SKLIB_INCLUDED_TIMER_HPP

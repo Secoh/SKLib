@@ -24,7 +24,7 @@
 #include <string>
 #endif
 
-#include "./utility.hpp"     // this also loads <type_traits>
+#include "./helpers.hpp"     // this also loads <type_traits>
 
 namespace sklib
 {
@@ -54,7 +54,7 @@ namespace sklib
     // Helper/reference tables
     // used for: flip, distance, rank
 
-#include "./bitwise/tables.hpp"
+#include "./static/bitwise-tables.hpp"
 
     // ----------------------------------------------------------
     // Flip bits in integer, eg write bits in opposite direction

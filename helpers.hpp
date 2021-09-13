@@ -9,7 +9,6 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
-
 #ifndef SKLIB_INCLUDED_UTILITY_HPP
 #define SKLIB_INCLUDED_UTILITY_HPP
 
@@ -38,7 +37,7 @@
 #define SKLIB_INTERNAL_TEMPLATE_IF_UINT_T   template<class T, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), bool> = true>
 
 #define SKLIB_INTERNAL_FEATURE_IF_INT_T     SKLIB_INTERNAL_TEMPLATE_IF_INT_T static constexpr       /* useful shortcuts */
-#define SKLIB_INTERNAL_FEATURE_IF_UINT_T    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T static constexpr
+#define SKLIB_INTERNAL_FEATURE_IF_UINT_T    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T static constexpr      /* "class feature rather than just member item */
 
 #define SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(match_type)  template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, match_type), bool> = true>
 

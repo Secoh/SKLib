@@ -9,25 +9,20 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
-#pragma once
+#ifndef SKLIB_INCLUDED_CHECKSUM_TABLES_HPP
+#define SKLIB_INCLUDED_CHECKSUM_TABLES_HPP
 
-#ifndef SKLIB_PRELOADED_COMMON_HEADERS
-#define SKLIB_PRELOADED_COMMON_HEADERS
+namespace sklib_internal
+{
 
-#include <cstdio>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
-#include <string>
-#include <vector>
-#include <utility>
-#include <type_traits>
-#include <mutex>
-#include <thread>
-#include <chrono>
-#include <ratio>
-
+#ifdef SKLIB_CHECKSUM_LINK_CRC_TABLES  /* NB: preprocessor define is reused with opposite meaning */
+    static constexpr  /* visible directly to all the compilation unit */
 #else
-#error SkLib: This cannot happen. Common Headers are loaded twice despite pragma once.
+    const             /* hidden from end user, must be linked */
 #endif
+    uint16_t checksum_crc16_table[checksum_crc_table_size] = 
 
+
+
+
+#endif // SKLIB_INCLUDED_CHECKSUM_TABLES_HPP

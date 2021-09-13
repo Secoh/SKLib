@@ -23,10 +23,13 @@
 //      FAQ: https://tangentsoft.net/wskfaq/
 //      I/O example: https://tangentsoft.net/wskfaq/examples/basics/select-server.cpp
 
-#pragma once
+#ifndef SKLIB_INCLUDED_COMMS_HPP
+#define SKLIB_INCLUDED_COMMS_HPP
 
+#ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include<memory>
 #include<string>
+#endif
 
 namespace sklib
 {
@@ -39,7 +42,7 @@ namespace sklib
     {
     private:
         bool error_state = false;
-        int system_error_code;    // set to ERROR_SUCCESS by default;
+        int system_error_code;    // set to ERROR_SUCCESS=0 by default;
 
     public:
         static constexpr char loopback_ip_address[] = "127.0.0.1";
@@ -80,3 +83,4 @@ namespace sklib
     };
 };
 
+#endif // SKLIB_INCLUDED_COMMS_HPP

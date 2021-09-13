@@ -13,7 +13,8 @@
 // Any system/standard header specific to the functions used is also included exclusively here.
 // See file: "comms.hpp" for details how to use the split-header arrangement.
 
-#pragma once
+#ifndef SKLIB_INCLUDED_COMMS_IMPLEMENTATION
+#define SKLIB_INCLUDED_COMMS_IMPLEMENTATION
 
 // code with actual usage of library function
 // keep it away from the main compilation unit to avoid namespace pollution
@@ -27,7 +28,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 // all definitions are in "exported" header
-#include "./comms.hpp"
+#include "../comms.hpp"
 
 namespace sklib
 {
@@ -56,7 +57,8 @@ sklib::stream_tcpip_type::stream_tcpip_type(bool server, uint16_t port_no, const
 {
     system_error_code = ERROR_SUCCESS;
 
-    stream_data = std::unique_ptr<sklib::internal::stream_tcpip_opaque_workspace_type>(new sklib::internal::stream_tcpip_opaque_workspace_type);
+    typedef sklib::internal::stream_tcpip_opaque_workspace_type workspace_type;
+    stream_data = std::unique_ptr<workspace_type>(new workspace_type);
 
     // 2021: the supported Winsock version is 2.2.x since 1996
     if (WSAStartup(MAKEWORD(2, 2), &(stream_data->wsaData)))
@@ -216,3 +218,4 @@ bool sklib::stream_tcpip_type::net_close_connection()  // if server, drop active
     return false;
 }
 
+#endif // SKLIB_INCLUDED_COMMS_IMPLEMENTATION

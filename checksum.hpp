@@ -9,7 +9,8 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
-#pragma once
+#ifndef SKLIB_INCLUDED_CHECKSUM_HPP
+#define SKLIB_INCLUDED_CHECKSUM_HPP
 
 
 #include "./bitwise.hpp"
@@ -28,9 +29,9 @@ namespace sklib
         };
 
 
-        inline void generate_table_crc_msb(uint8_t(&U)[sklib::bitwise::BYTE_ADDRESS_SPAN])
+        inline void generate_table_crc_msb(uint8_t(&U)[::sklib::OCTET_ADDRESS_SPAN])
         {
-            for (size_t k = 0; k < BYTE_ADDRESS_SPAN; k++) U[k] = flip_bruteforce<uint8_t>(uint8_t(k));
+            for (size_t k = 0; k < ::sklib::OCTET_ADDRESS_SPAN; k++) U[k] = ::sklib::supplement::bits_flip_bruteforce<uint8_t>(uint8_t(k));
         }
 
     };
@@ -175,3 +176,6 @@ namespace sklib
 
 };
 
+
+
+#endif // SKLIB_INCLUDED_CHECKSUM_HPP

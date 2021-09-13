@@ -9,16 +9,39 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
-#pragma once
+#ifndef SKLIB_INCLUDED_ALL
+#define SKLIB_INCLUDED_ALL
+
+// Lets preload first all the standard C++ headers ever used in SKLib
+
+#ifndef SKLIB_PRELOADED_COMMON_HEADERS
+#define SKLIB_PRELOADED_COMMON_HEADERS
+
+#include <cstdio>
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <string>
+#include <vector>
+#include <memory>
+#include <utility>
+#include <type_traits>
+#include <mutex>
+#include <thread>
+#include <chrono>
+#include <ratio>
+
+#endif
 
 // To keep all header-only SkLib code in one place
 // (e.g. to accelerate loading precompiled headers in MSVC)
 // just list all available SkLib modules in one file
 
-#include "./common-headers.hpp"
-#include "./utility.hpp"
+#include "./helpers.hpp"
 #include "./bitwise.hpp"
 #include "./timer.hpp"
 
 #include "./comms.hpp"
 
+
+#endif // SKLIB_INCLUDED_ALL
