@@ -92,7 +92,6 @@ namespace sklib
         }
     };
 
-    //template<class T is integer>
     SKLIB_INTERNAL_TEMPLATE_IF_UINT_T inline T bits_flip(::sklib::internal::do_not_deduce<T> data)
     {
         return ::sklib::supplement::bits_flip<sizeof(T), T>(data);
@@ -102,7 +101,6 @@ namespace sklib
     // Hamming distance between integer and 0
     // (between 2 integers - use XOR)
 
-    //template<class T>
     SKLIB_INTERNAL_TEMPLATE_IF_UINT_T inline unsigned bits_distance(T data)
     {
         unsigned R = 0;
@@ -110,7 +108,6 @@ namespace sklib
         return R;
     }
 
-    //template<class T is integer>
     SKLIB_INTERNAL_TEMPLATE_IF_UINT_T inline unsigned bits_distance(T data1, T data2)    // for completeness
     {
         return bits_distance(data1 ^ data2);
@@ -159,7 +156,6 @@ namespace sklib
         }
     };
 
-    //template<class T is integer given size>
     SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint8_t)  inline unsigned bits_rank(T v) { return ::sklib::internal::rank8(uint8_t(v)); }
     SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint16_t) inline unsigned bits_rank(T v) { return ::sklib::internal::rank16(uint16_t(v)); }
     SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint32_t) inline unsigned bits_rank(T v) { return ::sklib::internal::rank32(uint32_t(v)); }
@@ -207,7 +203,6 @@ namespace sklib
     // Unpack byte stream into sequence of objects representing bit packs
     // (bytes are considered MSB; leading bit in the stream corresponds to leading bit in the pack)
 
-
 // special purpose
 #define SKLIB_INTERNAL_TEMPLATE_W_SIZE_I_N_IF_INT_T template<int N, class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
 
@@ -218,7 +213,6 @@ namespace sklib
 
     namespace supplement
     {
-        //template<class T is integer>
         SKLIB_INTERNAL_TEMPLATE_IF_INT_T class bits_variable_pack_type
         {
         public:
@@ -251,21 +245,29 @@ namespace sklib
     class bits_stream_base_type     // using big-endian model
     {
     protected:
-        virtual void push_byte(uint8_t /*data*/) {}
-        virtual bool pop_byte(uint8_t& /*data*/) { return false; }
+        enum class hook_type { after_reset = 0, after_flush, before_rewind };
 
-        virtual void hook_after_reset() {}
-        virtual void hook_after_flush() {}
-        virtual void hook_before_rewind() {}
+    private:
+        bool (* const read_octet)(bits_stream_base_type*, uint8_t&);
+        void (* const write_octet)(bits_stream_base_type*, uint8_t);
+        void (* const hook_action)(bits_stream_base_type*, hook_type action);
 
     public:
+        bits_stream_base_type(bool (*read_octet_callback)(bits_stream_base_type*, uint8_t&),                // derived class provides function to read next octet from stream
+                              void (*write_octet_callback)(bits_stream_base_type*, uint8_t),                // write into stream
+                              void (*hook_callback)(bits_stream_base_type*, hook_type action) = nullptr)    // stream-related events
+            : read_octet(read_octet_callback)
+            , write_octet(write_octet_callback)
+            , hook_action(hook_callback)
+        {}
+
         void reset()
         {
             accumulator_sender = 0;
             clear_bits_sender = OCTET_BITS;
             accumulator_receiver = 0;
             available_bits_receiver = 0;
-            hook_after_reset();
+            if (hook_action) hook_action(this, hook_type::after_reset);
         }
 
         SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bits_stream_base_type& write(const TT& input)
@@ -281,7 +283,7 @@ namespace sklib
                 clear_bits_sender -= load_size;
                 if (!clear_bits_sender)
                 {
-                    push_byte(accumulator_sender);
+                    if (write_octet) write_octet(this, accumulator_sender);
                     accumulator_sender = 0;
                     clear_bits_sender = OCTET_BITS;
                 }
@@ -294,27 +296,40 @@ namespace sklib
 
         void write_flush()
         {
-            if (clear_bits_sender < OCTET_BITS) push_byte(accumulator_sender << clear_bits_sender);
+            if (clear_bits_sender < OCTET_BITS && write_octet) write_octet(this, (accumulator_sender << clear_bits_sender));
             clear_bits_sender = OCTET_BITS;
             accumulator_sender = 0;
-            hook_after_flush();
+            if (hook_action) hook_action(this, hook_type::after_flush);
         }
 
         void read_rewind()
         {
-            hook_before_rewind();
+            if (hook_action) hook_action(this, hook_type::before_rewind);
             uint8_t accumulator_receiver = 0;
             uint8_t available_bits_receiver = 0;
         }
 
+        // true if internal storage has enough data for the next read
+        bool can_read_without_input_stream(unsigned bit_count) const
+        {
+            return (bit_count <= available_bits_receiver);
+        }
+        SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bool can_read_without_input_stream(const TT& request) const
+        { return can_read_without_input_stream(request.bit_count); }
+
+        // true if subsequent read() can return valid data
+        // even when input stream has ended
+        bool read_has_residual_data() const
+        { return can_read_without_input_stream(1); }
+
+        // true if there is some data in the stream (beware: trailing bits may be truncated)
         bool can_read(unsigned bit_count)
         {
             if (!bit_count || available_bits_receiver) return true;
-            if (!pop_byte(accumulator_receiver)) return false;
+            if (!read_octet || !read_octet(this, accumulator_receiver)) return false;
             available_bits_receiver = OCTET_BITS;
             return true;
         }
-
         SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bool can_read(const TT& request) { return can_read(request.bit_count); }
 
         SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bits_stream_base_type& read(TT& request)    // size is input, data is output
@@ -325,7 +340,7 @@ namespace sklib
             {
                 if (!available_bits_receiver)
                 {
-                    if (!pop_byte(accumulator_receiver)) accumulator_receiver = 0;
+                    if (!read_octet || !read_octet(this, accumulator_receiver)) accumulator_receiver = 0;
                     available_bits_receiver = OCTET_BITS;
                 }
 
@@ -344,7 +359,7 @@ namespace sklib
 
         SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bits_stream_base_type& operator>> (TT& request) { return read(request); }
 
-    private:
+    protected:
         static constexpr uint8_t byte_low_mask[OCTET_BITS + 1] = { 0, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F, 0xFF };
 
         uint8_t  accumulator_sender = 0;
@@ -352,6 +367,12 @@ namespace sklib
         uint8_t  accumulator_receiver = 0;
         unsigned available_bits_receiver = 0;
     };
+
+#undef SKLIB_INTERNAL_TEMPLATE_W_SIZE_I_N_IF_INT_T
+#undef SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK
+
+    // -------------------------------------------------------------------
+    // Application of bit stream abstratction - file based per-bit I/O
 
     class bits_file_type : public bits_stream_base_type
     {
@@ -363,11 +384,11 @@ namespace sklib
         bool can_write() const { return (fs_mode & std::ios_base::out); }
 
     public:
-        bits_file_type();
-
         template<class T, std::enable_if_t<SKLIB_TYPES_IS_ANYSTRING(T), bool> = true>
         explicit bits_file_type(const T& filename, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
-            : fs_mode(mode), fs(filename, mode | std::ios_base::binary)
+            : bits_stream_base_type(read_byte_proc, write_byte_proc, stream_action)
+            , fs_mode(mode)
+            , fs(filename, mode | std::ios_base::binary)
         {
             if (can_read() && can_write() && !fs.is_open())  // extend RW mode: if file doesn't exist, create
             {
@@ -379,30 +400,8 @@ namespace sklib
 
         std::fstream& file_stream() { return fs; }
 
-    protected:
-        void hook_after_reset()
-        {
-            if (can_read()) fs.seekg(0);
-            if (can_write()) fs.seekp(0);
-        }
-
-        void hook_after_flush()
-        {
-            if (can_write()) fs.flush();
-        }
-
-        void hook_before_rewind()
-        {
-            if (can_read()) fs.seekg(0);
-        }
-
-        void push_byte(uint8_t data)
-        {
-            char c = data;
-            if (can_write()) fs.write(&c, 1);
-        }
-
-        bool pop_byte(uint8_t& data)
+    private:
+        bool redirect_read_byte(uint8_t& data)
         {
             if (!can_read() || fs.eof()) return false;
 
@@ -412,6 +411,307 @@ namespace sklib
 
             data = c;
             return true;
+        }
+        static bool read_byte_proc(bits_stream_base_type* root, uint8_t& data)
+        {
+            return static_cast<bits_file_type*>(root)->redirect_read_byte(data);
+        }
+
+        void redirect_write_byte(uint8_t data)
+        {
+            char c = data;
+            if (can_write()) fs.write(&c, 1);
+        }
+        static void write_byte_proc(bits_stream_base_type* root, uint8_t data)
+        {
+            static_cast<bits_file_type*>(root)->redirect_write_byte(data);
+        }
+
+        void action_after_reset()
+        {
+            if (can_read()) fs.seekg(0);
+            if (can_write()) fs.seekp(0);
+        }
+        void action_after_flush()
+        {
+            if (can_write()) fs.flush();
+        }
+        void action_before_rewind()
+        {
+            if (can_read()) fs.seekg(0);
+        }
+        static void stream_action(bits_stream_base_type* root, hook_type what)
+        {
+            auto self = static_cast<bits_file_type*>(root);
+
+            switch (what)
+            {
+            case hook_type::after_reset:   self->action_after_reset();   break;
+            case hook_type::after_flush:   self->action_after_flush();   break;
+            case hook_type::before_rewind: self->action_before_rewind(); //break;
+            }
+        }
+    };
+
+    // ---------------------------------------------------
+    // base64 I/O on top of bits_stream_base_type class
+
+    class base64_type : protected bits_stream_base_type  // make underlying members hidden from caller but allow further class derivation
+    {
+    public:
+        static constexpr int encoding_bit_length = 6;
+        static constexpr size_t dictionary_size = (1 << encoding_bit_length);
+        static constexpr uint8_t dictionary_address_mask = (uint8_t)(dictionary_size-1);
+        static constexpr char dictionary[dictionary_size+1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        static constexpr char EOL_char = '=';
+
+    protected:
+        // special Inverse/Decode table entries (see: Tables) to handle non-dictionary characters on input
+        // b64_dictionary_inverse[input_ch] => output data, or soecial code as follows:
+        static constexpr uint8_t EOL_code = 0xF9;       // input was EOL (EOF, EOT, end of data stream, etc)
+        static constexpr uint8_t Space_code = 0xF0;     // Space or Blank ASCII character
+        static constexpr uint8_t Bad_code = 0xFF;       // invalid input
+
+        // octet (or character) I/O is communicated as integers, just like as ANSI C does
+        // lets note that we are using special "character" for EOF = -1, inherited from C language
+        // internally, lets have designation for "idle state" - the "idle" shall be never returned to caller!
+        static constexpr int Idle_char = EOF-1;
+        static_assert(EOF < 0, "SKLIB ** INTERNAL ERROR ** EOF must be negative");
+        static_assert(Idle_char < 0, "SKLIB ** INTERNAL ERROR ** EOF-1 must be negative");
+
+    public:
+        static constexpr size_t raw_data_block_size = 3;
+        static constexpr size_t encoded_block_size = 4;
+
+        static constexpr size_t encoded_length(size_t raw_data_input_length)
+        {
+            size_t blocks_count = raw_data_input_length / raw_data_block_size;
+            size_t tail_length = raw_data_input_length % raw_data_block_size;     // { 0, 1, 2 } => { 0, 1, 2 }
+            return blocks_count * encoded_block_size + tail_length;
+        }
+
+        static constexpr size_t decoded_length(size_t encoded_input_length)
+        {
+            size_t blocks_count = encoded_input_length / encoded_block_size;
+            size_t tail_length = encoded_input_length % encoded_block_size;
+            if (tail_length) tail_length--;                                     // { 0, 1, 2, 3 } => { 0, 0, 1, 2 }
+            return blocks_count * raw_data_block_size + tail_length;
+        }
+
+    protected:
+        bool encoder_errors = false;
+
+        int pending_data_to_encode = Idle_char;
+        static bool read_encoded_proc(bits_stream_base_type* root, uint8_t& data)
+        {
+            int d = static_cast<base64_type*>(root)->pending_data_to_encode;
+            data = (d < 0 ? 0 : (uint8_t)d);
+            return (d >= 0);
+        }
+
+        int decoded_data_accumulator = Idle_char;
+        static void write_decoded_proc(bits_stream_base_type* root, uint8_t data)
+        {
+            static_cast<base64_type*>(root)->decoded_data_accumulator = data;
+        }
+
+    private:
+        bool (* const read_proc)(base64_type*, int&);
+        void (* const write_proc)(base64_type*, int);
+
+        ::sklib::supplement::bits_fixed_pack_type<encoding_bit_length, uint8_t> exchg{ 0 };
+
+    public:
+        // This class mimics C functions to read from, and write to, a stream
+        // while encoding or decoding Base64 format. Four modes are supported:
+        // - read_encode, underlying input is raw data, caller receives bas64 encoding;
+        // - read_decode, original input is in base_64, caller receives decoded data;
+        // - write_encode, caller sends raw data and it gets converted to base64 in the output;
+        // - write_decode, caller sends base64 symbols, and raw data is written to output stream.
+        // Encoder uses callback functions to read and write bytes (0..255 range),
+        // as well as to communicate EOF condition by negative data value.
+        //
+        base64_type(bool (*read_callback)(base64_type*, int&),
+                    void (*write_callback)(base64_type*, int))
+            : read_proc(read_callback)
+            , write_proc(write_callback)
+            , bits_stream_base_type(read_encoded_proc, write_decoded_proc)
+        {}
+
+        // returns TRUE if any encoding/decoding error was seen since last call
+        // clears internal error counter
+        //
+        bool have_errors()
+        {
+            bool R = encoder_errors;
+            encoder_errors = false;
+            return R;
+        }
+
+        // resets the state of the class (and the encoder) to idle state
+        // same as just after constructor completion
+        //
+        void reset()
+        {
+            bits_stream_base_type::reset();
+            encoder_errors = false;
+            pending_data_to_encode = Idle_char;
+            decoded_data_accumulator = Idle_char;
+        }
+
+        // reads from incoming base64 stream and returns decoded characters in "data"
+        // returns TRUE if new data is received or if the stream is in EOF state
+        // EOF is signaled as ANSI C symbol EOF (normally equal to -1)
+        // incoming (encoded) stream is received via read_callback function, see constructor
+        // "data present" and EOF interpretations shall be the same as for this function
+        //
+        bool read_decode(int& data)
+        {
+            if (decoded_data_accumulator == EOF)
+            {
+                data = EOF;
+                return true;
+            }
+
+            decoded_data_accumulator = Idle_char;
+
+            int c;
+            if (!read_proc(this, c)) return false;
+
+            c = (c < 0 ? EOL_code : ::sklib::internal::tables::b64_dictionary_inverse[c & OCTET_MASK]);
+
+            if (c == EOL_code)  // EOF
+            {
+                write_flush();
+                data = EOF;
+                decoded_data_accumulator = EOF;
+                return true;
+            }
+            if (c == Space_code)
+            {
+                return false;
+            }
+            if (c == Bad_code)
+            {
+                c = 0;
+                encoder_errors = true;
+            }
+
+            write(::sklib::supplement::bits_fixed_pack_type<encoding_bit_length, uint8_t>((uint8_t)c));
+
+            if (decoded_data_accumulator >= 0)
+            {
+                data = decoded_data_accumulator;
+                return true;
+            }
+
+            return false;
+        }
+
+        // sends one byte of data to the stream, or EOF to signal end of transmission
+        // encoded data is delivired via write_callback function, see constructor
+        // more than one character can be sent out per one byte of data
+        // P.S. end of transmission stgnal in base64 encoding is special in-stream character
+        // new transmissio can be started after that
+        //
+        void write_encode(int data)
+        {
+            pending_data_to_encode = data;
+
+            if (data < 0)
+            {
+                if (can_read(exchg))
+                {
+                    read(exchg);
+                    write_proc(this, dictionary[exchg.data & dictionary_address_mask]);
+                }
+
+                read_rewind();
+                write_proc(this, EOL_char);
+            }
+            else
+            {
+                read(exchg);
+                write_proc(this, dictionary[exchg.data & dictionary_address_mask]);
+
+                if (can_read_without_input_stream(exchg))
+                {
+                    read(exchg);
+                    write_proc(this, dictionary[exchg.data & dictionary_address_mask]);
+                }
+            }
+        }
+
+        // reads from incoming raw stream and returns encoded symbols in "data"
+        // returns TRUE if new data is received or if the stream is in EOF state
+        // EOF is signaled as ANSI C symbol EOF (normally equal to -1)
+        // incoming (raw) stream is received via read_callback function, see constructor
+        // "data present" and EOF interpretations shall be the same as for this function
+        //
+        bool read_encode(int& data)
+        {
+            data = EOL_char;
+
+            if (pending_data_to_encode == EOF) return true;
+
+            if (can_read_without_input_stream(exchg))
+            {
+                read(exchg);
+                data = dictionary[exchg.data & dictionary_address_mask];
+                return true;
+            }
+
+            if (!read_proc(this, pending_data_to_encode)) return false;
+
+            bool eof_seen = (pending_data_to_encode < 0);
+
+            if (!eof_seen || read_has_residual_data())
+            {
+                read(exchg);
+                data = dictionary[exchg.data & dictionary_address_mask];
+            }
+
+            if (eof_seen)
+            {
+                read_rewind();
+                pending_data_to_encode = EOF;
+            }
+
+            return true;
+        }
+
+        // sends one encoded base64 symbol to the stream for decoding, or "=" to signal EOF
+        // (also, just EOF can be sent in lieu of base64 terminator char)
+        // decoded data is delivired via write_callback function, see constructor
+        // less than one character can be sent out per one input symbol
+        // P.S. new transmissio can be started after previous EOF condition
+        //
+        void write_decode(int data)
+        {
+            decoded_data_accumulator = Idle_char;
+
+            if (data < 0 || data == EOL_char)
+            {
+                write_flush();
+                write_proc(this, EOF);
+            }
+            else
+            {
+                uint8_t uc = ::sklib::internal::tables::b64_dictionary_inverse[(uint8_t)data];
+                if (uc < dictionary_size) write(::sklib::supplement::bits_fixed_pack_type<encoding_bit_length, uint8_t>(uc));
+                if (uc == Bad_code) encoder_errors = true;
+                if (decoded_data_accumulator >= 0) write_proc(this, decoded_data_accumulator);
+            }
+        }
+
+        // Helper function to generate Inverse table, based on dictionart, to decode Base64 sequences
+        //
+        static void generate_inverse_table(uint8_t(&U)[::sklib::OCTET_ADDRESS_SPAN])
+        {
+            for (int k=0; k<=' '; k++) U[k] = Space_code;
+            for (int k=' '+1; k<::sklib::OCTET_ADDRESS_SPAN; k++) U[k] = Bad_code;
+            for (size_t k=0; k<dictionary_size; k++) U[dictionary[k]] = (uint8_t)k;
+            U[EOL_char] = EOL_code;
         }
     };
 };
