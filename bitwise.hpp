@@ -52,7 +52,7 @@ namespace sklib
 
     // --------------------------------
     // Helper/reference tables
-    // used for: flip, distance, rank
+    // used for: flip, distance, rank, distance, base64
 
 #include "./static/bitwise-tables.hpp"
 

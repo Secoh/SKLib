@@ -99,7 +99,7 @@ EXTERNAL PACKAGES section
   a) VC++ Directories
 
 Environmental variables are accessed by expression: $(VARIABLE)
-Example of directory reference: $(PACKAGES_THIRD_PARTY)\OpenCV\include
+Example of directory reference: $(ADD_ON_PACKAGES)\OpenCV\include
 
 Include Directories - ALL
   Add references to external packages as needed
