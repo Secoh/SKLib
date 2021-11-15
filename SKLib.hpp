@@ -43,5 +43,7 @@
 
 #include "./comms.hpp"
 
+#include "./checksum.hpp"
+
 
 #endif // SKLIB_INCLUDED_ALL
