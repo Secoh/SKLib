@@ -165,8 +165,6 @@
     <ClInclude Include="..\helpers.hpp" />
     <ClInclude Include="..\sklib.hpp" />
     <ClInclude Include="..\source\comms-code.hpp" />
-    <ClInclude Include="..\static\bitwise-tables.hpp" />
-    <ClInclude Include="..\static\checksum-tables.hpp" />
     <ClInclude Include="..\timer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

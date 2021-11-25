@@ -39,12 +39,6 @@
     <ClInclude Include="..\source\comms-code.hpp">
       <Filter>Header Files\source</Filter>
     </ClInclude>
-    <ClInclude Include="..\static\bitwise-tables.hpp">
-      <Filter>Header Files\static</Filter>
-    </ClInclude>
-    <ClInclude Include="..\static\checksum-tables.hpp">
-      <Filter>Header Files\static</Filter>
-    </ClInclude>
     <ClInclude Include="..\helpers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

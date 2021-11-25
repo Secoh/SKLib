@@ -37,7 +37,7 @@
 #define SKLIB_INTERNAL_TEMPLATE_IF_UINT_T   template<class T, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), bool> = true>
 
 #define SKLIB_INTERNAL_FEATURE_IF_INT_T     SKLIB_INTERNAL_TEMPLATE_IF_INT_T static constexpr       /* useful shortcuts */
-#define SKLIB_INTERNAL_FEATURE_IF_UINT_T    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T static constexpr      /* "class feature rather than just member item */
+#define SKLIB_INTERNAL_FEATURE_IF_UINT_T    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T static constexpr      /* "class feature" rather than just member item */
 
 #define SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(match_type)  template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, match_type), bool> = true>
 
@@ -49,7 +49,7 @@ namespace sklib
 {
 
 // June 2021
-// Current supporting compiler is C++14
+// Current supported language flavor is C++14
 // C++17 or C++20 features, however available on some platforms, are left for future SkLib versions
 // when all relevant targets will catch up (notably Atmel Studio)
 //
@@ -61,6 +61,30 @@ namespace sklib
         template<class T> struct self_type { using type = T; };
         template<class T> using do_not_deduce = typename self_type<T>::type;
 
+    };
+
+
+    namespace supplement
+    {
+        template<class T>
+        static constexpr void table256_print(const std::string& title, const T* U, int width, bool hex = false, int hex_digits = 2)
+        {
+            printf("%s\n", title.c_str());
+
+            std::string dfmt = "%d";
+            if (hex) dfmt = std::string("0x%") + (hex_digits > 1 ? "0" : "") + std::to_string(hex_digits) + "X";
+
+            for (int k=0; k<256; )
+            {
+                for (int i=0; i<width; i++)
+                {
+                    if (i) printf(" ");
+                    printf(dfmt.c_str(), U[k++]);
+                    printf(",");
+                }
+                printf("\n");
+            }
+        }
     };
 };
 

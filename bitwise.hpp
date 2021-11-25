@@ -38,61 +38,126 @@ namespace sklib
 
     namespace supplement
     {
-        //template<class T is integer>
-        SKLIB_INTERNAL_FEATURE_IF_INT_T unsigned bits_data_width() { return OCTET_BITS * (unsigned)sizeof(T); }
-        SKLIB_INTERNAL_FEATURE_IF_INT_T   T  bits_data_high_1()    { return (T(1) << (bits_data_width<T>()-1)); }
-        SKLIB_INTERNAL_FEATURE_IF_INT_T   T  bits_data_mask()      { return (bits_data_high_1<T>() | T(bits_data_high_1<T>()-1)); }
+        SKLIB_INTERNAL_FEATURE_IF_INT_T unsigned bits_data_width()           { return OCTET_BITS * (unsigned)sizeof(T); }
+        SKLIB_INTERNAL_FEATURE_IF_INT_T unsigned bits_data_width_less_sign() { return bits_data_width<T>() - (std::is_signed_v<T> ? 1 : 0); }
 
-        SKLIB_INTERNAL_FEATURE_IF_UINT_T  T  bits_data_low_half()  { return ((T(1) << (bits_data_width<T>()/2)) - 1); }
+// special purpose
+#define SKLIB_INTERNAL_FEATURE_IF_INT_T_WITH_Width template<class T, unsigned Width, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true> static constexpr
+
+        // generalized static constexpr functions for arbitrary bit count
+
+        SKLIB_INTERNAL_FEATURE_IF_INT_T_WITH_Width T bits_short_data_range()
+        {
+            static_assert(Width < bits_data_width_less_sign<T>(), "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bits");
+            return (T(1) << Width);
+        }
+        SKLIB_INTERNAL_FEATURE_IF_INT_T_WITH_Width T bits_short_data_high_1()
+        {
+            static_assert(Width > 0, "SKLIB ** INTERNAL ERROR ** Bit count must be nonzero");
+            static_assert(Width <= bits_data_width_less_sign<T>(), "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bits");
+            return (T(1) << (Width-1));
+        }
+        SKLIB_INTERNAL_FEATURE_IF_INT_T_WITH_Width T bits_short_data_mask()
+        {
+            return (bits_short_data_high_1<T, Width>() | T(bits_short_data_high_1<T, Width>()-1));
+        }
+
+        SKLIB_INTERNAL_FEATURE_IF_INT_T T bits_short_data_range(unsigned width)
+        {
+            return (T(1) << width);
+        }
+        SKLIB_INTERNAL_FEATURE_IF_INT_T T bits_short_data_high_1(unsigned width)
+        {
+            return (T(1) << (width-1));
+        }
+        SKLIB_INTERNAL_FEATURE_IF_INT_T T bits_short_data_mask(unsigned width)
+        {
+            return (bits_short_data_high_1<T>(width) | T(bits_short_data_high_1<T>(width)-1));
+        }
+
+#undef SKLIB_INTERNAL_FEATURE_IF_INT_T_WITH_Width
+
+        // specialized static constexpr functions for entire data type
+
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T  T  bits_data_high_1() { return bits_short_data_high_1<T, bits_data_width<T>()>(); }
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T  T  bits_data_mask() { return (bits_data_high_1<T>() | T(bits_data_high_1<T>() - 1)); }
+
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T  T  bits_data_low_half() { return ((T(1) << (bits_data_width<T>()/2)) - 1); }
         SKLIB_INTERNAL_FEATURE_IF_UINT_T  T  bits_data_high_half() { return (bits_data_low_half<T>() << (bits_data_width<T>()/2)); }
     };
 
-    static constexpr uint8_t OCTET_MASK         = ::sklib::supplement::bits_data_mask<uint8_t>();           //sk? to supplement
+    static constexpr uint8_t OCTET_MASK         = ::sklib::supplement::bits_data_mask<uint8_t>();
     static constexpr size_t  OCTET_ADDRESS_SPAN = OCTET_MASK + 1;
 
     // --------------------------------
     // Helper/reference tables
     // used for: flip, distance, rank, distance, base64
 
-#include "./static/bitwise-tables.hpp"
+    namespace internal
+    {
+        SKLIB_INTERNAL_TEMPLATE_IF_INT_T struct encapsulated_array_octet_index_type
+        {
+            T data[OCTET_ADDRESS_SPAN];
+        };
+    };
 
     // ----------------------------------------------------------
     // Flip bits in integer, eg write bits in opposite direction
 
     namespace supplement
     {
-        template<size_t N, class T>
-        inline T bits_flip(T data)
+        // word_length is in bits
+        SKLIB_INTERNAL_FEATURE_IF_INT_T T bits_flip_bruteforce(::sklib::internal::do_not_deduce<T> data, unsigned word_length)
         {
-            static_assert(sizeof(T) >= N, "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bytes");
-            static_assert(N > 0, "Data length in bytes must be positive integer");
+            T R = 0;
+            for (unsigned i=0; i<word_length; i++, data >>= 1) R = T((R << 1) | (data & 1));
+            return R;
+        }
 
-            T val = (T)::sklib::internal::tables::flip[data & OCTET_MASK];
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T T bits_flip_bruteforce(::sklib::internal::do_not_deduce<T> data)
+        {
+            return bits_flip_bruteforce<T>(data, ::sklib::supplement::bits_data_width<T>());
+        }
+    };
 
-            for (size_t k=1; k<N; k++)
+    namespace internal
+    {
+        static constexpr encapsulated_array_octet_index_type<uint8_t> bits_flip_generate_table()
+        {
+            encapsulated_array_octet_index_type<uint8_t> R = { 0 };
+            for (size_t k=0; k<OCTET_ADDRESS_SPAN; k++) R.data[k] = ::sklib::supplement::bits_flip_bruteforce<uint8_t>(uint8_t(k));
+            return R;
+        }
+
+        static constexpr encapsulated_array_octet_index_type<uint8_t> bits_table_flip = bits_flip_generate_table();
+    };
+
+    namespace supplement
+    {
+        template<size_t N_bytes, class T>
+        static constexpr T bits_flip(T data)
+        {
+            static_assert(sizeof(T) >= N_bytes, "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bytes");
+            static_assert(N_bytes > 0, "Data length in bytes must be positive integer");
+
+            T val = (T)::sklib::internal::bits_table_flip.data[data & OCTET_MASK];
+
+            for (size_t k=1; k<N_bytes; k++)
             {
                 data >>= OCTET_BITS;
-                val = (val << OCTET_BITS) | ::sklib::internal::tables::flip[data & OCTET_MASK];
+                val = (val << OCTET_BITS) | ::sklib::internal::bits_table_flip.data[data & OCTET_MASK];
             }
 
             return val;
         }
 
-        SKLIB_INTERNAL_TEMPLATE_IF_UINT_T T bits_flip_bruteforce(::sklib::internal::do_not_deduce<T> data)
+        static constexpr const uint8_t* bits_flip_get_table()
         {
-            T R = 0;
-            static const unsigned N = ::sklib::supplement::bits_data_width<T>();
-            for (unsigned i=0; i<N; i++, data >>= 1) R = T((R << 1) | (data & 1));
-            return R;
-        }
-
-        void bits_flip_generate_table(uint8_t(&U)[OCTET_ADDRESS_SPAN])
-        {
-            for (size_t k=0; k<OCTET_ADDRESS_SPAN; k++) U[k] = bits_flip_bruteforce<uint8_t>(uint8_t(k));
+            return ::sklib::internal::bits_table_flip.data;
         }
     };
 
-    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T inline T bits_flip(::sklib::internal::do_not_deduce<T> data)
+    SKLIB_INTERNAL_FEATURE_IF_UINT_T T bits_flip(::sklib::internal::do_not_deduce<T> data)
     {
         return ::sklib::supplement::bits_flip<sizeof(T), T>(data);
     }
@@ -101,69 +166,57 @@ namespace sklib
     // Hamming distance between integer and 0
     // (between 2 integers - use XOR)
 
-    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T inline unsigned bits_distance(T data)
-    {
-        unsigned R = 0;
-        for (size_t k=0; k<sizeof(T); k++, data >>= OCTET_BITS) R += ::sklib::internal::tables::distance[data & OCTET_MASK];
-        return R;
-    }
-
-    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T inline unsigned bits_distance(T data1, T data2)    // for completeness
-    {
-        return bits_distance(data1 ^ data2);
-    }
-
     namespace supplement
     {
-        SKLIB_INTERNAL_TEMPLATE_IF_UINT_T unsigned bits_distance_bruteforce(T data)
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T unsigned bits_distance_bruteforce(T data)
         {
             unsigned R = 0;
-            static const unsigned N = ::sklib::supplement::bits_data_width<T>();
+            constexpr unsigned N = ::sklib::supplement::bits_data_width<T>();
             for (unsigned i=0; i<N; i++, data >>= 1) if (data & 1) R++;
             return R;
         }
+    };
 
-        void bits_distance_generate_table(char(&U)[OCTET_ADDRESS_SPAN])
+    namespace internal
+    {
+        static constexpr encapsulated_array_octet_index_type<uint8_t> bits_distance_generate_table()
         {
-            for (size_t k=0; k<OCTET_ADDRESS_SPAN; k++) U[k] = bits_distance_bruteforce(uint8_t(k));
+            encapsulated_array_octet_index_type<uint8_t> R = { 0 };
+            for (size_t k=0; k<OCTET_ADDRESS_SPAN; k++) R.data[k] = ::sklib::supplement::bits_distance_bruteforce(uint8_t(k));
+            return R;
+        }
+
+        static constexpr encapsulated_array_octet_index_type<uint8_t> bits_table_distance = bits_distance_generate_table();
+    };
+
+    namespace supplement
+    {
+        static constexpr const uint8_t* bits_distance_get_table()
+        {
+            return ::sklib::internal::bits_table_distance.data;
         }
     };
+
+    SKLIB_INTERNAL_FEATURE_IF_UINT_T unsigned bits_distance(T data)
+    {
+        unsigned R = 0;
+        for (size_t k=0; k<sizeof(T); k++, data >>= OCTET_BITS) R += ::sklib::internal::bits_table_distance.data[data & OCTET_MASK];
+        return R;
+    }
+
+    SKLIB_INTERNAL_FEATURE_IF_UINT_T unsigned bits_distance(T data1, T data2)    // for completeness
+    {
+        return bits_distance(data1 ^ data2);
+    }
 
     // --------------------------------
     // Calculate RANK of an integer
     // return 1-based position of the most significant bit
     // return 0 if input equals 0
 
-    namespace internal
-    {
-        inline unsigned rank8(uint8_t v)
-        {
-            return ::sklib::internal::tables::rank[v];
-        }
-        inline unsigned rank16(uint16_t v)
-        {
-            return ((v & ::sklib::supplement::bits_data_high_half<uint16_t>()) ? rank8(uint8_t(v >> OCTET_BITS)) + OCTET_BITS : rank8(uint8_t(v)));
-        }
-        inline unsigned rank32(uint32_t v)
-        {
-            static const unsigned N_half = ::sklib::supplement::bits_data_width<uint16_t>();
-            return ((v & ::sklib::supplement::bits_data_high_half<uint32_t>()) ? rank16(uint16_t(v >> N_half)) + N_half : rank16(uint16_t(v)));
-        }
-        inline unsigned rank64(uint64_t v)
-        {
-            static const unsigned N_half = ::sklib::supplement::bits_data_width<uint32_t>();
-            return ((v & ::sklib::supplement::bits_data_high_half<uint64_t>()) ? rank32(uint32_t(v >> N_half)) + N_half : rank32(uint32_t(v)));
-        }
-    };
-
-    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint8_t)  inline unsigned bits_rank(T v) { return ::sklib::internal::rank8(uint8_t(v)); }
-    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint16_t) inline unsigned bits_rank(T v) { return ::sklib::internal::rank16(uint16_t(v)); }
-    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint32_t) inline unsigned bits_rank(T v) { return ::sklib::internal::rank32(uint32_t(v)); }
-    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint64_t) inline unsigned bits_rank(T v) { return ::sklib::internal::rank64(uint64_t(v)); }
-
     namespace supplement
     {
-        inline unsigned bits_rank8_fork(uint8_t v)
+        static constexpr unsigned bits_rank8_fork(uint8_t v)
         {
             if (!v) return 0;
 
@@ -180,7 +233,7 @@ namespace sklib
         }
 
         template<class T, unsigned N = bits_data_width<T>()>
-        unsigned bits_rank_bruteforce(T data, unsigned max_bits_count = N)
+        static constexpr unsigned bits_rank_bruteforce(T data, unsigned max_bits_count = N)
         {
             auto udata = std::make_unsigned_t<T>(data);
             for (unsigned k=0; k<max_bits_count; k++)
@@ -190,12 +243,51 @@ namespace sklib
             }
             return max_bits_count;
         }
+    };
 
-        void bits_rank_generate_table(char(&U)[OCTET_ADDRESS_SPAN])
+    namespace internal
+    {
+        static constexpr encapsulated_array_octet_index_type<uint8_t> bits_rank_generate_table()
         {
-            for (size_t k=0; k<OCTET_ADDRESS_SPAN; k++) U[k] = bits_rank_bruteforce(uint8_t(k));
+            encapsulated_array_octet_index_type<uint8_t> R = { 0 };
+            for (size_t k=0; k<OCTET_ADDRESS_SPAN; k++) R.data[k] = ::sklib::supplement::bits_rank_bruteforce(uint8_t(k));
+            return R;
+        }
+
+        static constexpr encapsulated_array_octet_index_type<uint8_t> bits_table_rank = bits_rank_generate_table();
+
+        static constexpr unsigned rank8(uint8_t v)
+        {
+            return ::sklib::internal::bits_table_rank.data[v];
+        }
+        static constexpr unsigned rank16(uint16_t v)
+        {
+            return ((v & ::sklib::supplement::bits_data_high_half<uint16_t>()) ? rank8(uint8_t(v >> OCTET_BITS)) + OCTET_BITS : rank8(uint8_t(v)));
+        }
+        static constexpr unsigned rank32(uint32_t v)
+        {
+            constexpr unsigned N_half = ::sklib::supplement::bits_data_width<uint16_t>();
+            return ((v & ::sklib::supplement::bits_data_high_half<uint32_t>()) ? rank16(uint16_t(v >> N_half)) + N_half : rank16(uint16_t(v)));
+        }
+        static constexpr unsigned rank64(uint64_t v)
+        {
+            constexpr unsigned N_half = ::sklib::supplement::bits_data_width<uint32_t>();
+            return ((v & ::sklib::supplement::bits_data_high_half<uint64_t>()) ? rank32(uint32_t(v >> N_half)) + N_half : rank32(uint32_t(v)));
         }
     };
+
+    namespace supplement
+    {
+        static constexpr const uint8_t* bits_rank_get_table()
+        {
+            return ::sklib::internal::bits_table_rank.data;
+        }
+    };
+
+    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint8_t)  static constexpr unsigned bits_rank(T v) { return ::sklib::internal::rank8(uint8_t(v)); }
+    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint16_t) static constexpr unsigned bits_rank(T v) { return ::sklib::internal::rank16(uint16_t(v)); }
+    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint32_t) static constexpr unsigned bits_rank(T v) { return ::sklib::internal::rank32(uint32_t(v)); }
+    SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(uint64_t) static constexpr unsigned bits_rank(T v) { return ::sklib::internal::rank64(uint64_t(v)); }
 
     // ---------------------------------------
     // Objects representing series of bits
@@ -347,6 +439,7 @@ namespace sklib
                 auto load_size = std::min(data_size, available_bits_receiver);
                 available_bits_receiver -= load_size;
 
+                // this arrangement guarantees that bits higher than bit_count will be 0
                 auto receiver_split = uint16_t(accumulator_receiver << load_size);
                 request.data = (request.data << load_size) + (receiver_split >> OCTET_BITS);
                 accumulator_receiver = uint8_t(receiver_split);
@@ -360,7 +453,15 @@ namespace sklib
         SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bits_stream_base_type& operator>> (TT& request) { return read(request); }
 
     protected:
-        static constexpr uint8_t byte_low_mask[OCTET_BITS + 1] = { 0, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F, 0xFF };
+        static constexpr uint8_t byte_low_mask[OCTET_BITS + 1] = { 0,
+            ::sklib::supplement::bits_short_data_mask<uint8_t, 1>(),
+            ::sklib::supplement::bits_short_data_mask<uint8_t, 2>(),
+            ::sklib::supplement::bits_short_data_mask<uint8_t, 3>(),
+            ::sklib::supplement::bits_short_data_mask<uint8_t, 4>(),
+            ::sklib::supplement::bits_short_data_mask<uint8_t, 5>(),
+            ::sklib::supplement::bits_short_data_mask<uint8_t, 6>(),
+            ::sklib::supplement::bits_short_data_mask<uint8_t, 7>(),
+            ::sklib::supplement::bits_short_data_mask<uint8_t, 8>() };
 
         uint8_t  accumulator_sender = 0;
         unsigned clear_bits_sender = OCTET_BITS;
@@ -456,22 +557,44 @@ namespace sklib
     // ---------------------------------------------------
     // base64 I/O on top of bits_stream_base_type class
 
-    class base64_type : protected bits_stream_base_type  // make underlying members hidden from caller but allow further class derivation
+    namespace internal
     {
-    public:
-        static constexpr int encoding_bit_length = 6;
-        static constexpr size_t dictionary_size = (1 << encoding_bit_length);
-        static constexpr uint8_t dictionary_address_mask = (uint8_t)(dictionary_size-1);
-        static constexpr char dictionary[dictionary_size+1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        static constexpr char EOL_char = '=';
+        class base64_property_type
+        {
+            friend constexpr encapsulated_array_octet_index_type<uint8_t> generate_dictionary_inverse_table();
 
+        public:
+            static constexpr int encoding_bit_length = 6;
+            static constexpr size_t dictionary_size = (1 << encoding_bit_length);
+            static constexpr uint8_t dictionary_address_mask = ::sklib::supplement::bits_short_data_mask<uint8_t, encoding_bit_length>(); // same as (dictionary_size - 1)
+            static constexpr char dictionary[dictionary_size+1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+            static constexpr char EOL_char = '=';
+
+        protected:
+            // special Inverse/Decode table entries (see: Tables) to handle non-dictionary characters on input
+            // b64_dictionary_inverse[input_ch] => output data, or soecial code as follows:
+            static constexpr uint8_t EOL_code = 0xF9;       // input was EOL (EOF, EOT, end of data stream, etc)
+            static constexpr uint8_t Space_code = 0xF0;     // Space or Blank ASCII character
+            static constexpr uint8_t Bad_code = 0xFF;       // invalid input
+        };
+
+        constexpr encapsulated_array_octet_index_type<uint8_t> generate_dictionary_inverse_table()
+        {
+            encapsulated_array_octet_index_type<uint8_t> R = { 0 };
+//            for (int k = 0; k < OCTET_ADDRESS_SPAN; k++) R.data[k] = k;
+            for (int k=0; k<=' '; k++) R.data[k] = base64_property_type::Space_code;
+            for (int k=' '+1; k<OCTET_ADDRESS_SPAN; k++) R.data[k] = base64_property_type::Bad_code;
+            for (size_t k=0; k< base64_property_type::dictionary_size; k++) R.data[base64_property_type::dictionary[k]] = (uint8_t)k;
+            R.data[base64_property_type::EOL_char] = base64_property_type::EOL_code;
+            return R;
+        }
+
+        static constexpr encapsulated_array_octet_index_type<uint8_t> b64_dictionary_inverse = generate_dictionary_inverse_table();
+    };
+
+    class base64_type : protected bits_stream_base_type, public ::sklib::internal::base64_property_type
+    {                      // make underlying members hidden from caller but allow further class derivation, include global constants
     protected:
-        // special Inverse/Decode table entries (see: Tables) to handle non-dictionary characters on input
-        // b64_dictionary_inverse[input_ch] => output data, or soecial code as follows:
-        static constexpr uint8_t EOL_code = 0xF9;       // input was EOL (EOF, EOT, end of data stream, etc)
-        static constexpr uint8_t Space_code = 0xF0;     // Space or Blank ASCII character
-        static constexpr uint8_t Bad_code = 0xFF;       // invalid input
-
         // octet (or character) I/O is communicated as integers, just like as ANSI C does
         // lets note that we are using special "character" for EOF = -1, inherited from C language
         // internally, lets have designation for "idle state" - the "idle" shall be never returned to caller!
@@ -578,7 +701,7 @@ namespace sklib
             int c;
             if (!read_proc(this, c)) return false;
 
-            c = (c < 0 ? EOL_code : ::sklib::internal::tables::b64_dictionary_inverse[c & OCTET_MASK]);
+            c = (c < 0 ? EOL_code : ::sklib::internal::b64_dictionary_inverse.data[c & OCTET_MASK]);
 
             if (c == EOL_code)  // EOF
             {
@@ -697,23 +820,19 @@ namespace sklib
             }
             else
             {
-                uint8_t uc = ::sklib::internal::tables::b64_dictionary_inverse[(uint8_t)data];
+                uint8_t uc = ::sklib::internal::b64_dictionary_inverse.data[(uint8_t)data];
                 if (uc < dictionary_size) write(::sklib::supplement::bits_fixed_pack_type<encoding_bit_length, uint8_t>(uc));
                 if (uc == Bad_code) encoder_errors = true;
                 if (decoded_data_accumulator >= 0) write_proc(this, decoded_data_accumulator);
             }
         }
 
-        // Helper function to generate Inverse table, based on dictionart, to decode Base64 sequences
-        //
-        static void generate_inverse_table(uint8_t(&U)[::sklib::OCTET_ADDRESS_SPAN])
+        static constexpr const uint8_t* get_inverse_table()
         {
-            for (int k=0; k<=' '; k++) U[k] = Space_code;
-            for (int k=' '+1; k<::sklib::OCTET_ADDRESS_SPAN; k++) U[k] = Bad_code;
-            for (size_t k=0; k<dictionary_size; k++) U[dictionary[k]] = (uint8_t)k;
-            U[EOL_char] = EOL_code;
+            return ::sklib::internal::b64_dictionary_inverse.data;
         }
     };
+
 };
 
 #endif // SKLIB_INCLUDED_BITWISE_HPP
