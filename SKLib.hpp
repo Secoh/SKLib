@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -39,11 +40,11 @@
 
 #include "./helpers.hpp"
 #include "./bitwise.hpp"
+#include "./checksum.hpp"
 #include "./timer.hpp"
 
 #include "./comms.hpp"
 
-#include "./checksum.hpp"
 
 
 #endif // SKLIB_INCLUDED_ALL

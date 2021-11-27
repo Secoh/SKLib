@@ -15,6 +15,8 @@
 #ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include <type_traits>
 #include <string>
+#include <iostream>
+#include <iomanip>
 #endif
 
 
@@ -43,8 +45,6 @@
 
 
 
-
-
 namespace sklib
 {
 
@@ -69,20 +69,26 @@ namespace sklib
         template<class T>
         static constexpr void table256_print(const std::string& title, const T* U, int width, bool hex = false, int hex_digits = 2)
         {
-            printf("%s\n", title.c_str());
-
-            std::string dfmt = "%d";
-            if (hex) dfmt = std::string("0x%") + (hex_digits > 1 ? "0" : "") + std::to_string(hex_digits) + "X";
+            std::cout << title << "\n";
 
             for (int k=0; k<256; )
             {
                 for (int i=0; i<width; i++)
                 {
-                    if (i) printf(" ");
-                    printf(dfmt.c_str(), U[k++]);
-                    printf(",");
+                    if (i) std::cout << " ";
+
+                    if (!hex)
+                    {
+                        std::cout << (U[k++] * 1);    // <-- use integer promotion to eliminate "char" conversion on output
+                    }
+                    else
+                    {
+                        std::cout << "0x" << std::setfill('0') << std::setw(hex_digits) << std::hex << std::uppercase << (U[k++] * 1);
+                    }
+
+                    if (k<256) std::cout << ",";
                 }
-                printf("\n");
+                std::cout << "\n";
             }
         }
     };

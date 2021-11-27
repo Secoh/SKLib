@@ -12,18 +12,14 @@
 #ifndef SKLIB_INCLUDED_CHECKSUM_HPP
 #define SKLIB_INCLUDED_CHECKSUM_HPP
 
-
-#include "./bitwise.hpp"
+#include "./bitwise.hpp"     // this also loads <type_traits>
 
 namespace sklib
 {
     namespace internal
     {
-        template<class T>
-        static constexpr T crc_make_polynomial(bool mode_msb, unsigned length, T polynomial)
-        {
-            return (mode_msb ? polynomial : ::sklib::supplement::bits_flip_bruteforce<T>(polynomial, length));
-        }
+        template<class T> static constexpr T crc_make_polynomial(bool mode_msb, unsigned length, T polynomial)
+        { return (mode_msb ? polynomial : ::sklib::supplement::bits_flip_bruteforce<T>(polynomial, length)); }
 
         // see: https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks#Multi-bit_computation
         template<class T>
@@ -50,12 +46,12 @@ namespace sklib
             }
             else // LSB
             {
-                T vcrc = 1;
+                T vcrc = T(1);
                 T poly_lsb = crc_make_polynomial<T>(msb, length, polynomial);
 
                 for (int i = ::sklib::supplement::bits_data_high_1<uint8_t>(); i; i >>= 1)
                 {
-                    auto have_low = vcrc & 1;
+                    auto have_low = vcrc & T(1);
                     vcrc >>= 1;
                     if (have_low) vcrc ^= poly_lsb;
 
@@ -81,47 +77,40 @@ namespace sklib
         private:
             const ::sklib::internal::encapsulated_array_octet_index_type<T>& Table;
 
-            template<class T1>
-            static constexpr bool tiny_container()
-            {
-                return (::sklib::supplement::bits_data_width<T1>() <= OCTET_BITS);
-            }
+            template<class T1> static constexpr bool tiny_container()
+            { return (::sklib::supplement::bits_data_width<T1>() <= OCTET_BITS); }
+
+        protected:              // initialization order depends on the sequence in which const variables are declared
+            const T mask;       // see: https://en.cppreference.com/w/cpp/language/constructor
+            const T high_bit;
+            const bool mode_add_bare;
+            const int msb_shift;
+            const T start_crc;
+
+            T vcrc = 0;
 
         public:
             const bool MSB;
             const unsigned Polynomial_Degree;
             const T Polynomial;
 
-        protected:
-            const bool mode_add_bare;
-            const int msb_shift;
-            const T start_crc;
-            const T mask;
-            const T high_bit;
-
-            T vcrc = 0;
-
-        public:
             constexpr crc_base_type(const ::sklib::internal::encapsulated_array_octet_index_type<T>& table_in, bool mode_MSB, unsigned Length, T Normal_Polynomial, T Start_Value)
                 : Table(table_in)
                 , MSB(mode_MSB)
-                , Polynomial_Degree(Length)
-                , Polynomial(::sklib::internal::crc_make_polynomial<T>(MSB, Length, Normal_Polynomial))
-                , msb_shift(Length > OCTET_BITS ? Length - OCTET_BITS : OCTET_BITS - Length)
-                , start_crc(Start_Value)
                 , mask(::sklib::supplement::bits_short_data_mask<T>(Length))
                 , high_bit(::sklib::supplement::bits_short_data_high_1<T>(Length))
-                , vcrc(Start_Value)
-                , mode_add_bare((MSB&& Length == OCTET_BITS) || (!MSB && Length <= OCTET_BITS))
+                , Polynomial_Degree(Length)
+                , Polynomial(::sklib::internal::crc_make_polynomial<T>(mode_MSB, Length, (Normal_Polynomial & mask)))   // mask is declared before Polynomial and others
+                , msb_shift(Length > OCTET_BITS ? Length - OCTET_BITS : OCTET_BITS - Length)
+                , start_crc(Start_Value & mask)
+                , vcrc(start_crc)
+                , mode_add_bare((mode_MSB && Length == OCTET_BITS) || (!mode_MSB && Length <= OCTET_BITS))
             {}
 
-            constexpr void reset() { vcrc = start_crc; }
-
+            constexpr void reset()               { vcrc = start_crc; }
             constexpr const T* get_table() const { return Table.data; }
-
-            constexpr T get() const { return (vcrc ^ start_crc) & mask; }
-
-            constexpr operator T() const { return get(); }
+            constexpr T get() const              { return (vcrc ^ start_crc) & mask; }
+            constexpr operator T() const         { return get(); }
 
             constexpr T update(const char* cstr)
             {
@@ -256,7 +245,9 @@ namespace sklib
         ::sklib::internal::encapsulated_array_octet_index_type<T> Table;
 
     public:
-        constexpr crc_type(unsigned Length, T Normal_Polynomial, bool mode_MSB = false, T Start_Value = ::sklib::supplement::bits_short_data_mask<T>(Length))
+        typedef T type;
+
+        constexpr crc_type(unsigned Length, T Normal_Polynomial, bool mode_MSB = false, T Start_Value = ~T(0))
             : ::sklib::supplement::crc_base_type<T>(Table, mode_MSB, Length, Normal_Polynomial, Start_Value)
             , Table(::sklib::internal::crc_create_table<T>(Length, Normal_Polynomial, mode_MSB))
         {}
@@ -276,9 +267,12 @@ namespace sklib
                              ::sklib::internal::crc_create_table<T>(Length, Normal_Polynomial, mode_MSB);   // this data block becomes statically linked
 
     public:
+        typedef T type;
+
         static constexpr bool MSB = mode_MSB;
         static constexpr unsigned Polynomial_Degree = Length;
-        static constexpr T Polynomial = ::sklib::internal::crc_make_polynomial<T>(mode_MSB, Length, Normal_Polynomial);
+        static constexpr T Polynomial =
+            ::sklib::internal::crc_make_polynomial<T>(mode_MSB, Length, (Normal_Polynomial & ::sklib::supplement::bits_short_data_mask<T>(Length)));
 
         static constexpr const T* get_table() { return Table.data; }
 
@@ -288,49 +282,74 @@ namespace sklib
     // standard CRC types
     // see: https://en.wikipedia.org/wiki/Cyclic_redundancy_check
 
-    using crc_1_parity      = crc_fixed_type<uint8_t, 1, 0x1>;           // parity
-    using crc_3_gsm         = crc_fixed_type<uint8_t, 3, 0x3>;           // cellular
-    using crc_4_itu         = crc_fixed_type<uint8_t, 4, 0x3>;           // G.704
-
-    using crc_8_dallas_lsb  = crc_fixed_type<uint8_t, 8, 0x31>;          // 1-Wire Bus
-    using crc_8_dallas_msb  = crc_fixed_type<uint8_t, 8, 0x31, true>;
-
-    using crc_21_can_lsb    = crc_fixed_type<uint32_t, 21, 0x102899>;
-
-
-    // ITU-T I.432.1
+    // 8-bit: ITU-T I.432.1
     using crc_8_ccitt       = crc_fixed_type<uint8_t, 8, 0x07>;
     using crc_8_ccitt_msb   = crc_fixed_type<uint8_t, 8, 0x07, true>;
 
-    // X.25; V.41; XModem; etc - "Standard 16"
+    // 16-bit ("Standard 16"): ITU-T X.25; also V.41; XModem; etc
     using crc_16_ccitt      = crc_fixed_type<uint16_t, 16, 0x1021>;
     using crc_16_ccitt_msb  = crc_fixed_type<uint16_t, 16, 0x1021, true>;
 
-    // ISO; ANSI; *Zip; PNG; ZModem; etc - "Standard 32"
+    // 16-bit: ANSI; also IBM, Modbus, USB
+    using crc_16_ansi       = crc_fixed_type<uint16_t, 16, 0x8005u>;            // X3.28; USB
+    using crc_16_ansi_msb   = crc_fixed_type<uint16_t, 16, 0x8005u, true>;
+
+    // 32-bit ("Standard 32"): ISO; ANSI; *Zip; PNG; ZModem; etc
     using crc_32_iso        = crc_fixed_type<uint32_t, 32, 0x04C11DB7ul>;
     using crc_32_iso_msb    = crc_fixed_type<uint32_t, 32, 0x04C11DB7ul, true>;
 
-    using crc_32C_lsb       = crc_fixed_type<uint32_t, 32, 0x1EDC6F41ul>;         // Castagnoli, improved version of CRC-32
+    // 32-bit: Castagnoli, improved version of CRC-32
+    using crc_32C_lsb       = crc_fixed_type<uint32_t, 32, 0x1EDC6F41ul>;
     using crc_32C_msb       = crc_fixed_type<uint32_t, 32, 0x1EDC6F41ul, true>;
 
+    // 64-bit
+    using crc_64_ecma       = crc_fixed_type<uint64_t, 64, 0x42F0E1EBA9EA3693ull>;   // ECMA-182
+    using crc_64_iso        = crc_fixed_type<uint64_t, 64, 0x000000000000001Bull>;   // ISO 3309
+
+    // other popular CRC's
+
+    using crc_1_parity      = crc_fixed_type<uint8_t, 1, 0x1>;      // parity
+
+    using crc_4_itu         = crc_fixed_type<uint8_t, 4, 0x03>;     // ITU-T G.704
+    using crc_5_itu         = crc_fixed_type<uint8_t, 5, 0x15>;
+    using crc_6_itu         = crc_fixed_type<uint8_t, 6, 0x03>;
+    using crc_7_sd_lsb      = crc_fixed_type<uint8_t, 7, 0x09>;     // SD cards, also ITU-T G.704
+    using crc_7_sd_msb      = crc_fixed_type<uint8_t, 7, 0x09, true>;
+
+    using crc_3_gsm         = crc_fixed_type<uint8_t, 3, 0x03>;     // Cellular related standards
+    using crc_6A_cdma       = crc_fixed_type<uint8_t, 6, 0x27>;
+    using crc_6B_cdma       = crc_fixed_type<uint8_t, 6, 0x07>;
+    using crc_6_gsm         = crc_fixed_type<uint8_t, 6, 0x2F>;
+
+    using crc_24_wcdma      = crc_fixed_type<uint32_t, 24, 0x00800063ul>;
+    using crc_30_cdma       = crc_fixed_type<uint32_t, 30, 0x2030B9C7ul>;
+    using crc_40_gsm        = crc_fixed_type<uint64_t, 40, 0x0004820009ull>;
+
+    using crc_6_darc        = crc_fixed_type<uint8_t, 6, 0x19>;     // FM broadcast data radio channel
+    using crc_14_darc       = crc_fixed_type<uint16_t, 14, 0x0805>;
+
+    using crc_5_rfid        = crc_fixed_type<uint8_t, 5, 0x09>;     // Gen 2 RFID
+    using crc_5_usb         = crc_fixed_type<uint8_t, 5, 0x05>;     // USB token, LSB
+
+    using crc_7_mvb         = crc_fixed_type<uint8_t, 7, 0x65>;     // IEC 60870-5, train comm network
+
+    using crc_8_dallas_lsb  = crc_fixed_type<uint8_t, 8, 0x31>;     // 1-Wire Bus
+    using crc_8_dallas_msb  = crc_fixed_type<uint8_t, 8, 0x31, true>;
+
+    using crc_16A_osafety   = crc_fixed_type<uint16_t, 16, 0x5935u>;        // Open Safety
+    using crc_16B_osafety   = crc_fixed_type<uint16_t, 16, 0x755Bu>;
+    using crc_16_profi      = crc_fixed_type<uint16_t, 16, 0x1DCFu>;        // ProfiBus
+    using crc_17_can        = crc_fixed_type<uint32_t, 17, 0x0001685Bul>;   // CAN bus
+    using crc_21_can        = crc_fixed_type<uint32_t, 21, 0x00102899ul>;
+    using crc_24_flex       = crc_fixed_type<uint32_t, 24, 0x005D6DCBul>;   // FlexRay
+
+    using crc_24_triplet    = crc_fixed_type<uint32_t, 24, 0x00864CFBul>;   // Radix64 / Base64 / 3 bytes; also RTCM 104v3
+
+    using crc_32Q           = crc_fixed_type<uint32_t, 32, 0x814141ABul>;   // AXIM, aviation
+
+    //sk TODO: review CRC-8-DVB through CRC-15-DNP
+
+
 };
-
-
-
-//sk lets work more on description below
-
-/* CRC16/CRC32 Transformation Tables can be either linked by linker,
-   or declared in the header at compile-time as constexpr arrays.
-
-   Linking guarantees that the tables are not present in the executable
-   file more than once. (Constexpr declaration relies on compiler's
-   ability to reduce bloating which is NOT guaranteed.)
-
-   The benefit of using standalone header(s) is reducing the number of
-   projects/libraries that you, the developer, need to remember.
-
-   The default for SkLib/checksum is using standalone header.
-*/
-
 
 #endif // SKLIB_INCLUDED_CHECKSUM_HPP

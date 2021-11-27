@@ -566,22 +566,21 @@ namespace sklib
         public:
             static constexpr int encoding_bit_length = 6;
             static constexpr size_t dictionary_size = (1 << encoding_bit_length);
-            static constexpr uint8_t dictionary_address_mask = ::sklib::supplement::bits_short_data_mask<uint8_t, encoding_bit_length>(); // same as (dictionary_size - 1)
+            static constexpr uint8_t dictionary_address_mask = ::sklib::supplement::bits_short_data_mask<uint8_t, encoding_bit_length>(); // same as (dictionary_size-1)
             static constexpr char dictionary[dictionary_size+1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
             static constexpr char EOL_char = '=';
 
         protected:
             // special Inverse/Decode table entries (see: Tables) to handle non-dictionary characters on input
             // b64_dictionary_inverse[input_ch] => output data, or soecial code as follows:
-            static constexpr uint8_t EOL_code = 0xF9;       // input was EOL (EOF, EOT, end of data stream, etc)
+            static constexpr uint8_t EOL_code   = 0xF9;     // input was EOL (EOF, EOT, end of data stream, etc)
             static constexpr uint8_t Space_code = 0xF0;     // Space or Blank ASCII character
-            static constexpr uint8_t Bad_code = 0xFF;       // invalid input
+            static constexpr uint8_t Bad_code   = 0xFF;     // invalid input
         };
 
         constexpr encapsulated_array_octet_index_type<uint8_t> generate_dictionary_inverse_table()
         {
             encapsulated_array_octet_index_type<uint8_t> R = { 0 };
-//            for (int k = 0; k < OCTET_ADDRESS_SPAN; k++) R.data[k] = k;
             for (int k=0; k<=' '; k++) R.data[k] = base64_property_type::Space_code;
             for (int k=' '+1; k<OCTET_ADDRESS_SPAN; k++) R.data[k] = base64_property_type::Bad_code;
             for (size_t k=0; k< base64_property_type::dictionary_size; k++) R.data[base64_property_type::dictionary[k]] = (uint8_t)k;
