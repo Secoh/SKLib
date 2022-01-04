@@ -342,12 +342,12 @@ namespace sklib
     private:
         bool (* const read_octet)(bits_stream_base_type*, uint8_t&);
         void (* const write_octet)(bits_stream_base_type*, uint8_t);
-        void (* const hook_action)(bits_stream_base_type*, hook_type action);
+        void (* const hook_action)(bits_stream_base_type*, hook_type);
 
     public:
         bits_stream_base_type(bool (*read_octet_callback)(bits_stream_base_type*, uint8_t&),                // derived class provides function to read next octet from stream
                               void (*write_octet_callback)(bits_stream_base_type*, uint8_t),                // write into stream
-                              void (*hook_callback)(bits_stream_base_type*, hook_type action) = nullptr)    // stream-related events
+                              void (*hook_callback)(bits_stream_base_type*, hook_type) = nullptr)    // stream-related events
             : read_octet(read_octet_callback)
             , write_octet(write_octet_callback)
             , hook_action(hook_callback)
