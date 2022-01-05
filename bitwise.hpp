@@ -340,14 +340,31 @@ namespace sklib
         enum class hook_type { after_reset = 0, after_flush, before_rewind };
 
     private:
-        bool (* const read_octet)(bits_stream_base_type*, uint8_t&);
-        void (* const write_octet)(bits_stream_base_type*, uint8_t);
-        void (* const hook_action)(bits_stream_base_type*, hook_type);
+        ::sklib::internal::callback_type<bits_stream_base_type, bool, uint8_t&> read_octet;
+        ::sklib::internal::callback_type<bits_stream_base_type, void, uint8_t> write_octet;
+        ::sklib::internal::callback_type<bits_stream_base_type, void, hook_type> hook_action;
 
     public:
-        bits_stream_base_type(bool (*read_octet_callback)(bits_stream_base_type*, uint8_t&),                // derived class provides function to read next octet from stream
-                              void (*write_octet_callback)(bits_stream_base_type*, uint8_t),                // write into stream
+        bits_stream_base_type(bool (*read_octet_callback)(bits_stream_base_type*, uint8_t&),         // derived class provides function to read next octet from stream
+                              void (*write_octet_callback)(bits_stream_base_type*, uint8_t),         // write into stream
                               void (*hook_callback)(bits_stream_base_type*, hook_type) = nullptr)    // stream-related events
+            : read_octet(read_octet_callback, this)
+            , write_octet(write_octet_callback, this)
+            , hook_action(hook_callback, this)
+        {}
+
+        bits_stream_base_type(void* external_descriptor,
+                              bool (*read_octet_callback)(void*, uint8_t&),         // version for payload at void pointer
+                              void (*write_octet_callback)(void*, uint8_t),
+                              void (*hook_callback)(void*, hook_type) = nullptr)
+            : read_octet(read_octet_callback, external_descriptor)
+            , write_octet(write_octet_callback, external_descriptor)
+            , hook_action(hook_callback, external_descriptor)
+        {}
+
+        bits_stream_base_type(bool (*read_octet_callback)(uint8_t&),                // version for global C functions
+                              void (*write_octet_callback)(uint8_t),
+                              void (*hook_callback)(hook_type) = nullptr)
             : read_octet(read_octet_callback)
             , write_octet(write_octet_callback)
             , hook_action(hook_callback)
@@ -359,7 +376,7 @@ namespace sklib
             clear_bits_sender = OCTET_BITS;
             accumulator_receiver = 0;
             available_bits_receiver = 0;
-            if (hook_action) hook_action(this, hook_type::after_reset);
+            if (hook_action) hook_action(hook_type::after_reset);
         }
 
         SKLIB_INTERNAL_TEMPLATE_TT_IS_BIT_PACK bits_stream_base_type& write(const TT& input)
@@ -375,7 +392,7 @@ namespace sklib
                 clear_bits_sender -= load_size;
                 if (!clear_bits_sender)
                 {
-                    if (write_octet) write_octet(this, accumulator_sender);
+                    if (write_octet) write_octet(accumulator_sender);
                     accumulator_sender = 0;
                     clear_bits_sender = OCTET_BITS;
                 }
@@ -388,15 +405,15 @@ namespace sklib
 
         void write_flush()
         {
-            if (clear_bits_sender < OCTET_BITS && write_octet) write_octet(this, (accumulator_sender << clear_bits_sender));
+            if (clear_bits_sender < OCTET_BITS && write_octet) write_octet(accumulator_sender << clear_bits_sender);
             clear_bits_sender = OCTET_BITS;
             accumulator_sender = 0;
-            if (hook_action) hook_action(this, hook_type::after_flush);
+            if (hook_action) hook_action(hook_type::after_flush);
         }
 
         void read_rewind()
         {
-            if (hook_action) hook_action(this, hook_type::before_rewind);
+            if (hook_action) hook_action(hook_type::before_rewind);
             uint8_t accumulator_receiver = 0;
             uint8_t available_bits_receiver = 0;
         }
@@ -418,7 +435,7 @@ namespace sklib
         bool can_read(unsigned bit_count)
         {
             if (!bit_count || available_bits_receiver) return true;
-            if (!read_octet || !read_octet(this, accumulator_receiver)) return false;
+            if (!read_octet || !read_octet(accumulator_receiver)) return false;
             available_bits_receiver = OCTET_BITS;
             return true;
         }
@@ -432,7 +449,7 @@ namespace sklib
             {
                 if (!available_bits_receiver)
                 {
-                    if (!read_octet || !read_octet(this, accumulator_receiver)) accumulator_receiver = 0;
+                    if (!read_octet || !read_octet(accumulator_receiver)) accumulator_receiver = 0;
                     available_bits_receiver = OCTET_BITS;
                 }
 
@@ -638,8 +655,11 @@ namespace sklib
         }
 
     private:
-        bool (* const read_proc)(base64_type*, int&);
-        void (* const write_proc)(base64_type*, int);
+        ::sklib::internal::callback_type<base64_type, bool, int&> read_proc;
+        ::sklib::internal::callback_type<base64_type, void, int> write_proc;
+
+        //bool (* const read_proc)(base64_type*, int&);
+        //void (* const write_proc)(base64_type*, int);
 
         ::sklib::supplement::bits_fixed_pack_type<encoding_bit_length, uint8_t> exchg{ 0 };
 
@@ -655,6 +675,21 @@ namespace sklib
         //
         base64_type(bool (*read_callback)(base64_type*, int&),
                     void (*write_callback)(base64_type*, int))
+            : read_proc(read_callback, this)
+            , write_proc(write_callback, this)
+            , bits_stream_base_type(read_encoded_proc, write_decoded_proc)
+        {}
+
+        base64_type(void *external_descriptor,
+                    bool (*read_callback)(void*, int&),
+                    void (*write_callback)(void*, int))
+            : read_proc(read_callback, external_descriptor)
+            , write_proc(write_callback, external_descriptor)
+            , bits_stream_base_type(read_encoded_proc, write_decoded_proc)
+        {}
+
+        base64_type(bool (*read_callback)(int&),
+                    void (*write_callback)(int))
             : read_proc(read_callback)
             , write_proc(write_callback)
             , bits_stream_base_type(read_encoded_proc, write_decoded_proc)
@@ -698,7 +733,7 @@ namespace sklib
             decoded_data_accumulator = Idle_char;
 
             int c;
-            if (!read_proc(this, c)) return false;
+            if (!read_proc(c)) return false;
 
             c = (c < 0 ? EOL_code : ::sklib::internal::b64_dictionary_inverse.data[c & OCTET_MASK]);
 
@@ -745,21 +780,21 @@ namespace sklib
                 if (can_read(exchg))
                 {
                     read(exchg);
-                    write_proc(this, dictionary[exchg.data & dictionary_address_mask]);
+                    write_proc(dictionary[exchg.data & dictionary_address_mask]);
                 }
 
                 read_rewind();
-                write_proc(this, EOL_char);
+                write_proc(EOL_char);
             }
             else
             {
                 read(exchg);
-                write_proc(this, dictionary[exchg.data & dictionary_address_mask]);
+                write_proc(dictionary[exchg.data & dictionary_address_mask]);
 
                 if (can_read_without_input_stream(exchg))
                 {
                     read(exchg);
-                    write_proc(this, dictionary[exchg.data & dictionary_address_mask]);
+                    write_proc(dictionary[exchg.data & dictionary_address_mask]);
                 }
             }
         }
@@ -783,7 +818,7 @@ namespace sklib
                 return true;
             }
 
-            if (!read_proc(this, pending_data_to_encode)) return false;
+            if (!read_proc(pending_data_to_encode)) return false;
 
             bool eof_seen = (pending_data_to_encode < 0);
 
@@ -815,14 +850,14 @@ namespace sklib
             if (data < 0 || data == EOL_char)
             {
                 write_flush();
-                write_proc(this, EOF);
+                write_proc(EOF);
             }
             else
             {
                 uint8_t uc = ::sklib::internal::b64_dictionary_inverse.data[(uint8_t)data];
                 if (uc < dictionary_size) write(::sklib::supplement::bits_fixed_pack_type<encoding_bit_length, uint8_t>(uc));
                 if (uc == Bad_code) encoder_errors = true;
-                if (decoded_data_accumulator >= 0) write_proc(this, decoded_data_accumulator);
+                if (decoded_data_accumulator >= 0) write_proc(decoded_data_accumulator);
             }
         }
 

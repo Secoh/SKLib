@@ -1,4 +1,7 @@
 /_old
 /.vs
+/_bin
+/_tmp
 /contrib/.vs
-
+/contrib/_bin
+/contrib/_tmp

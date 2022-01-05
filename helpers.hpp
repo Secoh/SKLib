@@ -61,6 +61,7 @@ namespace sklib
         template<class T> using do_not_deduce = typename self_type<T>::type;
 
 // Class quasi-member, global, and C-style programmable callbacks -- used in: bitwise
+// NB: can be used as an "almost" drop-in replacement for a function address variable, with initialization, test for nullptr, and calling
         template<class CA, class FR, class ...FA>
         class callback_type
         {
@@ -90,6 +91,9 @@ namespace sklib
 
             bool is_valid()     const { return func != nullptr; }           // verify whether constructor was called with invalid function address
             FR call(FA... args) const { return reflector(this, args...); }  // make call to the "programmable" callback
+
+            explicit operator bool()  const { return is_valid(); }
+            FR operator()(FA... args) const { return call(args...); }
         };
 
 
