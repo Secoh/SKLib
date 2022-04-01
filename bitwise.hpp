@@ -95,10 +95,18 @@ namespace sklib
 
     namespace internal
     {
-        SKLIB_INTERNAL_TEMPLATE_IF_INT_T struct encapsulated_array_octet_index_type
+        template<class T, size_t N>         //sk ?! can replace with std::array?
+        struct encapsulated_array_type
         {
-            T data[OCTET_ADDRESS_SPAN];
+            T data[N];
         };
+
+
+        SKLIB_INTERNAL_TEMPLATE_IF_INT_T using encapsulated_array_octet_index_type = encapsulated_array_type<T, OCTET_ADDRESS_SPAN>;
+//sk            struct encapsulated_array_octet_index_type
+//        {
+//            T data[OCTET_ADDRESS_SPAN];
+//        };
     };
 
     // ----------------------------------------------------------

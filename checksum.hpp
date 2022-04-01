@@ -72,7 +72,7 @@ namespace sklib
     namespace supplement
     {
         template<class T>
-        class crc_base_type
+        class crc_base_type     //sk !! move it to Internal
         {
         private:
             const ::sklib::internal::encapsulated_array_octet_index_type<T>& Table;
@@ -137,6 +137,13 @@ namespace sklib
             {
                 while (count--) add_octet_bruteforce(*data++);
                 return get();
+            }
+
+            template<class D>  //sk: impossible!
+            constexpr T update_packed(const ::sklib::internal::do_not_deduce<D>& data)  // good for fundamental types and *packed* POD's
+            {
+                static_assert(sizeof(uint8_t) == 1, "This cannot happen, size of byte is 1 by definition");
+                return update(reinterpret_cast<const uint8_t *>(&data), sizeof(D));
             }
 
         protected:

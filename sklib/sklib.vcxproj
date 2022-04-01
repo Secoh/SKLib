@@ -72,23 +72,23 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\</IntDir>
+    <OutDir>$(PUBLIC)\Linger\$(ProjectGuid)\$(MSBuildProjectDirectoryNoRoot)\$(Configuration)_$(Platform)\bin\</OutDir>
+    <IntDir>$(PUBLIC)\Linger\$(ProjectGuid)\$(MSBuildProjectDirectoryNoRoot)\$(Configuration)_$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)\_release\$(PlatformShortName)\</OutDir>
+    <IntDir>$(PUBLIC)\Linger\$(ProjectGuid)\$(MSBuildProjectDirectoryNoRoot)\$(Configuration)_$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\</IntDir>
+    <OutDir>$(PUBLIC)\Linger\$(ProjectGuid)\$(MSBuildProjectDirectoryNoRoot)\$(Configuration)_$(Platform)\bin\</OutDir>
+    <IntDir>$(PUBLIC)\Linger\$(ProjectGuid)\$(MSBuildProjectDirectoryNoRoot)\$(Configuration)_$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)\_release\$(PlatformShortName)\</OutDir>
+    <IntDir>$(PUBLIC)\Linger\$(ProjectGuid)\$(MSBuildProjectDirectoryNoRoot)\$(Configuration)_$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -96,7 +96,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -112,7 +112,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,7 +121,7 @@
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <ProfileGuidedDatabase>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\$(TargetName).pgd</ProfileGuidedDatabase>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ProgramDatabaseFile>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\$(TargetName).pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -130,7 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -146,7 +146,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,16 +155,21 @@
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <ProfileGuidedDatabase>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\$(TargetName).pgd</ProfileGuidedDatabase>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <ProgramDatabaseFile>$(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\$(TargetName).pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\bitwise.hpp" />
     <ClInclude Include="..\checksum.hpp" />
+    <ClInclude Include="..\cmdpar.hpp" />
     <ClInclude Include="..\comms.hpp" />
+    <ClInclude Include="..\crypto.hpp" />
+    <ClInclude Include="..\ham.hpp" />
     <ClInclude Include="..\helpers.hpp" />
+    <ClInclude Include="..\rs232.hpp" />
     <ClInclude Include="..\sklib.hpp" />
     <ClInclude Include="..\source\comms-code.hpp" />
+    <ClInclude Include="..\source\rs-232-code.hpp" />
     <ClInclude Include="..\timer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
