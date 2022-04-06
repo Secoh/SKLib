@@ -12,7 +12,7 @@
 #ifndef SKLIB_INCLUDED_CHECKSUM_HPP
 #define SKLIB_INCLUDED_CHECKSUM_HPP
 
-#include "./bitwise.hpp"     // this also loads <type_traits>
+#include "bitwise.hpp"     // this also loads <type_traits>
 
 namespace sklib
 {

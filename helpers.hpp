@@ -1,5 +1,5 @@
 // This file is part of SKLib: https://github.com/Secoh/SKLib
-// Copyright [2020-2021] Secoh
+// Copyright [2020-2022] Secoh
 //
 // Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
 // You may not use this file except in compliance with the License.
@@ -75,16 +75,17 @@ namespace sklib
             static FR routing_self(const callback_type* self, FA... args) { return ((cfunc_self_type)(self->func))(self->root, args...); }
             static FR routing_bare(const callback_type* self, FA... args) { return ((cfunc_bare_type)(self->func))(args...); }
             static FR routing_void(const callback_type* self, FA... args) { return ((cfunc_void_type)(self->func))(self->descr, args...); }
+            static FR routing_dead(const callback_type* /*self*/, FA... /*args*/) { return FR(); }
 
-            FR (* const reflector)(const callback_type*, FA...) = nullptr;  // internal static function redirects call to requested parameters formatting
+            FR (* const reflector)(const callback_type*, FA...) = routing_dead;  // internal static function redirects call to requested parameters formatting
 
         public:
             explicit callback_type(cfunc_self_type f, CA* parent) : func((cfunc_type)f), reflector(routing_self), root(parent) {}
             explicit callback_type(cfunc_bare_type f)             : func((cfunc_type)f), reflector(routing_bare)               {}
             explicit callback_type(cfunc_void_type f, void* ext)  : func((cfunc_type)f), reflector(routing_void), descr(ext)   {}
 
-            bool is_valid()     const { return func != nullptr; }           // verify whether constructor was called with invalid function address
-            FR call(FA... args) const { return reflector(this, args...); }  // make call to the "programmable" callback
+            bool is_valid()     const { return func != nullptr; }                                  // verify whether constructor was called with invalid function address
+            FR call(FA... args) const { return (is_valid() ? reflector(this, args...) : FR()); }   // make call to the "programmable" callback
 
             explicit operator bool()  const { return is_valid(); }
             FR operator()(FA... args) const { return call(args...); }
@@ -200,6 +201,11 @@ namespace sklib
         ::sklib::supplement::collection_cstring_type<1> R;
         R.text[0] = str;
         return R;
+    }
+
+    constexpr auto collection_cstring()  // for completeness
+    {
+        return collection_cstring(nullptr);
     }
 
     // STDC string functions capable of constexpr

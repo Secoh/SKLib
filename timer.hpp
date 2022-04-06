@@ -18,7 +18,7 @@
 #include <ratio>
 #endif
 
-#include "./helpers.hpp"     // this also loads <type_traits>
+#include "helpers.hpp"     // this also loads <type_traits>
 
 // 1. Convert time in certain real-world units to C++ time representation
 

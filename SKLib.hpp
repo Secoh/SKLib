@@ -1,5 +1,5 @@
 // This file is part of SKLib: https://github.com/Secoh/SKLib
-// Copyright [2019-2021] Secoh
+// Copyright [2019-2022] Secoh
 //
 // Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
 // You may not use this file except in compliance with the License.
@@ -38,12 +38,12 @@
 // (e.g. to accelerate loading precompiled headers in MSVC)
 // just list all available SkLib modules in one file
 
-#include "./helpers.hpp"
-#include "./bitwise.hpp"
-#include "./checksum.hpp"
-#include "./timer.hpp"
+#include "helpers.hpp"
+#include "bitwise.hpp"
+#include "checksum.hpp"
+#include "timer.hpp"
 
-#include "./comms.hpp"
+#include "comms.hpp"
 
 
 
