@@ -9,7 +9,9 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
+
 // Work In Progress: monitor for TODO tags
+
 
 #ifndef SKLIB_INCLUDED_CMDPAR_HPP
 #define SKLIB_INCLUDED_CMDPAR_HPP
@@ -92,8 +94,14 @@
 #define SKLIB_PARAM_OPT_KEY(x,...)    param_key    x{ this, "" , false, __VA_ARGS__ };
 #define SKLIB_PARAM_OPT_STRING(x,...) param_str    x{ this, "" , false, __VA_ARGS__ };
 
-#define SKLIB_DECLARE_OPTION_HELP(name,head,...) \
-static constexpr auto name = ::sklib::param_help_type(head, ::sklib::collection_cstring(__VA_ARGS__));
+#define SKLIB_PARAMS_ALT_PREFIX(c)  setter_prefix alternative_prefix{ this, c };
+#define SKLIB_PARAMS_ALT_BANNER(Z)  setter_banner alternative_banner{ this, Z };
+
+#define SKLIB_DECLARE_OPTION_HELP(help_name,head,...) \
+static constexpr auto help_name = ::sklib::param_help_type(head, ::sklib::collection_cstring(__VA_ARGS__));
+
+#define SKLIB_DECLARE_HELP_BANNER(help_name,...) SKLIB_DECLARE_OPTION_HELP(help_name, nullptr, __VA_ARGS__)
+
 
 // Param Parser classes
 
@@ -151,10 +159,10 @@ namespace sklib
 
     protected:
         static constexpr char def_prefix = '-';
-        static constexpr char def_sym_reqd = '*';
+        static constexpr char def_sym_required = '*';
         static constexpr int def_min_help_spacing = 3;  // in help print, width between names column and "required" column
 
-        static constexpr auto def_help_intro = ::sklib::param_help_type(nullptr,
+        static constexpr auto def_help_banner = ::sklib::param_help_type(nullptr,
                       ::sklib::collection_cstring("Named options use: " SKLIB_PARAM_DESG_PREFIX_S "option value   General use of named parameter",
                                                   "                   " SKLIB_PARAM_DESG_PREFIX_S "option         Without value, if parameter is a switch (presence only)",
                                                   "Options can be combined in one argument: " SKLIB_PARAM_DESG_PREFIX_S "abc, where a, b, c are different parameters.",
@@ -165,9 +173,8 @@ namespace sklib
 
     // === Hidden Settings and Configuration
 
-        const int min_help_spacing = def_min_help_spacing;
-        const char sym_reqd = def_sym_reqd;
-        const ::sklib::internal::param_help_receiver_type descr_intro{ def_help_intro };
+        char Prefix = def_prefix;
+        ::sklib::internal::param_help_receiver_type help_banner{ def_help_banner };
 
         param_switch* param_list_entry = nullptr;
         const param_help* param_help_entry = nullptr;
@@ -175,32 +182,19 @@ namespace sklib
     // === Open Setting and Parse Status
 
     public:
-        const char Prefix = def_prefix;
-
         unsigned parse_status = 0;
         static constexpr unsigned status_good       = 0x0001;  // indicates that parser has no problems
         static constexpr unsigned status_read       = 0x0002;  // parser has parameter(s) that are read (aka not empty), even with errors
         static constexpr unsigned status_help       = 0x0004;  // help is requested
         static constexpr unsigned status_errors     = 0x0008;  // parser has errors; other parse_status bits and/or status of specific parameter(s) may contain more details
-        static constexpr unsigned status_incomplete = 0x0010;  // some of (or all) required parameters are not present
+        static constexpr unsigned status_incomplete = 0x0010;  // some of (or all) required parameters are not present (malformed individual options tested separately)
         static constexpr unsigned status_unknown    = 0x0020;  // error: unrecognized (or duplicate) parameter(s)
         static constexpr unsigned status_overflow   = 0x0040;  // error: too many plain parameters
+        static constexpr unsigned status_malformed  = 0x0080;  // some (or all) parameters are malformed (represented incorrectly) - check individual options
 
-    // === Constructors
-
-        params_table_base_type(char option_prefix = def_prefix, char custom_sym_reqd = def_sym_reqd, int custom_help_spacing = def_min_help_spacing)
-            : params_table_base_type(option_prefix, custom_sym_reqd, custom_help_spacing, def_help_intro) {}
-
-        template<unsigned U>
-        params_table_base_type(char option_prefix,
-                               char custom_sym_reqd,
-                               int custom_help_spacing,
-                               const ::sklib::param_help_type<U>& help_intro)
-            : Prefix(option_prefix)
-            , sym_reqd(custom_sym_reqd)
-            , min_help_spacing(custom_help_spacing)
-            , descr_intro(help_intro)
-        {}
+        bool is_good() const            { return (parse_status & status_good);   }
+        bool is_parse_error() const     { return (parse_status & status_errors); }
+        bool is_help_requested() const  { return (parse_status & status_help);   }
 
     // ====================================================================================================
     // === Parameters Descriptors
@@ -213,7 +207,6 @@ namespace sklib
     // all parameters except param_switch have:
     //  - value       the value associated with this parameter
 
-    public:
         class param_switch  // also, base type for all other parameters
         {
             friend params_table_base_type;
@@ -280,6 +273,7 @@ namespace sklib
             {
                 char* pstop;
                 value = strtol(arg, &pstop, 10);
+                if (pstop == arg) status |= param_error_partial;
                 return pstop;
             }
 
@@ -311,6 +305,7 @@ namespace sklib
             {
                 char* pstop;
                 value = strtoll(arg, &pstop, 10);
+                if (pstop == arg) status |= param_error_partial;
                 return pstop;
             }
 
@@ -342,6 +337,7 @@ namespace sklib
             {
                 char* pstop;
                 value = strtod(arg, &pstop);
+                if (pstop == arg) status |= param_error_partial;
                 return pstop;
             }
 
@@ -372,7 +368,7 @@ namespace sklib
             const char* decode(const char* arg)
             {
                 value = *arg;
-                if (value) arg++;
+                if (value) arg++; else status |= param_error_partial;
                 return arg;
             }
 
@@ -489,6 +485,21 @@ namespace sklib
             }
         };
 
+    // === Alternative Settings
+
+        struct setter_prefix
+        {
+            setter_prefix(params_table_base_type* root, char custom_prefix)
+            { root->Prefix = custom_prefix; }
+        };
+
+        struct setter_banner
+        {
+            template<unsigned U>
+            setter_banner(params_table_base_type* root, const ::sklib::param_help_type<U>& custom_banner)
+            { root->help_banner = custom_banner; }
+        };
+
     // ====================================================================================================
     // === Main Parser Entry
 
@@ -585,7 +596,7 @@ namespace sklib
                 {
                     event_present = true;
                     if (ptr->status & param_switch::param_is_help) event_help = true;
-                    if (ptr->status & ~param_switch::param_is_help) parse_status |= status_errors;
+                    if (ptr->status & ~param_switch::param_is_help) parse_status |= (status_errors | status_malformed);
                 }
                 else
                 {
@@ -606,7 +617,7 @@ namespace sklib
 
         // If Help option is engaged be parse() finction, show_help() displays appropriate text block relevant to the request
         //
-        bool show_help() const
+        bool show_help(char sym_required = def_sym_required, int min_help_spacing = def_min_help_spacing) const
         {
             if (!param_help_entry) return false;
 
@@ -615,11 +626,12 @@ namespace sklib
                 auto subject_ptr = this->find_param(param_help_entry->value).first;
                 if (!subject_ptr)
                 {
-                    this->help_diagnistics("This option doesn\'t exist:", param_help_entry->value);
+                    this->help_diagnostics("This option doesn\'t exist:", param_help_entry->value);
                     return false;
                 }
 
-                this->help_show_for_one_param(subject_ptr);   // class scope cannot have forward declarations - enforce that the function comes from this class even if similar name already exists
+                // class scope cannot have forward declarations - enforce that the function comes from this class even if similar name already exists
+                this->help_show_for_one_param(subject_ptr, sym_required, min_help_spacing);
                 return true;
             }
 
@@ -640,7 +652,7 @@ namespace sklib
 
                 if (subject_ptr->present && !(subject_ptr->status & param_switch::param_is_help))
                 {
-                    this->help_show_for_one_param(subject_ptr);
+                    this->help_show_for_one_param(subject_ptr, sym_required, min_help_spacing);
                     return true;
                 }
             }
@@ -648,19 +660,19 @@ namespace sklib
             // else, help alone - print list of all options
             // first, print intro, if requested
 
-            if (descr_intro.head)
+            if (help_banner.head)
             {
-                param_help_entry->writeln(descr_intro.head);
+                param_help_entry->writeln(help_banner.head);
             }
-            else if (descr_intro.text)
+            else if (help_banner.text)
             {
-                for (unsigned k = 0; k < descr_intro.size; k++) param_help_entry->writeln(descr_intro.text[k]);
+                for (unsigned k = 0; k < help_banner.size; k++) param_help_entry->writeln(help_banner.text[k]);
             }
 
             // then, print the list of options
 
             param_help_entry->write("Available options: (");
-            param_help_entry->write(sym_reqd);
+            param_help_entry->write(sym_required);
             param_help_entry->writeln(" if required)");
 
             depth = -1;
@@ -673,7 +685,8 @@ namespace sklib
                 if (!subject_ptr) break;
 
                 int spacing = min_help_spacing + max_name_length - subject_ptr->name_len;
-                this->help_prhead(subject_ptr->name, spacing, subject_ptr->required, subject_ptr->descr.head);
+                char sym_if_required = (subject_ptr->required ? sym_required : ' ');
+                this->help_prhead(subject_ptr->name, spacing, sym_if_required, subject_ptr->descr.head);
             }
 
             param_help_entry->writeln("Plain parameters:");
@@ -687,7 +700,8 @@ namespace sklib
                 auto subject_ptr = entry.first;
                 if (!subject_ptr) break;
 
-                this->help_prhead(nullptr, 1, subject_ptr->required, (subject_ptr->descr.head ? subject_ptr->descr.head : "< no description >"));
+                char sym_if_required = (subject_ptr->required ? sym_required : ' ');
+                this->help_prhead(nullptr, 1, sym_if_required, (subject_ptr->descr.head ? subject_ptr->descr.head : "< no description >"));
             }
 
             return true;
@@ -785,21 +799,21 @@ namespace sklib
         }
 
         // help formatting and printing
-        void help_diagnistics(const char* str, const char* name) const
+        void help_diagnostics(const char* str, const char* name) const
         {
             param_help_entry->writeln(str);
             param_help_entry->writeln("  " SKLIB_PARAM_DESG_PREFIX_S SKLIB_PARAM_DESG_SELF_S, name);
         }
-        void help_prhead(const char* name, int spacer, bool required, const char* head) const
+        void help_prhead(const char* name, int spacer, char sym_if_required, const char* head) const
         {
             if (name) param_help_entry->write(Prefix);
             param_help_entry->write(name);
             for (int i=0;i<spacer; i++) param_help_entry->write(" ");
-            param_help_entry->write(required ? sym_reqd : ' ');
+            param_help_entry->write(sym_if_required);
             param_help_entry->write(' ');
             param_help_entry->writeln(head, name);
         }
-        void help_show_for_one_param(const param_switch* subject_ptr) const
+        void help_show_for_one_param(const param_switch* subject_ptr, char sym_required, int spacing) const
         {
             auto& subject_help = subject_ptr->descr;
             if (subject_help.size && subject_help.text && !(subject_help.size==1 && !subject_help.text[0]))   // additional test for single nullptr in the text section
@@ -808,11 +822,11 @@ namespace sklib
             }
             else if (subject_help.head)
             {
-                help_prhead(subject_ptr->name, min_help_spacing, subject_ptr->required, subject_help.head);
+                help_prhead(subject_ptr->name, spacing, (subject_ptr->required ? sym_required : ' '), subject_help.head);
             }
             else
             {
-                help_diagnistics("This option doesn\'t have help text:", subject_ptr->name);
+                help_diagnostics("This option doesn\'t have help text:", subject_ptr->name);
             }
         }
     };

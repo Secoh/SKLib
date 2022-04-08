@@ -1,5 +1,5 @@
 // This file is part of SKLib: https://github.com/Secoh/SKLib
-// Copyright [2020-2021] Secoh
+// Copyright [2020-2022] Secoh
 //
 // Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
 // You may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ A. All Configurations / All Platforms
 1. Configuration Properties
 
   a) General
-Output Directory       = $(SolutionDir)\_bin\$(Configuration)_$(Platform)\
-Intermediate Directory = $(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\
+Output Directory       = $(PUBLIC)\Linger\$(ProjectGuid)\$(MSBuildProjectDirectoryNoRoot)\$(Configuration)_$(Platform)\bin\
+Intermediate Directory = $(PUBLIC)\Linger\$(ProjectGuid)\$(MSBuildProjectDirectoryNoRoot)\$(Configuration)_$(Platform)\
 
-C++ Language Standard  = ISO C++14 Standard
+C++ Language Standard  = ISO C++20 Standard
 
 (!) NOTE: For Library
 Set Output Directory equal to Intermediate Directory
@@ -33,7 +33,7 @@ Set Output Directory equal to Intermediate Directory
 
 2. Advanced
 
-Character Set - Review
+Character Set - Review - Prefer: Not Set (ASCII/UTF-8)
 
 
 3. C/C++
@@ -44,6 +44,7 @@ Debug Information Format       = Program Database (/Zi)
 
   b) Output Files
 Assembler Output         - consider: Assembly, Machine Code and Source
+ASM List Location        = $(OutDir)asm\
 
 
 4. Linker
@@ -55,14 +56,22 @@ Enable Incremental Linking = No
 Generate Debug Info = Generate Debug Information optimized for sharing and publishing (/DEBUG:FULL)
 // comment: in Release mode, it doesn't increase size
 
+Generate Program Database File = $(IntDir)bin\$(TargetName).pdb
+
   c) Optimization
-Profile Guided Database = $(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\$(TargetName).pgd
+Profile Guided Database = $(IntDir)$(TargetName).pgd
 
 
 B. Release Only / All Platforms
 -------------------------------------
 
-1. C/C++
+1. Configuration Properties
+
+  a) General
+Output Directory       = $(SolutionDir)\_release\$(PlatformShortName)\
+// replaces what was set earlier
+
+2. C/C++
 
   a) General
 Treat Warnings As Errors = Yes
@@ -71,7 +80,7 @@ Treat Warnings As Errors = Yes
 Favor Size Or Speed      = Favor fast code
 
 
-2. Librarian
+3. Librarian
 
   a) General
 Treat Lib Warnings As Errors = Yes
@@ -79,15 +88,14 @@ Treat Lib Warnings As Errors = Yes
 
 3. Linker
 
-  a) Debugging
-Generate Program Database File = $(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\$(TargetName).pdb
-
-  b) Optimization
+  a) Optimization
 Link Time Code Generation = Use Link Time Code Generation (/LTCG)
 
 
 4. Resource
 Null Terminate Strings = Yes
+
+
 
 
 
