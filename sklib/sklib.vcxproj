@@ -164,12 +164,14 @@
     <ClInclude Include="..\cmdpar.hpp" />
     <ClInclude Include="..\comms.hpp" />
     <ClInclude Include="..\crypto.hpp" />
+    <ClInclude Include="..\functions\strtol.hpp" />
     <ClInclude Include="..\ham.hpp" />
     <ClInclude Include="..\helpers.hpp" />
     <ClInclude Include="..\rs232.hpp" />
     <ClInclude Include="..\sklib.hpp" />
     <ClInclude Include="..\source\comms-code.hpp" />
     <ClInclude Include="..\source\rs-232-code.hpp" />
+    <ClInclude Include="..\string.hpp" />
     <ClInclude Include="..\timer.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -18,10 +18,11 @@
 
 #include "helpers.hpp"
 
-// Designators: shortcuts used in help-related strings to indicate current option prefix and the option name in question
-
-#define SKLIB_PARAM_DESG_PREFIX_S "\a"    /* replaces the Prefix letter */
-#define SKLIB_PARAM_DESG_SELF_S   "\b"    /* replaces the name of the current parameter (self) */
+// Option vs Parameter vs Argument
+//   Parameter is required, option is optional
+//   Definitions of classes and members in the list are Parameters
+//   When something in context is optional, it is Option
+//   Argument is string portion of command line to be interpreted by parser
 
 // Shortcuts for Parameter Set declaration
 //
@@ -42,30 +43,25 @@
 // 2) Using parameters declarations
 //
 //    a) Required named parameters: int, int64, double, key (single character), string
-//          PARAM_INT(option_name [ , default_value [ , context_help ] ] );
+//          PARAM_INT(option_name [ , default_value ] );
 //
 //    b) Optional named parameter, except Switch - same as required
-//          OPTION_INT(option_name, [ default_value [ , context_help ] ] );
+//          OPTION_INT(option_name, [ default_value ] );
 //
 //    c) Switch, optional - special parameter that shows only presence (no value)
-//          OPTION_SWITCH(option_name [ , context_help ] );
+//          OPTION_SWITCH(option_name);
 //
 //    d) Help option declaration
-//          OPTION_HELP(option_name [ , context_help ] [ , putchar_callback ] );
+//          OPTION_HELP(option_name);
 //
 //    e) Required plain parameters - same as named, given without prefixed name
-//          PLAIN_INT(option_name [ , default_value [ , context_help ] ] );
+//          PLAIN_INT(option_name [ , default_value ] );
 //
 //    f) Optional plain parameters - similar as named
-//          PLAIN_OPT_INT(option_name [ , default_value [ , context_help ] ] );
-//
-// 3) Declaring context help
-//    Must be done in C++ context that allows static constexpr variables
-//
-//      DECLARE_OPTION_HELP(name, header_text [ , body_text_1, body_text_2, ... ] );
+//          PLAIN_OPT_INT(option_name [ , default_value ] );
 //
 
-#define SKLIB_DECLARE_CMD_PARAMS(name) struct name : public ::sklib::params_table_base_type
+#define SKLIB_DECLARE_CMD_PARAMS(name) struct name : public ::sklib::cmdpar_table_base_type
 
 #define SKLIB_PARAM_INT(x,...)      param_int    x{ this, #x , true, __VA_ARGS__ };
 #define SKLIB_PARAM_INT64(x,...)    param_int64  x{ this, #x , true, __VA_ARGS__ };
@@ -95,86 +91,29 @@
 #define SKLIB_PARAM_OPT_STRING(x,...) param_str    x{ this, "" , false, __VA_ARGS__ };
 
 #define SKLIB_PARAMS_ALT_PREFIX(c)  setter_prefix alternative_prefix{ this, c };
-#define SKLIB_PARAMS_ALT_BANNER(Z)  setter_banner alternative_banner{ this, Z };
-
-#define SKLIB_DECLARE_OPTION_HELP(help_name,head,...) \
-static constexpr auto help_name = ::sklib::param_help_type(head, ::sklib::collection_cstring(__VA_ARGS__));
-
-#define SKLIB_DECLARE_HELP_BANNER(help_name,...) SKLIB_DECLARE_OPTION_HELP(help_name, nullptr, __VA_ARGS__)
 
 
 // Param Parser classes
 
 namespace sklib
 {
-    // Standalone string collection to describe an option in the command line parser
-    template<unsigned U>
-    struct param_help_type
-    {
-        const char* head = nullptr;
-        const char* text[U] = { nullptr };
-
-        // Standalone string collection to describe an option in the command line parser
-        constexpr param_help_type() = default;
-
-        // hd - single line for short description; ld - text page explaining the option
-        constexpr param_help_type(const char* hd, const ::sklib::supplement::collection_cstring_type<U>& ld) : head(hd)
-        {
-            ld.fill_array(text);
-        }
-    };
-
-    namespace internal
-    {
-        struct param_help_receiver_type
-        {
-            const char* head = nullptr;
-            const char* const* text = nullptr;
-            unsigned size = 0;
-
-            template<unsigned U>
-            constexpr param_help_receiver_type(const ::sklib::param_help_type<U>& ld)
-                : head(ld.head)
-                , text((U&& ld.text&& ld.text[0]) ? ld.text : nullptr)
-                , size((U && ld.text && ld.text[0]) ? U : 0)
-            {}
-        };
-    };
-
-    class params_table_base_type
+    template<class T = char>
+    class cmdpar_table_base_type
     {
     public:
         class param_switch;
         class param_help;
 
+        typedef std::remove_cv_t<T> letter_type;
+
     // === Parser Defaults
 
-    private:        //sk! TODO support different platforms
-#ifdef _WIN32
-        static void stdout_putc(char c) { putchar(c); }
-        static constexpr auto def_putc = stdout_putc;
-#else
-        static constexpr auto def_putc = nullptr;
-#endif
-
     protected:
-        static constexpr char def_prefix = '-';
-        static constexpr char def_sym_required = '*';
-        static constexpr int def_min_help_spacing = 3;  // in help print, width between names column and "required" column
-
-        static constexpr auto def_help_banner = ::sklib::param_help_type(nullptr,
-                      ::sklib::collection_cstring("Named options use: " SKLIB_PARAM_DESG_PREFIX_S "option value   General use of named parameter",
-                                                  "                   " SKLIB_PARAM_DESG_PREFIX_S "option         Without value, if parameter is a switch (presence only)",
-                                                  "Options can be combined in one argument: " SKLIB_PARAM_DESG_PREFIX_S "abc, where a, b, c are different parameters.",
-                                                  "Value can follow the option without space: " SKLIB_PARAM_DESG_PREFIX_S "OptionValue if parsing is not ambiguous.",
-                                                  "Argument without leading \"" SKLIB_PARAM_DESG_PREFIX_S "\" is plain argument. Plain parameters are read one after another.",
-                                                  "Double prefix, \"" SKLIB_PARAM_DESG_PREFIX_S SKLIB_PARAM_DESG_PREFIX_S "\", makes the next argument plain even if it starts with \"" SKLIB_PARAM_DESG_PREFIX_S "\".",
-                                                  "If value in an option starts with prefix symbol, it can also be escaped with preceding \"" SKLIB_PARAM_DESG_PREFIX_S SKLIB_PARAM_DESG_PREFIX_S "\"." ));
+        static constexpr letter_type def_prefix = static_cast<letter_type>('-');
 
     // === Hidden Settings and Configuration
 
-        char Prefix = def_prefix;
-        ::sklib::internal::param_help_receiver_type help_banner{ def_help_banner };
+        letter_type Prefix = def_prefix;   // cannot be const because order of initialization: can be modified from derived class
 
         param_switch* param_list_entry = nullptr;
         const param_help* param_help_entry = nullptr;
@@ -182,85 +121,80 @@ namespace sklib
     // === Open Setting and Parse Status
 
     public:
-        unsigned parse_status = 0;
-        static constexpr unsigned status_good       = 0x0001;  // indicates that parser has no problems
-        static constexpr unsigned status_read       = 0x0002;  // parser has parameter(s) that are read (aka not empty), even with errors
-        static constexpr unsigned status_help       = 0x0004;  // help is requested
-        static constexpr unsigned status_errors     = 0x0008;  // parser has errors; other parse_status bits and/or status of specific parameter(s) may contain more details
-        static constexpr unsigned status_incomplete = 0x0010;  // some of (or all) required parameters are not present (malformed individual options tested separately)
-        static constexpr unsigned status_unknown    = 0x0020;  // error: unrecognized (or duplicate) parameter(s)
-        static constexpr unsigned status_overflow   = 0x0040;  // error: too many plain parameters
-        static constexpr unsigned status_malformed  = 0x0080;  // some (or all) parameters are malformed (represented incorrectly) - check individual options
+        uint16_t parser_status = parser_nothing;
 
-        bool is_good() const            { return (parse_status & status_good);   }
-        bool is_parse_error() const     { return (parse_status & status_errors); }
-        bool is_help_requested() const  { return (parse_status & status_help);   }
+        static constexpr uint16_t parser_nothing      = 0;       // parser wasn't run
+        static constexpr uint16_t parser_good         = 0x0001;  // all checks satisfied, no errors, and not help request
+        static constexpr uint16_t parser_empty        = 0x0002;  // set if the input is empty; still may be valid state
+        static constexpr uint16_t parser_error        = 0x0004;  // error state; check clarification bit for specific problem
+        static constexpr uint16_t parser_error_unknown_name   = 0x0008;  // unrecognized parameter(s); also, unrecognized help request
+        static constexpr uint16_t parser_error_missing_named  = 0x0010;  // some (or all) required named parameters are not present
+        static constexpr uint16_t parser_error_missing_plain  = 0x0020;  // some (or all) required plain parameters are not present
+        static constexpr uint16_t parser_error_overflow_named = 0x0040;  // too many (repeating) named parameters
+        static constexpr uint16_t parser_error_overflow_plain = 0x0080;  // too many plain parameters
+        static constexpr uint16_t parser_error_malformed      = 0x0100;  // some (or all) parameters are malformed (represented incorrectly) - check individual options
+        static constexpr uint16_t parser_help_request = 0x0200;  // help is requested; check specific bit(s) to see the request(s)
+        static constexpr uint16_t parser_help_banner  = 0x0400;  // general help is requested; -help without parameter
+        static constexpr uint16_t parser_help_help    = 0x0800;  // help on help is requested; -help help
+        static constexpr uint16_t parser_help_option  = 0x1000;  // help on parameter is requested; may set parser_unknown bit if the parameter is unknown
+
+        bool is_good() const            { return (parser_status & parser_good); }
+        bool is_parser_error() const    { return (parser_status & parser_error); }
+        bool is_help_requested() const  { return (parser_status & parser_help_request); }
 
     // ====================================================================================================
     // === Parameters Descriptors
     //
     // all parameters have fields:
-    //  - present     true if command line contains this parameter
     //  - status      result of reading this individual parameter
     //  - decode()    protected function that is used to read and interpret the value - advances pointer and sets error status
+    //  - present()   helper function to interpret status field; true if command line contains this option
     //
     // all parameters except param_switch have:
     //  - value       the value associated with this parameter
 
         class param_switch  // also, base type for all other parameters
         {
-            friend params_table_base_type;
+            friend cmdpar_table_base_type;
 
         public:
-            bool present = false;
-            uint8_t status = param_no_errors;
+            uint8_t status = option_nothing;
+            bool present() const { return (status & option_present); }
 
-            static constexpr uint8_t param_no_errors     = 0x00;   // option state is correct (even if not present)
-            static constexpr uint8_t param_error_empty   = 0x01;   // option is present but data portion is not
-            static constexpr uint8_t param_error_partial = 0x02;   // data portion shall be read in full but it was not
-            static constexpr uint8_t param_is_help       = 0x80;   // hack: this bit signals that the parameter is used in help subsystem
+            static constexpr uint8_t option_nothing       = 0;     // option state is correct (even if not present)
+            static constexpr uint8_t option_present       = 0x01;  // option is present
+            static constexpr uint8_t option_error_empty   = 0x02;  // data is required for the option type, but data is not found
+            static constexpr uint8_t option_error_partial = 0x04;  // in split options, data portion shall occupy the entire argument, but the read terminates before end
+            static constexpr uint8_t option_help_request  = 0x40;  // hack: first help request sets this bit instead of Present bit to allow help on help (double) requests
+            static constexpr uint8_t option_is_help       = 0x80;  // hack: this bit signals that the option is used in help subsystem
 
         protected:
-            const char* const name = "";
+            const letter_type* const name = "";
             const unsigned name_len = 0;
             const bool required = false;
-            const ::sklib::internal::param_help_receiver_type descr;
             param_switch* const next = nullptr;
 
-            static constexpr auto help_null = ::sklib::param_help_type<1>();
-            static constexpr auto help_help = ::sklib::param_help_type("Prints help on options. Use \"" SKLIB_PARAM_DESG_PREFIX_S SKLIB_PARAM_DESG_SELF_S " " SKLIB_PARAM_DESG_SELF_S "\" for more.",
-                              ::sklib::collection_cstring(SKLIB_PARAM_DESG_PREFIX_S SKLIB_PARAM_DESG_SELF_S "             prints the list of available options",
-                                         SKLIB_PARAM_DESG_PREFIX_S SKLIB_PARAM_DESG_SELF_S " [" SKLIB_PARAM_DESG_PREFIX_S "]option   prints the help text on the selected option (if available)"));
         public:
-            constexpr param_switch(params_table_base_type* root,
-                                   const char* param_name,
+            constexpr param_switch(cmdpar_table_base_type* root,
+                                   const letter_type* param_name,
                                    bool param_required = false)
-                : param_switch(root, param_name, param_required, help_null)
-            {}
-
-            template<unsigned U>
-            constexpr param_switch(params_table_base_type* root,
-                                   const char* param_name,
-                                   bool param_required,
-                                   const ::sklib::param_help_type<U>& param_descr)
                 : name(param_name)
                 , name_len((unsigned)::sklib::strlen(param_name))
                 , required(param_required)
-                , descr(param_descr)
                 , next(root->param_list_entry)
             {
                 root->param_list_entry = this;
             }
 
         protected:
-            static constexpr int     global_defval_int       = int();
-            static constexpr double  global_defval_double    = double();
-            static constexpr char    global_defval_key       = '\0';
-            static constexpr char    global_defval_cstring[] = "";
+            static constexpr int         global_defval_int       = int();
+            static constexpr double      global_defval_double    = double();
+            static constexpr letter_type global_defval_key       = 0;                       // = '\0';
+            static constexpr letter_type global_defval_cstring[] = { global_defval_key };   // = "";
 
             // read and accept the value of the parameter, escept for switch
             // derived classes for other parameter types shall override this fuction
-            virtual const char* decode(const char* arg)
+            virtual const letter_type* decode(const letter_type* arg)
             {
                 return nullptr;  // special case, no value for switch
             }
@@ -269,31 +203,22 @@ namespace sklib
         class param_int : public param_switch
         {
         protected:
-            const char* decode(const char* arg)
+            const letter_type* decode(const letter_type* arg)
             {
                 char* pstop;
                 value = strtol(arg, &pstop, 10);
-                if (pstop == arg) status |= param_error_partial;
+                if (pstop == arg) status |= option_error_partial;
                 return pstop;
             }
 
         public:
             int value = global_defval_int;
 
-            constexpr param_int(params_table_base_type* root,
+            constexpr param_int(cmdpar_table_base_type* root,
                                 const char* param_name,
                                 bool param_required = false,
                                 int defval = global_defval_int)
-                : param_int(root, param_name, param_required, defval, help_null)
-            {}
-
-            template<unsigned U>
-            constexpr param_int(params_table_base_type* root,
-                                const char* param_name,
-                                bool param_required,
-                                int defval,
-                                const ::sklib::param_help_type<U>& param_descr)
-                : param_switch(root, param_name, param_required, param_descr)
+                : param_switch(root, param_name, param_required)
                 , value(defval)
             {}
         };
@@ -305,27 +230,18 @@ namespace sklib
             {
                 char* pstop;
                 value = strtoll(arg, &pstop, 10);
-                if (pstop == arg) status |= param_error_partial;
+                if (pstop == arg) status |= option_error_partial;
                 return pstop;
             }
 
         public:
             int64_t value = global_defval_int;
 
-            constexpr param_int64(params_table_base_type* root,
+            constexpr param_int64(cmdpar_table_base_type* root,
                                   const char* param_name,
                                   bool param_required = false,
                                   int64_t defval = global_defval_int)
-                : param_int64(root, param_name, param_required, defval, help_null)
-            {}
-
-            template<unsigned U>
-            constexpr param_int64(params_table_base_type* root,
-                                  const char* param_name,
-                                  bool param_required,
-                                  int64_t defval,
-                                  const ::sklib::param_help_type<U>& param_descr)
-                : param_switch(root, param_name, param_required, param_descr)
+                : param_switch(root, param_name, param_required)
                 , value(defval)
             {}
         };
@@ -337,27 +253,18 @@ namespace sklib
             {
                 char* pstop;
                 value = strtod(arg, &pstop);
-                if (pstop == arg) status |= param_error_partial;
+                if (pstop == arg) status |= option_error_partial;
                 return pstop;
             }
 
         public:
             double value = global_defval_double;
 
-            constexpr param_double(params_table_base_type* root,
+            constexpr param_double(cmdpar_table_base_type* root,
                                    const char* param_name,
                                    bool param_required = false,
                                    double defval = global_defval_double)
-                : param_double(root, param_name, param_required, defval, help_null)
-            {}
-
-            template<unsigned U>
-            constexpr param_double(params_table_base_type* root,
-                                   const char* param_name,
-                                   bool param_required,
-                                   double defval,
-                                   const ::sklib::param_help_type<U>& param_descr)
-                : param_switch(root, param_name, param_required, param_descr)
+                : param_switch(root, param_name, param_required)
                 , value(defval)
             {}
         };
@@ -368,27 +275,18 @@ namespace sklib
             const char* decode(const char* arg)
             {
                 value = *arg;
-                if (value) arg++; else status |= param_error_partial;
+                if (value) arg++; else status |= option_error_partial;
                 return arg;
             }
 
         public:
             char value = global_defval_key;
 
-            constexpr param_key(params_table_base_type* root,
+            constexpr param_key(cmdpar_table_base_type* root,
                                 const char* param_name,
                                 bool param_required = false,
                                 char defval = global_defval_key)
-                : param_key(root, param_name, param_required, defval, help_null)
-            {}
-
-            template<unsigned U>
-            constexpr param_key(params_table_base_type* root,
-                                const char* param_name,
-                                bool param_required,
-                                char defval,
-                                const ::sklib::param_help_type<U>& param_descr)
-                : param_switch(root, param_name, param_required, param_descr)
+                : param_switch(root, param_name, param_required)
                 , value(defval)
             {}
         };
@@ -405,56 +303,21 @@ namespace sklib
         public:
             const char* value = global_defval_cstring;
 
-            constexpr param_str(params_table_base_type* root,
+            constexpr param_str(cmdpar_table_base_type* root,
                                 const char* param_name,
                                 bool param_required = false,
                                 const char* defval = global_defval_cstring)
-                : param_str(root, param_name, param_required, defval, help_null)
-            {}
-
-            template<unsigned U>
-            constexpr param_str(params_table_base_type* root,
-                                const char* param_name,
-                                bool param_required,
-                                const char* defval,
-                                const ::sklib::param_help_type<U>& param_descr)
-                : param_switch(root, param_name, param_required, param_descr)
+                : param_switch(root, param_name, param_required)
                 , value(defval)
             {}
         };
 
         class param_help : public param_str
         {
-            friend params_table_base_type;
+            friend cmdpar_table_base_type;
 
         protected:
-            params_table_base_type* const parent = nullptr;
-
-            typedef sklib::internal::c_callback_type<void, char> help_putc_callback_type;
-            const help_putc_callback_type putc_callback;
-
-            void write(char c, const char* name = "") const
-            {
-                if (c == SKLIB_PARAM_DESG_SELF_S[0])
-                {
-                    // class scope cannot have forward declarations - enforce that the function comes from this class even if similar name already exists
-                    // and, potential recursion breaks at step 3, because the substitution string will be empty
-                    this->write(name);
-                }
-                else
-                {
-                    putc_callback(c == SKLIB_PARAM_DESG_PREFIX_S[0] ? parent->Prefix : c);
-                }
-            }
-            void write(const char* str, const char* name = "") const
-            {
-                if (str && putc_callback) while(*str) write(*str++, name);
-            }
-            void writeln(const char* str, const char* name = "") const
-            {
-                write(str, name);
-                write('\n');
-            }
+            cmdpar_table_base_type* const parent = nullptr;
 
             // problem: parent class doesn't know where is the help class located - it only has L1 list of param_switch base classes
             // (extreme case - multiple help-bound parameters were programmed, one was called - which one?)
@@ -466,22 +329,12 @@ namespace sklib
             }
 
         public:
-            constexpr param_help(params_table_base_type* root,
-                                 const char* param_name,
-                                 const help_putc_callback_type& print_line_func = help_putc_callback_type{ stdout_putc })
-                : param_help(root, param_name, help_help, print_line_func)
-            {}
-
-            template<unsigned U>
-            constexpr param_help(params_table_base_type* root,
-                                 const char* param_name,
-                                 const ::sklib::param_help_type<U>& param_descr,
-                                 const help_putc_callback_type& print_line_func = help_putc_callback_type{ stdout_putc })
-                : param_str(root, param_name, false, global_defval_cstring, param_descr)
+            constexpr param_help(cmdpar_table_base_type* root,
+                                 const char* param_name)
+                : param_str(root, param_name)
                 , parent(root)
-                , putc_callback(print_line_func)
             {
-                status |= param_is_help;
+                status |= option_is_help;
             }
         };
 
@@ -489,15 +342,8 @@ namespace sklib
 
         struct setter_prefix
         {
-            setter_prefix(params_table_base_type* root, char custom_prefix)
+            setter_prefix(cmdpar_table_base_type* root, char custom_prefix)
             { root->Prefix = custom_prefix; }
-        };
-
-        struct setter_banner
-        {
-            template<unsigned U>
-            setter_banner(params_table_base_type* root, const ::sklib::param_help_type<U>& custom_banner)
-            { root->help_banner = custom_banner; }
         };
 
     // ====================================================================================================
@@ -513,7 +359,7 @@ namespace sklib
         bool parse(int argn, const char* const* argc, int arg_start = 1)
         {
             // note that this function is intended for single call, but lets clear this variable anyway
-            parse_status = 0;
+            parser_status = parser_nothing;
 
             bool signal_plain = false;  // if true, next arument is interpreted as plain parameter ("GNU style")
 
@@ -612,101 +458,6 @@ namespace sklib
             return (parse_status & (status_good | status_help));
         }
 
-    // ====================================================================================================
-    // === Help Subsystem
-
-        // If Help option is engaged be parse() finction, show_help() displays appropriate text block relevant to the request
-        //
-        bool show_help(char sym_required = def_sym_required, int min_help_spacing = def_min_help_spacing) const
-        {
-            if (!param_help_entry) return false;
-
-            if (param_help_entry->value && *param_help_entry->value)
-            {
-                auto subject_ptr = this->find_param(param_help_entry->value).first;
-                if (!subject_ptr)
-                {
-                    this->help_diagnostics("This option doesn\'t exist:", param_help_entry->value);
-                    return false;
-                }
-
-                // class scope cannot have forward declarations - enforce that the function comes from this class even if similar name already exists
-                this->help_show_for_one_param(subject_ptr, sym_required, min_help_spacing);
-                return true;
-            }
-
-            // else, if another option is entered, print specifc help and exit
-            // keep track of maximum name length for the next operation
-
-            unsigned max_name_length = 0;
-            int depth = -1;
-            while (true)
-            {
-                auto entry = this->find_param(nullptr, depth);
-                depth = entry.second;
-
-                auto subject_ptr = entry.first;
-                if (!subject_ptr) break;
-
-                max_name_length = std::max(max_name_length, subject_ptr->name_len);
-
-                if (subject_ptr->present && !(subject_ptr->status & param_switch::param_is_help))
-                {
-                    this->help_show_for_one_param(subject_ptr, sym_required, min_help_spacing);
-                    return true;
-                }
-            }
-
-            // else, help alone - print list of all options
-            // first, print intro, if requested
-
-            if (help_banner.head)
-            {
-                param_help_entry->writeln(help_banner.head);
-            }
-            else if (help_banner.text)
-            {
-                for (unsigned k = 0; k < help_banner.size; k++) param_help_entry->writeln(help_banner.text[k]);
-            }
-
-            // then, print the list of options
-
-            param_help_entry->write("Available options: (");
-            param_help_entry->write(sym_required);
-            param_help_entry->writeln(" if required)");
-
-            depth = -1;
-            while (true)
-            {
-                auto entry = this->find_param(nullptr, depth);
-                depth = entry.second;
-
-                auto subject_ptr = entry.first;
-                if (!subject_ptr) break;
-
-                int spacing = min_help_spacing + max_name_length - subject_ptr->name_len;
-                char sym_if_required = (subject_ptr->required ? sym_required : ' ');
-                this->help_prhead(subject_ptr->name, spacing, sym_if_required, subject_ptr->descr.head);
-            }
-
-            param_help_entry->writeln("Plain parameters:");
-
-            depth = -1;
-            while (true)
-            {
-                auto entry = this->find_param("", depth);
-                depth = entry.second;
-
-                auto subject_ptr = entry.first;
-                if (!subject_ptr) break;
-
-                char sym_if_required = (subject_ptr->required ? sym_required : ' ');
-                this->help_prhead(nullptr, 1, sym_if_required, (subject_ptr->descr.head ? subject_ptr->descr.head : "< no description >"));
-            }
-
-            return true;
-        }
-
     // === Helper Functions, manipulating parameters, help formatting/printing
 
     protected:
@@ -798,37 +549,6 @@ namespace sklib
             return true;
         }
 
-        // help formatting and printing
-        void help_diagnostics(const char* str, const char* name) const
-        {
-            param_help_entry->writeln(str);
-            param_help_entry->writeln("  " SKLIB_PARAM_DESG_PREFIX_S SKLIB_PARAM_DESG_SELF_S, name);
-        }
-        void help_prhead(const char* name, int spacer, char sym_if_required, const char* head) const
-        {
-            if (name) param_help_entry->write(Prefix);
-            param_help_entry->write(name);
-            for (int i=0;i<spacer; i++) param_help_entry->write(" ");
-            param_help_entry->write(sym_if_required);
-            param_help_entry->write(' ');
-            param_help_entry->writeln(head, name);
-        }
-        void help_show_for_one_param(const param_switch* subject_ptr, char sym_required, int spacing) const
-        {
-            auto& subject_help = subject_ptr->descr;
-            if (subject_help.size && subject_help.text && !(subject_help.size==1 && !subject_help.text[0]))   // additional test for single nullptr in the text section
-            {
-                for (unsigned k=0; k<subject_help.size; k++) param_help_entry->writeln(subject_help.text[k], subject_ptr->name);
-            }
-            else if (subject_help.head)
-            {
-                help_prhead(subject_ptr->name, spacing, (subject_ptr->required ? sym_required : ' '), subject_help.head);
-            }
-            else
-            {
-                help_diagnostics("This option doesn\'t have help text:", subject_ptr->name);
-            }
-        }
     };
 };
 

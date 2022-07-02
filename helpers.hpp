@@ -55,6 +55,14 @@ namespace sklib
     {
         template<class T> using do_not_deduce = typename std::type_identity_t<T>;
 
+        template<class T>
+        constexpr T alternate_maximum(const T& a, const T& b)   // workaround for notorious windows.h definition
+        { return (a<b ? b : a); }
+
+        template<class T>
+        constexpr T alternate_minimum(const T& a, const T& b)   // workaround for notorious windows.h definition
+        { return (a<b ? a : b); }
+
 // Class quasi-member, global, and C-style programmable callbacks -- used in: bitwise
 // NB: can be used as an "almost" drop-in replacement for a function address variable, with initialization, test for nullptr, and calling
         template<class CA, class FR, class ...FA>
@@ -156,7 +164,7 @@ namespace sklib
 
             constexpr collection_cstring_type() = default;
 
-            constexpr collection_cstring_type(const collection_cstring_type<std::max(N,2u)-1>& in)   // for completeness, only N >= 2 are used
+            constexpr collection_cstring_type(const collection_cstring_type<::sklib::internal::alternate_maximum(N,2u)-1>& in)   // for completeness, only N >= 2 are used
             {
                 for (unsigned k = 0; k < in.N; k++) text[k] = in.text[k];
             }
@@ -287,31 +295,82 @@ namespace sklib
         }
     }
 
-    // ASCII designators, (useful subset)
+    // ASCII, UNICODE designators (useful subset)
 
     namespace ascii
     {
-        static constexpr int NUL = '\0';
-        static constexpr int STX = '\x02';   // Start of Text
-        static constexpr int ETX = '\x03';   // End of Text
-        static constexpr int EOT = '\x04';   // End of Transmission
-        static constexpr int ENQ = '\x05';   // Enquiry
-        static constexpr int ACK = '\x06';   // Acknowledge
-        static constexpr int NAK = '\x15';   // Negative Acknowledgement
-        static constexpr int BEL = '\a';     // Bell
-        static constexpr int BS  = '\b';
-        static constexpr int TAB = '\t';
-        static constexpr int LF  = '\n';
-        static constexpr int CR  = '\r';
-        static constexpr int VTAB= '\v';     // Vertical Tab
-        static constexpr int FF  = '\f';     // Form Feed
-        static constexpr int XON = '\x11';
-        static constexpr int XOFF= '\x13';
-        static constexpr int CAN = '\x18';   // Cancel
-        static constexpr int ESC = '\x1B';
-        static constexpr int DEL = '\x7F';
-        static constexpr int SPC = ' ';      // Space
-    }
+        static constexpr uint8_t NUL = '\0';
+        static constexpr uint8_t STX = '\x02';   // Start of Text
+        static constexpr uint8_t ETX = '\x03';   // End of Text
+        static constexpr uint8_t EOT = '\x04';   // End of Transmission
+        static constexpr uint8_t ENQ = '\x05';   // Enquiry
+        static constexpr uint8_t ACK = '\x06';   // Acknowledge
+        static constexpr uint8_t NAK = '\x15';   // Negative Acknowledgement
+        static constexpr uint8_t BEL = '\a';     // Bell
+        static constexpr uint8_t BS = '\b';
+        static constexpr uint8_t TAB = '\t';
+        static constexpr uint8_t LF = '\n';
+        static constexpr uint8_t CR = '\r';
+        static constexpr uint8_t VTAB = '\v';    // Vertical Tab
+        static constexpr uint8_t FF = '\f';      // Form Feed
+        static constexpr uint8_t XON = '\x11';
+        static constexpr uint8_t XOFF = '\x13';
+        static constexpr uint8_t CAN = '\x18';   // Cancel
+        static constexpr uint8_t ESC = '\x1B';
+        static constexpr uint8_t DEL = '\x7F';
+        static constexpr uint8_t SPC = ' ';      // Space
+    };
+
+    namespace unicode
+    {
+        static constexpr uint16_t SURROGATE_START = 0xD800u;
+        static constexpr uint16_t SURROGATE_CAP   = 0xE000u;
+        static constexpr uint16_t HIGH_SURROGATE = SURROGATE_START;
+        static constexpr uint16_t HIGH_SURROGATE_LENGTH = (SURROGATE_CAP - SURROGATE_START) / 2;
+        static constexpr uint16_t LOW_SURROGATE  = HIGH_SURROGATE + HIGH_SURROGATE_LENGTH;
+        static constexpr uint16_t LOW_SURROGATE_LENGTH = SURROGATE_CAP - LOW_SURROGATE;
+
+        static constexpr uint16_t REPLACEMENT_MARK = 0xFFFDu;   // also encoding error
+        static constexpr uint16_t BYTE_ORDER       = 0xFEFFu;
+        static constexpr uint16_t NOT_CHAR_A       = 0xFFFEu;
+        static constexpr uint16_t NOT_CHAR_B       = 0xFFFFu;
+
+        static constexpr int PLANE_SIZE_BITS = 16;
+        static constexpr uint32_t PLANE_SIZE  = 0x10000u;
+        static constexpr uint32_t UNICODE_CAP = 0x110000u;
+
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T bool is_surrogate(T ch)
+        { return (ch >= SURROGATE_START && ch < SURROGATE_CAP); }
+
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T bool is_high_surrogate(T ch)
+        { return (ch >= HIGH_SURROGATE && ch < HIGH_SURROGATE+HIGH_SURROGATE_LENGTH); }
+
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T bool is_low_surrogate(T ch)
+        { return (ch >= LOW_SURROGATE && ch < LOW_SURROGATE+LOW_SURROGATE_LENGTH); }
+
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T bool is_unicode(T ch)
+        { return (ch < UNICODE_CAP); }
+
+        SKLIB_INTERNAL_FEATURE_IF_UINT_T bool is_bmp(T ch)
+        { return (ch < PLANE_SIZE); }
+
+
+        namespace supplement
+        {
+            // assumes without assertion, entering high surrorage, low surrogate
+            uint32_t utf16_combine(uint16_t high, uint16_t low)
+            {
+                return (high - HIGH_SURROGATE) * LOW_SURROGATE_LENGTH + low + (PLANE_SIZE - LOW_SURROGATE);
+            }
+
+            // assumes without assertion, ch is valid unicode letter in supplemental planes
+            std::pair<uint16_t, uint16_t> utf16_split(uint32_t ch)
+            {
+                static_assert(PLANE_SIZE % LOW_SURROGATE_LENGTH == 0, "SKLIB ** INTERNAL ERROR ** Unicode: Plane Size must be multiplies of Low Surrogate span");
+                return { (ch - PLANE_SIZE) / LOW_SURROGATE_LENGTH + HIGH_SURROGATE, ch % LOW_SURROGATE_LENGTH + LOW_SURROGATE };
+            }
+        };
+    };
 };
 
 
