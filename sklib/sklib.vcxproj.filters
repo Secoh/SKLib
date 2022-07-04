@@ -63,5 +63,8 @@
     <ClInclude Include="..\functions\strtol.hpp">
       <Filter>Header Files\functions</Filter>
     </ClInclude>
+    <ClInclude Include="..\ascii.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

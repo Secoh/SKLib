@@ -9,21 +9,43 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
-#ifndef SKLIB_INCLUDED_STRING_HPP
-#define SKLIB_INCLUDED_STRING_HPP
+#ifndef SKLIB_INCLUDED_ASCII_HPP
+#define SKLIB_INCLUDED_ASCII_HPP
 
-// headers used in specific functions below
-#include<cstdint>
-#include<type_traits>
-#include<limits>
-
-namespace sklib
+template<class T>
+bool is_alpha_upper(T c)
 {
+    return (c >= 'A' && c <= 'Z');
+}
 
-#include "ascii.hpp"
-#include "functions/strtol.hpp"
+template<class T>
+bool is_alpha_lower(T c)
+{
+    return (c >= 'a' && c <= 'z');
+}
 
-};
+template<class T>
+bool is_alpha(T c)
+{
+    return (is_alpha_upper<T>(c) || is_alpha_lower<T>(c));
+}
 
-#endif // SKLIB_INCLUDED_STRING_HPP
+template<class T>
+bool is_num(T c)
+{
+    return (c >= '0' && c <= '9');
+}
 
+template<class T>
+bool is_alpha_num(T c)
+{
+    return (is_alpha<T>(c) || is_num<T>(c));
+}
+
+template<class T>
+bool is_space(T c)
+{
+    return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
+}
+
+#endif // SKLIB_INCLUDED_ASCII_HPP

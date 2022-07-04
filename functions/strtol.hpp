@@ -16,7 +16,7 @@
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 
-// This file is derivative work based on standard C library code, credits below. See (1).
+// This file is heavily modified derivative work based on standard C library code, credits below. See (1).
 // Reference as of 24 June 2022: https://github.com/gcc-mirror/gcc/blob/master/libiberty/strtol.c
 //
 // Motivation: to make a flavor of standard C function strtol() that can directly accept Unicode and its variety, as
@@ -80,47 +80,11 @@
 
 // This is internal file for inclusion into SKLib/string.hpp below sklib namespace
 
-#include<cstdint>
-#include<type_traits>
-#include<limits>
+// the headers used in the function:
+//#include<cstdint>
+//#include<type_traits>
+//#include<limits>
 
-// -------------------------------------------- ctype-like functions shall be moved elsewhere
-
-template<class T>
-bool is_alpha_upper(T c)
-{
-    return (c >= 'A' && c <= 'Z');
-}
-
-template<class T>
-bool is_alpha_lower(T c)
-{
-    return (c >= 'a' && c <= 'z');
-}
-
-template<class T>
-bool is_alpha(T c)
-{
-    return (is_alpha_upper<T>(c) || is_alpha_lower<T>(c));
-}
-
-template<class T>
-bool is_num(T c)
-{
-    return (c >= '0' && c <= '9');
-}
-
-template<class T>
-bool is_alpha_num(T c)
-{
-    return (is_alpha<T>(c) || is_num<T>(c));
-}
-
-template<class T>
-bool is_space(T c)
-{
-    return (c == ' ' || c == '\t' || c == '\n' || c == '\r');
-}
 
 // ------------------------------------ Types helpers, coming from external
 
@@ -159,11 +123,29 @@ template<class T>
 using make_signed_if_integer_type = typename make_signed_if_integer<T>::type;
 
 
-// ---------------------------------------- strtol specific helper
+// ---------------------------------------- 
 
 
-namespace internal
+namespace internal   // stoi-specific helpers
 {
+    // Compute the cutoff value between legal numbers and illegal numbers. That is the largest legal value, divided by
+    // the base. An input number that is greater than this value, if followed by a legal input character, is too big.
+    // One that is equal to this value may be valid or not; the limit between valid and invalid numbers is then based
+    // on the last digit. For instance, if the range for longs is [-2147483648..2147483647] and the input base is 10,
+    // cutoff will be set to 214748364 and cutlim to either 7 (neg==0) or 8 (neg==1), meaning that if we have
+    // accumulated a value > 214748364, or equal but the next digit is > 7 (or 8), the number is too big, the parser
+    // stops before the offending digit and returns previous, legal, number.
+    //
+    // Conversion from large negative integer to unsigned integer of the same size (1 bit wider), avoiding overflow
+    // Reference: C++11 Rule Book; as of 24 Jun 2022, https://www.open-std.org/JTC1/SC22/WG14/www/docs/n1570.pdf
+    // 6.3.1.3 Signed and unsigned integers, paragraph 2:
+    // Otherwise [when signed integer value cannot be represented by unsigned integer type of the same size - Secoh],
+    // if the new type is unsigned, the value is converted by repeatedly adding or subtracting one more than the
+    // maximum value that can be represented in the new type until the value is in the range of the new type.
+    // Example: unsigned int n_abs = UINT_MAX - ((unsigned int)(n)) + 1U
+    //
+    // While data types shall be all fundamental at this point, keep using template safety on type casting
+
     template<class target_type>
     struct stoi_bounds_positive_type
     {
@@ -180,11 +162,10 @@ namespace internal
     template<class target_type>
     struct stoi_bounds_negative_type
     {
-        static_assert(std::is_signed_v<target_type>, "SKLIB ERROR ** strtol() ** Only signed types may assume negative values.");
         typedef integer_or_int<target_type> bounds_type;
         typedef make_unsigned_if_integer_type<bounds_type> bounds_unsigned_type;
         static constexpr bounds_type typemin = std::numeric_limits<bounds_type>::min();
-        static_assert(typemin < 0, "SKLIB ERROR ** strtol() ** Minimum value of a signed type must be negative.");
+        static_assert(std::is_unsigned_v<target_type> || typemin < 0, "SKLIB ERROR ** strtol() ** Minimum value of a signed type must be negative.");
         static constexpr bounds_type cutmin = (std::is_integral_v<target_type> ? typemin : 0);
         static constexpr bounds_unsigned_type cutabs = std::numeric_limits<bounds_unsigned_type>::max() - static_cast<bounds_unsigned_type>(typemin) + 1;
         const int8_t      cutlim = 0;   // 1st - used to calculate cutoff below
@@ -193,72 +174,74 @@ namespace internal
         // for cutoff, make division without remainder
         constexpr stoi_bounds_negative_type(int8_t base) : cutlim(int8_t(cutabs% base)), cutoff((cutmin + cutlim) / base) {}
     };
+
+    // turn ASCII letter into integer digit
+    template<class letter_type>
+    int8_t stoi_make_digit(letter_type c, int8_t b)
+    {
+        if (is_num(c))         return (int8_t)(c - '0');
+        if (b <= 10)           return b;
+        if (is_alpha_upper(c)) return (int8_t)(c - 'A' + 10);
+        if (is_alpha_lower(c)) return (int8_t)(c - 'a' + 10);
+        return b;
+    }
+
+    // take types and bounds, input string and position on it, base, and run "positive" loop
+    // return: the digit in accumulator; last valid position plus one; true if success, false if didn't read
+    // remark: accumulator shall be reset by caller
+    template<class target_type, class letter_type, class length_type>
+    bool stoi_convert_positive(const letter_type* str, target_type& acc, length_type& pos, int8_t base)
+    {
+        const auto limits = stoi_bounds_positive_type<target_type>(base);
+
+        bool any = false;
+        while (true)
+        {
+            int8_t v = stoi_make_digit(str[pos], base);
+
+            if (v >= base ||
+                std::is_integral_v<target_type> && (acc > limits.cutoff || acc == limits.cutoff && v > limits.cutlim)) return any;
+
+            acc = acc * base + v;
+            any = true;
+            pos++;
+        }
+    }
+
+    // same as above stoi_convert_positive(), but runs "negative" loop
+    template<class target_type, class letter_type, class length_type>
+    bool stoi_convert_negative(const letter_type* str, target_type& acc, length_type& pos, int8_t base)
+    {
+        const auto limits = stoi_bounds_negative_type<target_type>(base);
+
+        bool any = false;
+        while (true)
+        {
+            int8_t v = stoi_make_digit(str[pos], base);
+
+            if (v >= base ||
+                std::is_integral_v<target_type> && (acc < limits.cutoff || acc == limits.cutoff && v > limits.cutlim)) return any;
+
+            acc = acc * base - v;
+            any = true;
+            pos++;
+        }
+    }
 };
 
-
-// -------------
-
-
-template<class letter_type>
-int8_t make_digit(letter_type c, int8_t b)
-{
-    if (is_num(c))         return (int8_t)(c - '0');
-    if (b <= 10)           return b;
-    if (is_alpha_upper(c)) return (int8_t)(c - 'A' + 10);
-    if (is_alpha_lower(c)) return (int8_t)(c - 'a' + 10);
-    return b;
-}
-
-template<class target_type, class letter_type, class length_type>
-bool convert_positive(const letter_type* str, target_type& acc, length_type& pos, int8_t base)
-{
-    const auto limits = /*::sklib::*/internal::stoi_bounds_positive_type<target_type>(base);
-
-    bool any = false;
-    while (true)
-    {
-        int8_t v = make_digit(str[pos], base);
-
-        if (v >= base ||
-            std::is_integral_v<target_type> && (acc > limits.cutoff || acc == limits.cutoff && v > limits.cutlim)) return any;
-
-        acc = acc * base + v;
-        any = true;
-        pos++;
-    }
-}
-
-template<class target_type, class letter_type, class length_type>
-bool convert_negative(const letter_type* str, target_type& acc, length_type& pos, int8_t base)
-{
-    const auto limits = internal::stoi_bounds_negative_type<make_signed_if_integer_type<target_type>>(base);
-
-    bool any = false;
-    while (true)
-    {
-        int8_t v = make_digit(str[pos], base);
-
-        if (v >= base ||
-            std::is_integral_v<target_type> && (acc < limits.cutoff || acc == limits.cutoff && v > limits.cutlim)) return any;
-
-        acc = acc * base - v;
-        any = true;
-        pos++;
-    }
-}
-
+//sk will be help
+//
 template<class target_type, class letter_type, class length_type = size_t>
 auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_t base = 0)
 {
     typedef std::decay_t<target_type> result_type;
-    typedef make_unsigned_if_integer_type<result_type> result_unsigned_type;
 
     static_assert((std::is_integral_v<result_type> || std::is_floating_point_v<result_type>), "SKLIB -- Result of stoi() must be a numerical value");
     static_assert(std::is_integral_v<letter_type>, "SKLIB -- String letter must be represented by integer value");
     static_assert(std::is_integral_v<std::decay_t<length_type>>, "SKLIB -- String position/length must be represented by integer value");
 
     length_type pos = 0;
-    bool flag_neg_any = false;   // lets reuse the same byte for both flags, Negation, and Seen Any Number
+    bool neg = false;
 
     // new: treat invalid base as 0 (no base)
     // still, like in the original code, base=1 is UB and is not handled
@@ -273,7 +256,7 @@ auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_t base = 0
 
     if (std::is_signed_v<result_type> && str[pos] == '-')   // negation is undefined for unsigned types
     {
-        flag_neg_any = true;
+        neg = true;
         pos++;
     }
     else if (str[pos] == '+')
@@ -311,39 +294,18 @@ auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_t base = 0
         base = (str[pos] == '0') ? 8 : 10;
     }
 
-    // Compute the cutoff value between legal numbers and illegal numbers.  That is the largest legal value, divided by
-    // the base.  An input number that is greater than this value, if followed by a legal input character, is too big.
-    // One that is equal to this value may be valid or not; the limit between valid and invalid numbers is then based
-    // on the last digit.  For instance, if the range for longs is [-2147483648..2147483647] and the input base is 10,
-    // cutoff will be set to 214748364 and cutlim to either 7 (neg==0) or 8 (neg==1), meaning that if we have
-    // accumulated a value > 214748364, or equal but the next digit is > 7 (or 8), the number is too big, and we will
-    // return a range error.
-    //
-    // Set flag any if any 'digits' consumed; make it negative to indicate overflow.
-    // Limits are in effect only for integer values; no limits for floating point output.
-    //
-    // Conversion from large negative integer to unsigned integer of the same size (1 bit wider), avoiding overflow
-    // Reference: C++11 Rule Book; as of 24 Jun 2022, https://www.open-std.org/JTC1/SC22/WG14/www/docs/n1570.pdf
-    // 6.3.1.3 Signed and unsigned integers, paragraph 2:
-    // Otherwise [when signed integer value cannot be represented by unsigned integer type of the same size - Secoh],
-    // if the new type is unsigned, the value is converted by repeatedly adding or subtracting one more than the
-    // maximum value that can be represented in the new type until the value is in the range of the new type.
-    // Example: unsigned int n_abs = UINT_MAX - ((unsigned int)(n)) + 1U
-    //
-    // While data types shall be all fundamental at this point, keep using template safety on type casting
+    // main loop is done externally
+    // pos is established by parser; if parser fails, pos is reset
 
     result_type acc = 0;
-
-    if (std::is_signed_v<result_type> && flag_neg_any)
+    if (!((std::is_signed_v<result_type> && neg)
+            ? ::sklib::internal::stoi_convert_negative<result_type, letter_type, length_type>(str, acc, pos, base)
+            : ::sklib::internal::stoi_convert_positive<result_type, letter_type, length_type>(str, acc, pos, base)))
     {
-        flag_neg_any = convert_negative<result_type, letter_type, length_type>(str, acc, pos, base);
-    }
-    else
-    {
-        flag_neg_any = convert_positive<result_type, letter_type, length_type>(str, acc, pos, base);
+        pos = 0;
     }
 
-    if (endpos) *endpos = (flag_neg_any ? pos-1 : 0);
+    if (endpos) *endpos = pos;
     return acc;
 }
 

@@ -159,6 +159,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\ascii.hpp" />
     <ClInclude Include="..\bitwise.hpp" />
     <ClInclude Include="..\checksum.hpp" />
     <ClInclude Include="..\cmdpar.hpp" />

@@ -9,8 +9,6 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
-// define macro SKLIB_BITWISE_DISABLE_TABLES to help perform certain self tests
-
 // conventions:  count of bits  - unsigned
 //               count of bytes - size_t
 
