@@ -38,12 +38,12 @@
 // (e.g. to accelerate loading precompiled headers in MSVC)
 // just list all available SkLib modules in one file
 
-#include "helpers.hpp"
-#include "bitwise.hpp"
-#include "checksum.hpp"
-#include "timer.hpp"
+#include "include/helpers.hpp"
+#include "include/bitwise.hpp"
+#include "include/checksum.hpp"
+#include "include/timer.hpp"
 
-#include "comms.hpp"
+#include "include/comms.hpp"
 
 
 

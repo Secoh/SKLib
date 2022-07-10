@@ -18,6 +18,27 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\bitwise.hpp" />
+    <ClInclude Include="include\checksum.hpp" />
+    <ClInclude Include="include\cmdpar.hpp" />
+    <ClInclude Include="include\comms.hpp" />
+    <ClInclude Include="include\crypto.hpp" />
+    <ClInclude Include="include\ham.hpp" />
+    <ClInclude Include="include\helpers.hpp" />
+    <ClInclude Include="include\math.hpp" />
+    <ClInclude Include="include\math\pow.hpp" />
+    <ClInclude Include="include\rs232.hpp" />
+    <ClInclude Include="include\string.hpp" />
+    <ClInclude Include="include\string\literals.hpp" />
+    <ClInclude Include="include\string\checks.hpp" />
+    <ClInclude Include="include\string\numbers.hpp" />
+    <ClInclude Include="include\timer.hpp" />
+    <ClInclude Include="include\types.hpp" />
+    <ClInclude Include="sklib.hpp" />
+    <ClInclude Include="source\comms-code.hpp" />
+    <ClInclude Include="source\rs-232-code.hpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -158,23 +179,6 @@
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="..\ascii.hpp" />
-    <ClInclude Include="..\bitwise.hpp" />
-    <ClInclude Include="..\checksum.hpp" />
-    <ClInclude Include="..\cmdpar.hpp" />
-    <ClInclude Include="..\comms.hpp" />
-    <ClInclude Include="..\crypto.hpp" />
-    <ClInclude Include="..\functions\strtol.hpp" />
-    <ClInclude Include="..\ham.hpp" />
-    <ClInclude Include="..\helpers.hpp" />
-    <ClInclude Include="..\rs232.hpp" />
-    <ClInclude Include="..\sklib.hpp" />
-    <ClInclude Include="..\source\comms-code.hpp" />
-    <ClInclude Include="..\source\rs-232-code.hpp" />
-    <ClInclude Include="..\string.hpp" />
-    <ClInclude Include="..\timer.hpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

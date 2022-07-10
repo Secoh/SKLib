@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\include">
+      <UniqueIdentifier>{2f63a61a-8103-4818-8368-4fbea8b058cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\string">
+      <UniqueIdentifier>{8cef41d4-cac6-47ee-b4cd-b337c46dd57e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\comms">
+      <UniqueIdentifier>{e4ae42a4-3e47-4ec4-af50-4e6ab86dcc86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\source">
+      <UniqueIdentifier>{6f810739-b57d-4ff2-94ca-3d963c34900f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\math">
+      <UniqueIdentifier>{bd41b3ec-d2b2-4e26-9acd-e6bb577bb32f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="sklib.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bitwise.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\checksum.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cmdpar.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\comms.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\crypto.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ham.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\helpers.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rs232.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\string.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\timer.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\string\literals.hpp">
+      <Filter>Header Files\include\string</Filter>
+    </ClInclude>
+    <ClInclude Include="include\string\checks.hpp">
+      <Filter>Header Files\include\string</Filter>
+    </ClInclude>
+    <ClInclude Include="include\string\numbers.hpp">
+      <Filter>Header Files\include\string</Filter>
+    </ClInclude>
+    <ClInclude Include="source\comms-code.hpp">
+      <Filter>Header Files\source</Filter>
+    </ClInclude>
+    <ClInclude Include="source\rs-232-code.hpp">
+      <Filter>Header Files\source</Filter>
+    </ClInclude>
+    <ClInclude Include="include\types.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\pow.hpp">
+      <Filter>Header Files\include\math</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
