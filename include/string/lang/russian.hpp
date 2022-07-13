@@ -7,29 +7,7 @@
 // Special exception from GNU LGPL terms: you don't have to publish the compiled object binary file(s) for SKLib.
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
-//
 
-#ifndef SKLIB_INCLUDED_STRING_HPP
-#define SKLIB_INCLUDED_STRING_HPP
-
-#include<cstdint>
-#include<type_traits>
-#include<limits>
-#include<utility>
-
-#include"types.hpp"
-#include"math.hpp"
-
-namespace sklib
-{
-
-#include "string/ascii.hpp"
-#include "string/unicode.hpp"
-#include "string/checks.hpp"
-#include "string/numbers.hpp"
-#include "string/collection.hpp"
-
-};
-
-#endif // SKLIB_INCLUDED_STRING_HPP
+// Provides Russan language support.
+// This is internal SKLib file and must NOT be included directly.
 

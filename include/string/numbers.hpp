@@ -106,7 +106,7 @@ namespace internal   // stoi-specific helpers
     template<class target_type>
     struct stoi_bounds_positive_type
     {
-        typedef integer_or_int_type<target_type> bounds_type;
+        typedef supplement::integer_or_int_type<target_type> bounds_type;
         static constexpr bounds_type typemax = std::numeric_limits<bounds_type>::max();
         static_assert(typemax > 0, "SKLIB ** INTERNAL ERROR ** Maximum value of a numerical type must be positive.");
         static constexpr bounds_type cutmax = (std::is_integral_v<target_type> ? typemax : 0);
@@ -119,7 +119,7 @@ namespace internal   // stoi-specific helpers
     template<class target_type>
     struct stoi_bounds_negative_type
     {
-        typedef integer_or_int_type<target_type> bounds_type;
+        typedef supplement::integer_or_int_type<target_type> bounds_type;
         typedef make_unsigned_if_integer_type<bounds_type> bounds_unsigned_type;
         static constexpr bounds_type typemin = std::numeric_limits<bounds_type>::min();
         static_assert(std::is_unsigned_v<target_type> || typemin < 0, "SKLIB ** INTERNAL ERROR ** Minimum value of a signed type must be negative.");
@@ -387,12 +387,11 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* en
             bool neg_exp = false;
             internal::stoi_update_sign< letter_type, length_type, true>(str, neg_exp, pos_exp);
 
-            int rise = 0;
-            if (neg_exp ? internal::stoi_convert_negative(str, rise, pos_exp, base)
-                        : internal::stoi_convert_positive(str, rise, pos_exp, base))
+            unsigned rise = 0;
+            if (internal::stoi_convert_positive(str, rise, pos_exp, base))
             {
                 pos = pos_exp;
-                M *= npow<result_type>(base_exp, rise);
+                M = (neg_exp ? M / npow<result_type>(base_exp, rise) : M * npow<result_type>(base_exp, rise));
             }
         }
     }

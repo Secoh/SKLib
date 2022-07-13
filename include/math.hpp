@@ -12,11 +12,14 @@
 #ifndef SKLIB_INCLUDED_MATH_HPP
 #define SKLIB_INCLUDED_MATH_HPP
 
+#include<type_traits>
+
 #include"types.hpp"
 
 namespace sklib
 {
 
+#include "math/kludges.hpp"
 #include "math/pow.hpp"
 
 };

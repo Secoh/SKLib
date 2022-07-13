@@ -60,39 +60,48 @@ namespace sklib
 // #define SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(match_type)  template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, match_type), bool> = true>
 
 
-
-    // if integer and not bool, return self; otherwise, return int (as just any random integer type)
-    template<class T>
-    using integer_or_int_type = typename std::conditional_t<is_integer_val<T>, T, int>;
-
-    template<class T>
-    class make_unsigned_if_integer
+    namespace supplement
     {
-    private:
-        using T2 = typename std::make_unsigned_t<integer_or_int_type<T>>;
-    public:
-        using type = typename std::conditional_t<is_integer_val<T>, T2, T>;
-    };
+        // if integer and not bool, return self; otherwise, return int (as just any random integer type)
+        template<class T>
+        using integer_or_int_type = typename std::conditional_t<is_integer_val<T>, T, int>;
 
-    template<class T>
-    class make_signed_if_integer
-    {
-    private:
-        using T2 = typename std::make_signed_t<integer_or_int_type<T>>;
-    public:
-        using type = typename std::conditional_t<is_integer_val<T>, T2, T>;
+        template<class T>
+        class make_unsigned_if_integer
+        {
+        private:
+            using T2 = typename std::make_unsigned_t<integer_or_int_type<T>>;
+        public:
+            using type = typename std::conditional_t<is_integer_val<T>, T2, T>;
+        };
+
+        template<class T>
+        class make_signed_if_integer
+        {
+        private:
+            using T2 = typename std::make_signed_t<integer_or_int_type<T>>;
+        public:
+            using type = typename std::conditional_t<is_integer_val<T>, T2, T>;
+        };
     };
 
     // if integer, not bool, provide matching unsigned type, otherwise, leave type unchanged
     template<class T>
-    using make_unsigned_if_integer_type = typename make_unsigned_if_integer<T>::type;
+    using make_unsigned_if_integer_type = typename supplement::make_unsigned_if_integer<T>::type;
 
     // if integer, not bool, provide matching signed type, otherwise, leave type unchanged
     // notably, it preserves signed status for floating-point types
     template<class T>
-    using make_signed_if_integer_type = typename make_signed_if_integer<T>::type;
+    using make_signed_if_integer_type = typename supplement::make_signed_if_integer<T>::type;
 
-
+    // Casts to itself unless T is signed integer type, in which case it returns unsigned value
+    // Note C++ rule 6.3.1.3 Signed and unsigned integers, paragraph 2:
+    // It adds (MAX+1) at conversion to any Negative value
+    template<class T>
+    constexpr auto to_unsigned_if_integer(const T& v)
+    {
+        return static_cast<make_unsigned_if_integer_type<T>>(v);
+    }
 };
 
 #endif // SKLIB_INCLUDED_TYPES_HPP

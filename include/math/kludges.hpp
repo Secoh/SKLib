@@ -7,29 +7,38 @@
 // Special exception from GNU LGPL terms: you don't have to publish the compiled object binary file(s) for SKLib.
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
+//
 
-// Provides template basic math functions that can be constexpr.
 // This is internal SKLib file and must NOT be included directly.
 
-template<class R, class V>
-constexpr auto npow(R x, V p)
+namespace internal
 {
-    static_assert(is_integer_val<V>, "SKLIB ** npow() is special flavor of pow() with integer-only exponent");
-
-    if (std::is_signed_v<V> && p < 0)
+    // workaround for notorious windows.h definition
+    template<class T>
+    constexpr auto alternate_maximum(const T& a, const T& b)
     {
-        x = 1. / x;
-        p = 0 - p;   // hack to prevent complaining about unary minus at unsigned
+        return (a < b ? b : a);
     }
 
-    R z = 1.;
-    while (p)
+    // workaround for notorious windows.h definition
+    template<class T>
+    constexpr auto alternate_minimum(const T& a, const T& b)
     {
-        if (p % 2) z *= x;
-        x *= x;
-        p /= 2;
+        return (a < b ? a : b);
     }
+};
 
-    return z;
+// test function dearly missed in STL, esp. for integers, shall go away when implemented
+template<class T>
+constexpr bool is_clamped(const T& x, const T& low, const T& high)
+{
+    return (x >= low && x <= high);
+}
+
+// test function dearly missed in STL, esp. for integers, shall go away when implemented
+template<class T>
+constexpr bool is_clamped_cap(const T& x, const T& low, const T& cap)
+{
+    return (x >= low && x < cap);
 }
 

@@ -16,8 +16,9 @@
 #ifndef SKLIB_INCLUDED_CMDPAR_HPP
 #define SKLIB_INCLUDED_CMDPAR_HPP
 
-#include "helpers.hpp"
+#include "string.hpp"
 
+// ------------------------------------------------------------------------------
 // Option vs Parameter vs Argument
 //   Parameter is required, option is optional
 //   Definitions of classes and members in the list are Parameters
@@ -104,7 +105,7 @@ namespace sklib
         class param_switch;
         class param_help;
 
-        typedef std::remove_cv_t<T> letter_type;
+        typedef std::decay_t<T> letter_type;
 
     // === Parser Defaults
 
@@ -153,6 +154,7 @@ namespace sklib
     // all parameters except param_switch have:
     //  - value       the value associated with this parameter
 
+        template<class name_letter_type>
         class param_switch  // also, base type for all other parameters
         {
             friend cmdpar_table_base_type;
@@ -160,6 +162,7 @@ namespace sklib
         public:
             uint8_t status = option_nothing;
             bool present() const { return (status & option_present); }
+            operator bool() const { return present(); }
 
             static constexpr uint8_t option_nothing       = 0;     // option state is correct (even if not present)
             static constexpr uint8_t option_present       = 0x01;  // option is present
@@ -169,17 +172,17 @@ namespace sklib
             static constexpr uint8_t option_is_help       = 0x80;  // hack: this bit signals that the option is used in help subsystem
 
         protected:
-            const letter_type* const name = "";
+            const name_letter_type* const name = nullptr;
             const unsigned name_len = 0;
             const bool required = false;
             param_switch* const next = nullptr;
 
         public:
             constexpr param_switch(cmdpar_table_base_type* root,
-                                   const letter_type* param_name,
+                                   const name_letter_type* param_name,
                                    bool param_required = false)
                 : name(param_name)
-                , name_len((unsigned)::sklib::strlen(param_name))
+                , name_len(strlen<unsigned>(param_name))
                 , required(param_required)
                 , next(root->param_list_entry)
             {
@@ -188,9 +191,11 @@ namespace sklib
 
         protected:
             static constexpr int         global_defval_int       = int();
+            static constexpr unsigned    global_defval_unsigned  = unsigned();
+            static constexpr int64_t     global_defval_int64     = int64_t();
             static constexpr double      global_defval_double    = double();
             static constexpr letter_type global_defval_key       = 0;                       // = '\0';
-            static constexpr letter_type global_defval_cstring[] = { global_defval_key };   // = "";
+            static constexpr letter_type global_defval_zstring[] = { global_defval_key };   // = "";
 
             // read and accept the value of the parameter, escept for switch
             // derived classes for other parameter types shall override this fuction
@@ -200,29 +205,40 @@ namespace sklib
             }
         };
 
-        class param_int : public param_switch
-        {
-        protected:
-            const letter_type* decode(const letter_type* arg)
-            {
-                char* pstop;
-                value = strtol(arg, &pstop, 10);
-                if (pstop == arg) status |= option_error_partial;
-                return pstop;
-            }
+#ifdef SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER
+#error SKLIB ** INTERNAL ERROR ** Macro SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER is declared elsewhere. Unable to continue.
+#endif
+#define SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(suffix,parser,type) \
+        template<class name_letter_type>                                    \
+        class param_##suffix : public param_switch<name_letter_type>        \
+        {                                                                   \
+        protected:                                                          \
+            const letter_type* decode(const letter_type* arg)               \
+            {                                                               \
+                unsigned pstop = 0;                                         \
+                value = parser<type>(arg, &pstop);                          \
+                if (pstop == arg) status |= option_error_partial;           \
+                return pstop;                                               \
+            }                                                               \
+                                                                            \
+        public:                                                             \
+            type value = global_defval_##suffix;                            \
+                                                                            \
+            constexpr param_##suffix(cmdpar_table_base_type* root,          \
+                                     const name_letter_type* param_name,    \
+                                     bool param_required = false,           \
+                                     type defval = global_defval_##suffix)  \
+                : param_switch(root, param_name, param_required)            \
+                , value(defval)                                             \
+            {}                                                              \
+        }
+        SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(int, stoi, int);
+        SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(unsigned, stoi, unsigned);
+        SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(int64, stoi, int64_t);
+        SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(double, stod, double);
+#undef SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER
 
-        public:
-            int value = global_defval_int;
-
-            constexpr param_int(cmdpar_table_base_type* root,
-                                const char* param_name,
-                                bool param_required = false,
-                                int defval = global_defval_int)
-                : param_switch(root, param_name, param_required)
-                , value(defval)
-            {}
-        };
-
+/* //sk?!
         class param_int64 : public param_switch
         {
         protected:
@@ -246,6 +262,7 @@ namespace sklib
             {}
         };
 
+        template<class name_letter_type>
         class param_double : public param_switch
         {
         protected:
@@ -268,11 +285,12 @@ namespace sklib
                 , value(defval)
             {}
         };
-
-        class param_key : public param_switch
+*/
+        template<class name_letter_type>
+        class param_key : public param_switch<name_letter_type>
         {
         protected:
-            const char* decode(const char* arg)
+            const letter_type* decode(const letter_type* arg)
             {
                 value = *arg;
                 if (value) arg++; else status |= option_error_partial;
@@ -280,33 +298,34 @@ namespace sklib
             }
 
         public:
-            char value = global_defval_key;
+            letter_type value = global_defval_key;
 
             constexpr param_key(cmdpar_table_base_type* root,
-                                const char* param_name,
+                                const name_letter_type* param_name,
                                 bool param_required = false,
-                                char defval = global_defval_key)
+                                letter_type defval = global_defval_key)
                 : param_switch(root, param_name, param_required)
                 , value(defval)
             {}
         };
 
-        class param_str : public param_switch
+        template<class name_letter_type>
+        class param_str : public param_switch<name_letter_type>
         {
         protected:
-            const char* decode(const char* arg)
+            const letter_type* decode(const letter_type* arg)
             {
                 value = arg;
-                return arg + ::sklib::strlen(arg);
+                return arg + strlen<unsigned>(arg);
             }
 
         public:
-            const char* value = global_defval_cstring;
+            const letter_type* value = global_defval_zstring;
 
             constexpr param_str(cmdpar_table_base_type* root,
-                                const char* param_name,
+                                const name_letter_type* param_name,
                                 bool param_required = false,
-                                const char* defval = global_defval_cstring)
+                                const letter_type* defval = global_defval_zstring)
                 : param_switch(root, param_name, param_required)
                 , value(defval)
             {}

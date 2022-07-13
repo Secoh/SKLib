@@ -28,6 +28,9 @@
     <Filter Include="Header Files\include\math">
       <UniqueIdentifier>{bd41b3ec-d2b2-4e26-9acd-e6bb577bb32f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\string\lang">
+      <UniqueIdentifier>{1615f1ed-432d-41cf-8e17-ac69cf02bd41}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sklib.hpp">
@@ -63,7 +66,7 @@
     <ClInclude Include="include\timer.hpp">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\string\literals.hpp">
+    <ClInclude Include="include\string\ascii.hpp">
       <Filter>Header Files\include\string</Filter>
     </ClInclude>
     <ClInclude Include="include\string\checks.hpp">
@@ -85,6 +88,18 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\math\pow.hpp">
+      <Filter>Header Files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\string\lang\russian.hpp">
+      <Filter>Header Files\include\string\lang</Filter>
+    </ClInclude>
+    <ClInclude Include="include\string\collection.hpp">
+      <Filter>Header Files\include\string</Filter>
+    </ClInclude>
+    <ClInclude Include="include\string\unicode.hpp">
+      <Filter>Header Files\include\string</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\kludges.hpp">
       <Filter>Header Files\include\math</Filter>
     </ClInclude>
   </ItemGroup>
