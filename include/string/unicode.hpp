@@ -56,7 +56,7 @@ constexpr bool is_unicode_low_surrogate(T ch)
 template<class T>
 constexpr bool is_unicode(T ch)
 {
-    return is_clamped<make_unsigned_if_integer_type<T>>(make_unsigned_if_integer(ch), 0, unicode::UNICODE_CAP-1);
+    return is_clamped<make_unsigned_if_integer_type<T>>(to_unsigned_if_integer(ch), 0, unicode::UNICODE_CAP-1);
 }
 
 template<class T>

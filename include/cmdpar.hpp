@@ -10,9 +10,6 @@
 //
 
 
-// Work In Progress: monitor for TODO tags
-
-
 #ifndef SKLIB_INCLUDED_CMDPAR_HPP
 #define SKLIB_INCLUDED_CMDPAR_HPP
 
@@ -62,34 +59,37 @@
 //          PLAIN_OPT_INT(option_name [ , default_value ] );
 //
 
-#define SKLIB_DECLARE_CMD_PARAMS(name) struct name : public ::sklib::cmdpar_table_base_type
+#define SKLIB_DECLARE_CMD_PARAMS(name) struct name : public ::sklib::cmdpar_table_base_type<char>
 
-#define SKLIB_PARAM_INT(x,...)      param_int    x{ this, #x , true, __VA_ARGS__ };
-#define SKLIB_PARAM_INT64(x,...)    param_int64  x{ this, #x , true, __VA_ARGS__ };
-#define SKLIB_PARAM_DOUBLE(x,...)   param_double x{ this, #x , true, __VA_ARGS__ };
-#define SKLIB_PARAM_KEY(x,...)      param_key    x{ this, #x , true, __VA_ARGS__ };
-#define SKLIB_PARAM_STRING(x,...)   param_str    x{ this, #x , true, __VA_ARGS__ };
+#define SKLIB_PARAM_INT(x,...)      param_int<char>    x{ this, #x , true, __VA_ARGS__ };
+#define SKLIB_PARAM_UINT(x,...)     param_unsigned<char> x{ this, #x , true, __VA_ARGS__ };
+#define SKLIB_PARAM_I64(x,...)      param_int64<char>  x{ this, #x , true, __VA_ARGS__ };
+#define SKLIB_PARAM_DOUBLE(x,...)   param_double<char> x{ this, #x , true, __VA_ARGS__ };
+#define SKLIB_PARAM_KEY(x,...)      param_key<char>    x{ this, #x , true, __VA_ARGS__ };
+#define SKLIB_PARAM_STRING(x,...)   param_str<char>    x{ this, #x , true, __VA_ARGS__ };
 
-#define SKLIB_OPTION_SWITCH(x,...)  param_switch x{ this, #x , false, __VA_ARGS__ };
-#define SKLIB_OPTION_INT(x,...)     param_int    x{ this, #x , false, __VA_ARGS__ };
-#define SKLIB_OPTION_INT64(x,...)   param_int64  x{ this, #x , false, __VA_ARGS__ };
-#define SKLIB_OPTION_DOUBLE(x,...)  param_double x{ this, #x , false, __VA_ARGS__ };
-#define SKLIB_OPTION_KEY(x,...)     param_key    x{ this, #x , false, __VA_ARGS__ };
-#define SKLIB_OPTION_STRING(x,...)  param_str    x{ this, #x , false, __VA_ARGS__ };
+#define SKLIB_OPTION_SWITCH(x)      param_switch<char> x{ this, #x };
 
-#define SKLIB_OPTION_HELP(x,...)    param_help   x{ this, #x , __VA_ARGS__ };
+#define SKLIB_OPTION_INT(x,...)     param_int<char>    x{ this, #x , false, __VA_ARGS__ };
+#define SKLIB_OPTION_UINT(x,...)    param_unsigned<char> x{ this, #x , false, __VA_ARGS__ };
+#define SKLIB_OPTION_INT64(x,...)   param_int64<char>  x{ this, #x , false, __VA_ARGS__ };
+#define SKLIB_OPTION_DOUBLE(x,...)  param_double<char> x{ this, #x , false, __VA_ARGS__ };
+#define SKLIB_OPTION_KEY(x,...)     param_key<char>    x{ this, #x , false, __VA_ARGS__ };
+#define SKLIB_OPTION_STRING(x,...)  param_str<char>    x{ this, #x , false, __VA_ARGS__ };
 
-#define SKLIB_PLAIN_INT(x,...)      param_int    x{ this, "" , true, __VA_ARGS__ };
-#define SKLIB_PLAIN_INT64(x,...)    param_int64  x{ this, "" , true, __VA_ARGS__ };
-#define SKLIB_PLAIN_DOUBLE(x,...)   param_double x{ this, "" , true, __VA_ARGS__ };
-#define SKLIB_PLAIN_KEY(x,...)      param_key    x{ this, "" , true, __VA_ARGS__ };
-#define SKLIB_PLAIN_STRING(x,...)   param_str    x{ this, "" , true, __VA_ARGS__ };
+#define SKLIB_OPTION_HELP(x,...)    param_help<char>   x{ this, #x , __VA_ARGS__ };
 
-#define SKLIB_PLAIN_OPT_INT(x,...)    param_int    x{ this, "" , false, __VA_ARGS__ };
-#define SKLIB_PARAM_OPT_INT64(x,...)  param_int64  x{ this, "" , false, __VA_ARGS__ };
-#define SKLIB_PARAM_OPT_DOUBLE(x,...) param_double x{ this, "" , false, __VA_ARGS__ };
-#define SKLIB_PARAM_OPT_KEY(x,...)    param_key    x{ this, "" , false, __VA_ARGS__ };
-#define SKLIB_PARAM_OPT_STRING(x,...) param_str    x{ this, "" , false, __VA_ARGS__ };
+#define SKLIB_PLAIN_INT(x,...)      param_int<char>    x{ this, "" , true, __VA_ARGS__ };
+#define SKLIB_PLAIN_INT64(x,...)    param_int64<char>  x{ this, "" , true, __VA_ARGS__ };
+#define SKLIB_PLAIN_DOUBLE(x,...)   param_double<char> x{ this, "" , true, __VA_ARGS__ };
+#define SKLIB_PLAIN_KEY(x,...)      param_key<char>    x{ this, "" , true, __VA_ARGS__ };
+#define SKLIB_PLAIN_STRING(x,...)   param_str<char>    x{ this, "" , true, __VA_ARGS__ };
+
+#define SKLIB_PLAIN_OPT_INT(x,...)    param_int<char>    x{ this, "" , false, __VA_ARGS__ };
+#define SKLIB_PARAM_OPT_INT64(x,...)  param_int64<char>  x{ this, "" , false, __VA_ARGS__ };
+#define SKLIB_PARAM_OPT_DOUBLE(x,...) param_double<char> x{ this, "" , false, __VA_ARGS__ };
+#define SKLIB_PARAM_OPT_KEY(x,...)    param_key<char>    x{ this, "" , false, __VA_ARGS__ };
+#define SKLIB_PARAM_OPT_STRING(x,...) param_str<char>    x{ this, "" , false, __VA_ARGS__ };
 
 #define SKLIB_PARAMS_ALT_PREFIX(c)  setter_prefix alternative_prefix{ this, c };
 
@@ -102,10 +102,10 @@ namespace sklib
     class cmdpar_table_base_type
     {
     public:
-        class param_switch;
-        class param_help;
+        class param_base;
 
         typedef std::decay_t<T> letter_type;
+        static_assert(is_integer_val<letter_type>, "SKLIB ** Data type representing a character must be integer.");
 
     // === Parser Defaults
 
@@ -116,14 +116,13 @@ namespace sklib
 
         letter_type Prefix = def_prefix;   // cannot be const because order of initialization: can be modified from derived class
 
-        param_switch* param_list_entry = nullptr;
-        const param_help* param_help_entry = nullptr;
+        param_base* param_list_entry = nullptr;
 
     // === Open Setting and Parse Status
 
-    public:
-        uint16_t parser_status = parser_nothing;
+        uint16_t parser_status = this->parser_nothing;
 
+    public:
         static constexpr uint16_t parser_nothing      = 0;       // parser wasn't run
         static constexpr uint16_t parser_good         = 0x0001;  // all checks satisfied, no errors, and not help request
         static constexpr uint16_t parser_empty        = 0x0002;  // set if the input is empty; still may be valid state
@@ -131,13 +130,14 @@ namespace sklib
         static constexpr uint16_t parser_error_unknown_name   = 0x0008;  // unrecognized parameter(s); also, unrecognized help request
         static constexpr uint16_t parser_error_missing_named  = 0x0010;  // some (or all) required named parameters are not present
         static constexpr uint16_t parser_error_missing_plain  = 0x0020;  // some (or all) required plain parameters are not present
-        static constexpr uint16_t parser_error_overflow_named = 0x0040;  // too many (repeating) named parameters
+        static constexpr uint16_t parser_error_overflow_named = 0x0040;  // too many (repeating) named parameters (hint only in case of error)
         static constexpr uint16_t parser_error_overflow_plain = 0x0080;  // too many plain parameters
         static constexpr uint16_t parser_error_malformed      = 0x0100;  // some (or all) parameters are malformed (represented incorrectly) - check individual options
         static constexpr uint16_t parser_help_request = 0x0200;  // help is requested; check specific bit(s) to see the request(s)
         static constexpr uint16_t parser_help_banner  = 0x0400;  // general help is requested; -help without parameter
-        static constexpr uint16_t parser_help_help    = 0x0800;  // help on help is requested; -help help
-        static constexpr uint16_t parser_help_option  = 0x1000;  // help on parameter is requested; may set parser_unknown bit if the parameter is unknown
+        static constexpr uint16_t parser_help_option  = 0x0800;  // help on parameter is requested; may set parser_unknown bit if the parameter is unknown
+
+        auto status() const             { return parser_status; }
 
         bool is_good() const            { return (parser_status & parser_good); }
         bool is_parser_error() const    { return (parser_status & parser_error); }
@@ -154,83 +154,124 @@ namespace sklib
     // all parameters except param_switch have:
     //  - value       the value associated with this parameter
 
-        template<class name_letter_type>
-        class param_switch  // also, base type for all other parameters
+        class param_base
         {
             friend cmdpar_table_base_type;
 
         public:
-            uint8_t status = option_nothing;
-            bool present() const { return (status & option_present); }
-            operator bool() const { return present(); }
-
             static constexpr uint8_t option_nothing       = 0;     // option state is correct (even if not present)
             static constexpr uint8_t option_present       = 0x01;  // option is present
             static constexpr uint8_t option_error_empty   = 0x02;  // data is required for the option type, but data is not found
             static constexpr uint8_t option_error_partial = 0x04;  // in split options, data portion shall occupy the entire argument, but the read terminates before end
-            static constexpr uint8_t option_help_request  = 0x40;  // hack: first help request sets this bit instead of Present bit to allow help on help (double) requests
+            static constexpr uint8_t option_help_request  = 0x20;  // hack: first help request sets this bit instead of Present bit to allow help on help (double) requests
+            static constexpr uint8_t option_required      = 0x40;  // "required" bit is set (or not) at initialization
             static constexpr uint8_t option_is_help       = 0x80;  // hack: this bit signals that the option is used in help subsystem
 
+            auto status() const  { return this->option_status; }
+            bool present() const { return (status() & option_present); }
+
         protected:
-            const name_letter_type* const name = nullptr;
+            uint8_t option_status = option_nothing;
+
+            bool is_required() const       { return (option_status & option_required); }
+            bool is_help() const           { return (option_status & option_is_help); }
+            bool seen_help_request() const { return (option_status & option_help_request); }
+            bool is_named_param() const    { return this->name_len; }
+
             const unsigned name_len = 0;
-            const bool required = false;
-            param_switch* const next = nullptr;
+            param_base* const next = nullptr;
 
-        public:
-            constexpr param_switch(cmdpar_table_base_type* root,
-                                   const name_letter_type* param_name,
-                                   bool param_required = false)
-                : name(param_name)
-                , name_len(strlen<unsigned>(param_name))
-                , required(param_required)
-                , next(root->param_list_entry)
-            {
-                root->param_list_entry = this;
-            }
-
-        protected:
-            static constexpr int         global_defval_int       = int();
-            static constexpr unsigned    global_defval_unsigned  = unsigned();
-            static constexpr int64_t     global_defval_int64     = int64_t();
-            static constexpr double      global_defval_double    = double();
             static constexpr letter_type global_defval_key       = 0;                       // = '\0';
             static constexpr letter_type global_defval_zstring[] = { global_defval_key };   // = "";
 
             // read and accept the value of the parameter, escept for switch
             // derived classes for other parameter types shall override this fuction
-            virtual const letter_type* decode(const letter_type* arg)
+            virtual const letter_type* decode(const letter_type* arg) { return nullptr; }  // special case, no value for switch
+
+            // (placeholder) type-erased strings compare - derived classes use comparisons specific to input data
+            virtual bool is_match(const letter_type* arg) const { return false; }
+
+            // (placeholder) support reading param_string value
+            virtual const letter_type* get_string_value() const { return global_defval_zstring; }
+
+        public:
+            explicit constexpr param_base(cmdpar_table_base_type* root,
+                                          unsigned param_name_len,
+                                          bool param_required)
+                : name_len(param_name_len)
+                , next(root->param_list_entry)
             {
-                return nullptr;  // special case, no value for switch
+                if (param_required) option_status |= option_required;
+                root->param_list_entry = this;
             }
+        };
+
+    protected:
+        template<class name_letter_type>
+        class param_base_named : public param_base
+        {
+        protected:
+            const name_letter_type* const name_store = nullptr;
+
+            bool is_match(const letter_type* arg) const
+            {
+                return strnequ(arg, name_store, this->name_len);
+            }
+
+        public:
+            auto name() const { return name_store; }
+
+            explicit constexpr param_base_named(cmdpar_table_base_type* root,
+                                       const name_letter_type* param_name,
+                                       bool param_required)
+                : name_store(param_name)
+                , param_base(root, strlen<unsigned>(param_name), param_required)
+            {}
+        };
+
+    public:
+        template<class name_letter_type>
+        class param_switch : public param_base_named<name_letter_type>
+        {
+        public:
+            auto value() const    { return this->present(); }
+            operator auto() const { return this->present(); }
+
+            explicit constexpr param_switch(cmdpar_table_base_type* root,
+                                            const name_letter_type* param_name)
+                : param_base_named<name_letter_type>(root, param_name, false)
+            {}
         };
 
 #ifdef SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER
 #error SKLIB ** INTERNAL ERROR ** Macro SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER is declared elsewhere. Unable to continue.
 #endif
-#define SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(suffix,parser,type) \
-        template<class name_letter_type>                                    \
-        class param_##suffix : public param_switch<name_letter_type>        \
-        {                                                                   \
-        protected:                                                          \
-            const letter_type* decode(const letter_type* arg)               \
-            {                                                               \
-                unsigned pstop = 0;                                         \
-                value = parser<type>(arg, &pstop);                          \
-                if (pstop == arg) status |= option_error_partial;           \
-                return pstop;                                               \
-            }                                                               \
-                                                                            \
-        public:                                                             \
-            type value = global_defval_##suffix;                            \
-                                                                            \
-            constexpr param_##suffix(cmdpar_table_base_type* root,          \
-                                     const name_letter_type* param_name,    \
-                                     bool param_required = false,           \
-                                     type defval = global_defval_##suffix)  \
-                : param_switch(root, param_name, param_required)            \
-                , value(defval)                                             \
-            {}                                                              \
+#define SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(suffix,parser,type)      \
+        template<class name_letter_type>                                            \
+        class param_##suffix : public param_base_named<name_letter_type>            \
+        {                                                                           \
+        protected:                                                                  \
+            type value_store = type();                              \
+                                                                                    \
+            const letter_type* decode(const letter_type* arg)                       \
+            {                                                                       \
+                unsigned pstop = 0;                                                 \
+                value_store = parser<type>(arg, &pstop);                            \
+                if (!pstop) this->option_status |= param_base::option_error_empty;                   \
+                return arg + pstop;                                                       \
+            }                                                                       \
+                                                                                    \
+        public:                                                                     \
+            auto value() const    { return value_store; }                           \
+            operator auto() const { return value_store; }                           \
+                                                                                    \
+            explicit constexpr param_##suffix(cmdpar_table_base_type* root,         \
+                                              const name_letter_type* param_name,   \
+                                              bool param_required = false,          \
+                                              type defval = type())                 \
+                : value_store(defval)                                               \
+                , param_base_named<name_letter_type>(root, param_name, param_required)                \
+            {}                                                                      \
         }
         SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(int, stoi, int);
         SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(unsigned, stoi, unsigned);
@@ -238,122 +279,76 @@ namespace sklib
         SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(double, stod, double);
 #undef SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER
 
-/* //sk?!
-        class param_int64 : public param_switch
-        {
-        protected:
-            const char* decode(const char* arg)
-            {
-                char* pstop;
-                value = strtoll(arg, &pstop, 10);
-                if (pstop == arg) status |= option_error_partial;
-                return pstop;
-            }
-
-        public:
-            int64_t value = global_defval_int;
-
-            constexpr param_int64(cmdpar_table_base_type* root,
-                                  const char* param_name,
-                                  bool param_required = false,
-                                  int64_t defval = global_defval_int)
-                : param_switch(root, param_name, param_required)
-                , value(defval)
-            {}
-        };
-
         template<class name_letter_type>
-        class param_double : public param_switch
+        class param_key : public param_base_named<name_letter_type>
         {
         protected:
-            const char* decode(const char* arg)
-            {
-                char* pstop;
-                value = strtod(arg, &pstop);
-                if (pstop == arg) status |= option_error_partial;
-                return pstop;
-            }
+            letter_type value_store = param_base::global_defval_key;
 
-        public:
-            double value = global_defval_double;
-
-            constexpr param_double(cmdpar_table_base_type* root,
-                                   const char* param_name,
-                                   bool param_required = false,
-                                   double defval = global_defval_double)
-                : param_switch(root, param_name, param_required)
-                , value(defval)
-            {}
-        };
-*/
-        template<class name_letter_type>
-        class param_key : public param_switch<name_letter_type>
-        {
-        protected:
             const letter_type* decode(const letter_type* arg)
             {
-                value = *arg;
-                if (value) arg++; else status |= option_error_partial;
+                value_store = *arg;
+                if (value_store) return arg + 1;
+                this->option_status |= param_base::option_error_empty;
                 return arg;
             }
 
         public:
-            letter_type value = global_defval_key;
+            auto value()    const { return value_store; }
+            operator auto() const { return value_store; }
 
-            constexpr param_key(cmdpar_table_base_type* root,
-                                const name_letter_type* param_name,
-                                bool param_required = false,
-                                letter_type defval = global_defval_key)
-                : param_switch(root, param_name, param_required)
-                , value(defval)
+            explicit constexpr param_key(cmdpar_table_base_type* root,
+                                         const name_letter_type* param_name,
+                                         bool param_required = false,
+                                         letter_type defval = param_base::global_defval_key)
+                : value_store(defval)
+                , param_base_named<name_letter_type>(root, param_name, param_required)
             {}
         };
 
         template<class name_letter_type>
-        class param_str : public param_switch<name_letter_type>
+        class param_str : public param_base_named<name_letter_type>
         {
         protected:
+            const letter_type* value_store = param_base::global_defval_zstring;
+
             const letter_type* decode(const letter_type* arg)
             {
-                value = arg;
+                value_store = arg;
                 return arg + strlen<unsigned>(arg);
             }
 
-        public:
-            const letter_type* value = global_defval_zstring;
-
-            constexpr param_str(cmdpar_table_base_type* root,
-                                const name_letter_type* param_name,
-                                bool param_required = false,
-                                const letter_type* defval = global_defval_zstring)
-                : param_switch(root, param_name, param_required)
-                , value(defval)
-            {}
-        };
-
-        class param_help : public param_str
-        {
-            friend cmdpar_table_base_type;
-
-        protected:
-            cmdpar_table_base_type* const parent = nullptr;
-
-            // problem: parent class doesn't know where is the help class located - it only has L1 list of param_switch base classes
-            // (extreme case - multiple help-bound parameters were programmed, one was called - which one?)
-            // lets exploit the fact that virtual decode() is called for each parameter encountered in the line
-            const char* decode(const char* arg)
+            const letter_type* get_string_value() const // access from param_base
             {
-                parent->param_help_entry = this;
-                return param_str::decode(arg);
+                return value_store;
             }
 
         public:
-            constexpr param_help(cmdpar_table_base_type* root,
-                                 const char* param_name)
-                : param_str(root, param_name)
-                , parent(root)
+            auto value() const    { return value_store; }
+            operator auto() const { return value_store; }
+
+            explicit constexpr param_str(cmdpar_table_base_type* root,
+                                         const name_letter_type* param_name,
+                                         bool param_required = false,
+                                         const letter_type* defval = param_base::global_defval_zstring)
+                : value_store(defval)
+                , param_base_named<name_letter_type>(root, param_name, param_required)
+            {}
+        };
+
+        template<class name_letter_type>
+        class param_help : public param_str<name_letter_type>
+        {
+        protected:
+            cmdpar_table_base_type* const parent = nullptr;
+
+        public:
+            explicit constexpr param_help(cmdpar_table_base_type* root,
+                                          const name_letter_type* param_name)
+                : parent(root)
+                , param_str<name_letter_type>(root, param_name)
             {
-                status |= option_is_help;
+                this->option_status |= param_base::option_is_help;
             }
         };
 
@@ -361,7 +356,7 @@ namespace sklib
 
         struct setter_prefix
         {
-            setter_prefix(cmdpar_table_base_type* root, char custom_prefix)
+            setter_prefix(cmdpar_table_base_type* root, letter_type custom_prefix)
             { root->Prefix = custom_prefix; }
         };
 
@@ -375,10 +370,11 @@ namespace sklib
         // - plain (not named) options, normally taken from command line arguments without prefix
         // - double prefix anywhere cancels special treatment of the next command line argument (when it starts with prefix)
         //
-        bool parse(int argn, const char* const* argc, int arg_start = 1)
+        bool parse(int argn, const letter_type* const* argc, int arg_start = 1)
         {
-            // note that this function is intended for single call, but lets clear this variable anyway
             parser_status = parser_nothing;
+
+            // 1. decode the input
 
             bool signal_plain = false;  // if true, next arument is interpreted as plain parameter ("GNU style")
 
@@ -389,14 +385,15 @@ namespace sklib
 
                 if (*arg_cur == Prefix && !signal_plain)
                 {
-                    unsigned arg_len = (unsigned)::sklib::strlen(arg_cur);
+                    unsigned arg_len = strlen<unsigned>(arg_cur);
                     for (unsigned t = 1; t < arg_len; t++)
                     {
                         if (arg_cur[t] == Prefix)
                         {
                             signal_plain = true;    // second prefix supresses next parameter: -- -string in command line => "-string" becomes plain parameter
-                            continue;
+                            continue;               // to take effect, the secondary prefix shall be the last in the line
                         }
+                        signal_plain = false;
 
                         // examine placement of prefix and arguments
                         // 0) if parameter value appears in the same argument with parameter name: -d6 => d is name, 6 is value
@@ -420,7 +417,7 @@ namespace sklib
                         {
                             arg_val = "";   // next element is parameter, no value
                         }
-                        else if (arg_val[2] == '\0')    // arg_val = "--"
+                        else if (!arg_val[2])    // arg_val = "--"
                         {
                             arg_val = (++kval < argn ? argc[kval] : "");    // use second extension as value, if present
                         }
@@ -441,67 +438,89 @@ namespace sklib
                         }
                         else // ds == 0
                         {
-                            parse_status |= status_unknown;
+                            parser_status |= parser_error_unknown_name;
                         }
                     }
                 }
                 else
                 {
-                    if (!this->apply_plain_param(arg_cur)) parse_status |= status_overflow;
+                    if (!this->apply_plain_param(arg_cur)) parser_status |= parser_error_overflow_plain;
                     signal_plain = false;
                 }
             }
 
-            bool event_present = false;
-            bool event_help = false;
+            // 2. collect flags and conditions
 
-            for (param_switch* ptr = param_list_entry; ptr; ptr = ptr->next)
+            parser_status = parser_empty;
+            for (param_base* ptr = param_list_entry; ptr; ptr = ptr->next)
             {
-                if (ptr->present)
+                if (ptr->present())
                 {
-                    event_present = true;
-                    if (ptr->status & param_switch::param_is_help) event_help = true;
-                    if (ptr->status & ~param_switch::param_is_help) parse_status |= (status_errors | status_malformed);
+                    parser_status &= ~parser_empty;
                 }
-                else
+                else if (ptr->is_required())
                 {
-                    if (ptr->required) parse_status |= status_incomplete;
+                    parser_status |= (ptr->is_named_param() ? parser_error_missing_named : parser_error_missing_plain);
+                }
+
+                if (ptr->seen_help_request())
+                {
+                    parser_status &= ~parser_empty;
+                    parser_status |= parser_help_request;
+                }
+
+                if (ptr->status() & (param_base::option_error_empty | param_base::option_error_partial))
+                {
+                    parser_status |= parser_error_malformed;
                 }
             }
 
-            parse_status |= (parse_status ? status_errors : status_good);   // force "have errors" bit, or "good" bit if no errors
+            const uint16_t all_parser_errors = (parser_error_unknown_name | parser_error_missing_named | parser_error_missing_plain |
+                                                parser_error_overflow_named | parser_error_overflow_plain | parser_error_malformed);
 
-            if (event_present) parse_status |= status_read;
-            if (event_help) parse_status |= status_help;
+            if (parser_status & all_parser_errors) parser_status |= parser_error;
 
-            return (parse_status & (status_good | status_help));
+            if (!is_parser_error() && !is_help_requested()) parser_status |= parser_good;
+
+            if (is_help_requested()) // lets check if -help has parameter; then it is different whether help request is about specific parameter
+            {
+                for (const param_base* ptr = param_list_entry; ptr; ptr = ptr->next)
+                {
+                    if (ptr->seen_help_request())
+                    {
+                        const letter_type* argument = ptr->get_string_value();
+                        unsigned argument_length = strlen<unsigned>(argument);
+                        if (!argument_length) continue;
+
+                        bool help_argument_taken = false;
+                        for (param_base* chk = param_list_entry; chk; chk = chk->next)
+                        {
+                            if (chk->name_len == argument_length && chk->is_match(argument))
+                            {
+                                help_argument_taken = true;
+                                chk->option_status |= param_base::option_present;
+                            }
+                        }
+
+                        if (!help_argument_taken) parser_status |= parser_error_unknown_name;
+                    }
+                }
+
+                bool help_argument_seen = false;
+                for (param_base* ptr = param_list_entry; ptr; ptr = ptr->next)
+                {
+                    if (ptr->present() && ptr->is_named_param()) help_argument_seen = true;
+                }
+
+                parser_status |= (help_argument_seen ? parser_help_option : parser_help_banner);
+            }
+
+            return (is_good() || is_help_requested());
         }
 
     // === Helper Functions, manipulating parameters, help formatting/printing
 
     protected:
-        // find the param_switch entry in the L1 list
-        // criteria for selection: most distant, name match, and depth is strictly less than the given depth
-        // if name is a null, any non-empty name is a match; if name is not null, exact match is tested
-        // if depth limit is negative, any depth is a match
-        // returns pointer to the element or null if not found;
-        // returns the current depth of the found element or negative if not found
-        std::pair<const param_switch*, int> find_param(const char* name, int depth_cap = -1) const
-        {
-            int depth = 0;
-            int depth_seen = -1;
-            param_switch* ptr_select = nullptr;
-            for (param_switch* ptr = param_list_entry; ptr && (depth_cap < 0 || depth < depth_cap); depth++, ptr = ptr->next)
-            {
-                if (name ? ::sklib::strequ(name, ptr->name) : ptr->name_len)
-                {
-                    depth_seen = depth;
-                    ptr_select = ptr;
-                }
-            }
-            return { ptr_select, depth_seen };
-        }
-
         // match the parameter name to opt argument (which is past prefix, and may be in the middle of original string)
         // function selects the longest match that wasn't already taken
         // if multiple matches are possible, selects the first in the declaration order
@@ -515,24 +534,31 @@ namespace sklib
         // <positive> - length in characters that is read from the input, parser still reads first string in pair (but may be did read to the end)
         // <negative> - detached parameter is seen: first string is read to the end, and the second string is the value, also taken
         //              if the second parameter cannot be parsed to the end, the rest of it is ignored and error state for this parameter is set
-        int apply_named_param(const char* opt, const char* next)
+        int apply_named_param(const letter_type* opt, const letter_type* next)
         {
-            param_switch* select = nullptr;
-            for (param_switch* ptr = param_list_entry; ptr; ptr = ptr->next)
+            param_base* select = nullptr;
+            bool seen_match = false;
+            for (param_base* ptr = param_list_entry; ptr; ptr = ptr->next)
             {
-                if (ptr->name_len && !ptr->present &&                   // named param, wasn't read
-                    (!select || ptr->name_len >= select->name_len) &&   // search for longest match
-                    ::sklib::strnequ(opt, ptr->name, ptr->name_len))
+                if (ptr->is_named_param() && (!select || ptr->name_len >= select->name_len) && ptr->is_match(opt))   // search for longest match
                 {
-                    select = ptr;
+                    seen_match = true;
+                    if (!ptr->present()) select = ptr;   // name match while cannot select it may indicate repeating command line option
                 }
             }
-            if (!select) return 0;   // didn't find
+            if (!select)   // didn't find
+            {
+                if (seen_match) parser_status |= parser_error_overflow_named;
+                return 0;
+            }
 
-            select->present = true;
+            // Hack: handling "-help" option is different. Flag option.present is reserved for "-help -help" combination to allow both
+            // "-help -option" and "-help option" use. Presense of the help request is reflacted in option status in option_help_request bit.
+            // (Not only in global param_help_request to enable different "help" options having different actions.)
+            select->option_status |= ((select->is_help() && !select->seen_help_request()) ? param_base::option_help_request : param_base::option_present);
 
             unsigned len = select->name_len;
-            bool same_argument = (::sklib::strlen(opt) > len);
+            bool same_argument = (::sklib::strlen<unsigned>(opt) > len);
             auto value_start = (same_argument ? opt+len : next);
             auto value_end = select->decode(value_start);
 
@@ -540,30 +566,32 @@ namespace sklib
 
             if (same_argument)
             {
-                if (value_start == value_end) select->status |= param_switch::param_error_empty;   // if value is not read
+                if (value_start == value_end) select->option_status |= param_base::option_error_empty;   // if value is not read
                 return (int)(value_end - opt);
             }
 
-            if (value_end - value_start != ::sklib::strlen(next)) select->status |= param_switch::param_error_partial;  // only the body of the value must be in the string, otherwise it is error
+            // only the body of the value must be in the string, otherwise it is error
+            if (value_end - value_start != ::sklib::strlen<unsigned>(next)) select->option_status |= param_base::option_error_partial;
             return -1;
         }
 
         // enter unnamed (plain) parameter; string shall be parsed as the entire body
         // parameters are filled up in the declaration order
         // returns true if something is taken, false if the fist is full
-        bool apply_plain_param(const char* opt)
+        bool apply_plain_param(const letter_type* opt)
         {
-            param_switch* select = nullptr;
-            for (param_switch* ptr = param_list_entry; ptr; ptr = ptr->next)
+            param_base* select = nullptr;
+            for (param_base* ptr = param_list_entry; ptr; ptr = ptr->next)
             {
-                if (!ptr->name_len && !ptr->present) select = ptr;
+                if (!ptr->is_named_param() && !ptr->present()) select = ptr;
             }
             if (!select) return false;   // didn't find
 
-            select->present = true;
+            select->option_status |= param_base::option_present;
 
             auto value_end = select->decode(opt);
-            if (!value_end || value_end - opt != ::sklib::strlen(opt)) select->status |= param_switch::param_error_partial;  // only the body of the value must be in the string, otherwise it is error
+            if (!value_end || value_end - opt != ::sklib::strlen<unsigned>(opt)) select->option_status |= param_base::option_error_partial;
+            // only the body of the value must be in the string, otherwise it is error
 
             return true;
         }

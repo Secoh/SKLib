@@ -79,6 +79,12 @@ constexpr bool is_ascii_alpha_num(T c)
 }
 
 template<class T>
+constexpr bool is_c_name_token(T c)
+{
+    return (is_ascii_alpha_num<T>(c) || c == '_');
+}
+
+template<class T>
 constexpr bool is_space(T c)
 {
     return (c == ascii::SPC || c == ascii::TAB || c == ascii::LF || c == ascii::CR);

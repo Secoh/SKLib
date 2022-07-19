@@ -283,7 +283,7 @@ constexpr auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_
 
     result_type acc = 0;
     if (!((std::is_signed_v<result_type> && neg)
-            ? internal::stoi_convert_negative(str, acc, pos, base)      //sk! <result_type, letter_type, length_type>
+            ? internal::stoi_convert_negative(str, acc, pos, base)
             : internal::stoi_convert_positive(str, acc, pos, base)))
     {
         pos = 0;
@@ -294,7 +294,8 @@ constexpr auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_
 }
 
 // Radix base is discovered automatically using extended C++17 rules
-// Remark: pos shall be reset to 0 by caller
+//sk TODO add description
+//
 template<class target_type, class letter_type, class length_type = size_t>
 constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* endpos = nullptr)
 {
@@ -394,6 +395,10 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* en
                 M = (neg_exp ? M / npow<result_type>(base_exp, rise) : M * npow<result_type>(base_exp, rise));
             }
         }
+    }
+    else
+    {
+        pos = 0;
     }
 
     if (endpos) *endpos = pos;
