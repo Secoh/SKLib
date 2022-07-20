@@ -31,6 +31,9 @@
     <Filter Include="Header Files\include\string\lang">
       <UniqueIdentifier>{1615f1ed-432d-41cf-8e17-ac69cf02bd41}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\utility">
+      <UniqueIdentifier>{0bba5906-bcf1-4557-98b8-766a02a03824}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sklib.hpp">
@@ -101,6 +104,12 @@
     </ClInclude>
     <ClInclude Include="include\math\kludges.hpp">
       <Filter>Header Files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\macro_overloading.hpp">
+      <Filter>Header Files\include\utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

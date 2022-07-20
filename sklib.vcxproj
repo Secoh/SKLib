@@ -39,6 +39,8 @@
     <ClInclude Include="include\string\numbers.hpp" />
     <ClInclude Include="include\timer.hpp" />
     <ClInclude Include="include\types.hpp" />
+    <ClInclude Include="include\utility.hpp" />
+    <ClInclude Include="include\utility\macro_overloading.hpp" />
     <ClInclude Include="sklib.hpp" />
     <ClInclude Include="source\comms-code.hpp" />
     <ClInclude Include="source\rs-232-code.hpp" />

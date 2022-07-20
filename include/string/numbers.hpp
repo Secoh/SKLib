@@ -402,7 +402,7 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* en
     }
 
     if (endpos) *endpos = pos;
-    return M;
+    return (neg ? -M : M);
 }
 
 
