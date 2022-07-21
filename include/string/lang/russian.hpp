@@ -11,3 +11,108 @@
 // Provides Russan language support.
 // This is internal SKLib file and must NOT be included directly.
 
+
+
+namespace internal
+{
+    // credits for idea: https://ctrpeach.io/posts/cpp20-string-literal-template-parameters/
+
+    template<int N>
+    struct narr
+    {
+        char data[N] = { 0 };
+        constexpr narr(const char(&str)[N])
+        {
+            for (int i=0; i<N; i++) data[i] = (str[i] ? str[i]+1 : '\0');
+        }
+    };
+
+    template<narr what>
+    class rsconv
+    {
+    protected:
+        static constexpr narr<sizeof(what.data)> store{ what };
+    public:
+        operator const char* () { return rsconv<what>::store.data; }
+    };
+};
+
+// how to use:  std::cout << "Test " << sklib::rsconv<"abcd">() << sklib::rsconv<" uvwt">() << "\n";
+
+
+/*
+Rus_Capital 0410 to 042F
+Rus_Small 0430-044F
+YO = 0401
+yo = 0451
+secondary block capital 0400-040F
+-//- small 0450-045F
+*/
+
+/*
+
+RASCII encoding to enable Russian literals in ASCII-only environmet
+
+Special codes:
+
+##  # (escape character, active in all modes), also, meaningless #-s translate to #
+#+  turn on (interpreter is on by default)
+#-  turn off
+#:  next is ASCII in R mode; Russian in escape mode
+#letter when not ambiguous - temporary switch to opposite language
+
+Alphabet (note e vs ye inconsistency due to common use in transliteration):
+
+a
+b
+v
+g
+d
+e
+yo
+j
+z
+i
+#y
+k
+l
+m
+n
+o
+p
+r
+s
+t
+u
+f
+h
+c
+#ch
+#sh
+#sh^
+#^
+#i
+#_
+#e
+yu
+ya
+
+Equivalents (redundant English letters that don't have direct analogs in Russian)
+
+x -> ks
+q -> ku
+w -> v
+
+Examples:
+
+stol (table)
+yolka (spruce)
+eda (food)
+kanava (trench)
+solnce (sun)
+#cha#shka (cup)
+ovo#sh^ (vegetable)
+raz#_ezd (road junction)
+
+*/
+
