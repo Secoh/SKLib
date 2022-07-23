@@ -222,7 +222,7 @@ namespace internal   // stoi-specific helpers
     }
 };
 
-//sk will be help
+//sk TODO add description
 //
 template<class target_type, class letter_type, class length_type = size_t>
 constexpr auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_t base = 0)

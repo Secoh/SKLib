@@ -180,6 +180,7 @@ namespace sklib
         public:
             auto get() const      { return status; }
             bool is_good() const  { return (status & flags::good); }
+            bool is_empty() const { return (status & flags::empty); }
             bool is_error() const { return (status & flags::error); }
             bool is_help() const  { return (status & flags::help_request); }
         }
@@ -456,7 +457,7 @@ namespace sklib
 
                         if (!arg_val)
                         {
-                            arg_val = "";   // empty
+                            arg_val = param_base::global_defval_zstring;   // empty
                         }
                         else if (arg_val[0] != cur_prefix)
                         {
@@ -464,15 +465,15 @@ namespace sklib
                         }
                         else if (arg_val[1] != cur_prefix)    // before check, arg_val = "-..."
                         {
-                            arg_val = "";   // next element is parameter, no value
+                            arg_val = param_base::global_defval_zstring;   // next element is parameter, no value
                         }
                         else if (!arg_val[2])    // arg_val = "--"
                         {
-                            arg_val = (++kval < argn ? argc[kval] : "");    // use second extension as value, if present
+                            arg_val = (++kval < argn ? argc[kval] : param_base::global_defval_zstring);    // use second extension as value, if present
                         }
                         else    // arg_val = "--something"
                         {
-                            arg_val = "";   // for completeness, one shall not use that
+                            arg_val = param_base::global_defval_zstring;   // for completeness, one shall not use that
                         }
 
                         auto ds = this->apply_named_param(arg_cur + t, arg_val);

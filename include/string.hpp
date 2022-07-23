@@ -24,10 +24,8 @@ namespace sklib
 {
 
 #include "string/ascii.hpp"
-#include "string/checks.hpp"
-
 #include "string/unicode.hpp"
-//sk #include "string/checks.hpp"
+#include "string/checks.hpp"
 #include "string/numbers.hpp"
 #include "string/collection.hpp"
 
