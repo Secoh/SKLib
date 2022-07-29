@@ -23,13 +23,14 @@
     <ClInclude Include="include\checksum.hpp" />
     <ClInclude Include="include\cmdpar.hpp" />
     <ClInclude Include="include\comms.hpp" />
+    <ClInclude Include="include\comms\rs232.hpp" />
+    <ClInclude Include="include\comms\socket.hpp" />
     <ClInclude Include="include\crypto.hpp" />
     <ClInclude Include="include\ham.hpp" />
     <ClInclude Include="include\helpers.hpp" />
     <ClInclude Include="include\math.hpp" />
     <ClInclude Include="include\math\pow.hpp" />
     <ClInclude Include="include\math\kludges.hpp" />
-    <ClInclude Include="include\rs232.hpp" />
     <ClInclude Include="include\string.hpp" />
     <ClInclude Include="include\string\collection.hpp" />
     <ClInclude Include="include\string\unicode.hpp" />
@@ -41,9 +42,11 @@
     <ClInclude Include="include\types.hpp" />
     <ClInclude Include="include\utility.hpp" />
     <ClInclude Include="include\utility\macro_overloading.hpp" />
+    <ClInclude Include="include\w32_audio.hpp" />
     <ClInclude Include="sklib.hpp" />
-    <ClInclude Include="source\comms-code.hpp" />
-    <ClInclude Include="source\rs-232-code.hpp" />
+    <ClInclude Include="source\socket-code.hpp" />
+    <ClInclude Include="source\rs232-code.hpp" />
+    <ClInclude Include="source\w32_audio_code.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

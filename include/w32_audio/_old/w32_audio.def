@@ -1,0 +1,39 @@
+; w32_audio.def : Declares the module parameters for the DLL.
+
+LIBRARY      "w32_audio"
+
+EXPORTS		AudioInGetCurrentRange
+EXPORTS		AudioInGetCurrentFragment
+EXPORTS		AudioInSetupDialog
+EXPORTS		AudioInGetCurrentSampleRate
+EXPORTS		AudioInGetCurrentBits
+EXPORTS		AudioInGetCurrentChannels
+EXPORTS		AudioInGetCurrentDeviceName
+
+EXPORTS		AudioInGetNoOfMixers
+EXPORTS		AudioInGetMixerName
+EXPORTS		AudioInGetCurrentMixerNo
+EXPORTS		AudioInSelectMixer
+EXPORTS		AudioInGetNoOfMixerLines
+EXPORTS		AudioInGetMixerLineName
+EXPORTS		AudioInGetCurrentMixerLineNo
+EXPORTS		AudioInSelectMixerLine
+EXPORTS		AudioInGetNoOfDevices
+EXPORTS		AudioInGetDeviceName
+EXPORTS		AudioInGetCurrentDeviceNo
+EXPORTS		AudioInSelectDevice
+
+EXPORTS		AudioIOSetupDialogNoMixer
+EXPORTS		AudioOutGetCurrentDeviceName
+EXPORTS		AudioOutGetCurrentSampleRate
+EXPORTS		AudioOutGetCurrentBits
+EXPORTS		AudioOutGetCurrentChannels
+EXPORTS		AudioOutGetNoOfDevices
+EXPORTS		AudioOutGetDeviceName
+EXPORTS		AudioOutGetCurrentDeviceNo
+EXPORTS		AudioOutSelectDevice
+EXPORTS		AudioOutPutFragment
+EXPORTS		AudioOutClearToSend
+EXPORTS		AudioOutIsBufferClear
+EXPORTS		AudioOutIsPlaybackDone
+EXPORTS		AudioOutShutOff

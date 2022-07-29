@@ -48,9 +48,6 @@
     <ClInclude Include="include\cmdpar.hpp">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\comms.hpp">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
     <ClInclude Include="include\crypto.hpp">
       <Filter>Header Files\include</Filter>
     </ClInclude>
@@ -58,9 +55,6 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\helpers.hpp">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\rs232.hpp">
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\string.hpp">
@@ -78,10 +72,10 @@
     <ClInclude Include="include\string\numbers.hpp">
       <Filter>Header Files\include\string</Filter>
     </ClInclude>
-    <ClInclude Include="source\comms-code.hpp">
+    <ClInclude Include="source\socket-code.hpp">
       <Filter>Header Files\source</Filter>
     </ClInclude>
-    <ClInclude Include="source\rs-232-code.hpp">
+    <ClInclude Include="source\rs232-code.hpp">
       <Filter>Header Files\source</Filter>
     </ClInclude>
     <ClInclude Include="include\types.hpp">
@@ -110,6 +104,21 @@
     </ClInclude>
     <ClInclude Include="include\utility\macro_overloading.hpp">
       <Filter>Header Files\include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\w32_audio.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="source\w32_audio_code.hpp">
+      <Filter>Header Files\source</Filter>
+    </ClInclude>
+    <ClInclude Include="include\comms.hpp">
+      <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\comms\rs232.hpp">
+      <Filter>Header Files\include\comms</Filter>
+    </ClInclude>
+    <ClInclude Include="include\comms\socket.hpp">
+      <Filter>Header Files\include\comms</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

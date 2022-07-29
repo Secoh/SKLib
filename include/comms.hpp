@@ -7,80 +7,46 @@
 // Special exception from GNU LGPL terms: you don't have to publish the compiled object binary file(s) for SKLib.
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
+
+// This file defines public interface to communication functions and places them under sklib namespace entirely.
 //
-
-// This file defines public interface to socket layer and places it under namespace sklib entirely.
-// 
-// The actual working code is moved to separate file: "comms-code.hpp" in order to eliminate namespace pollution
-// coming from WinSock headers / other global standard libraries headers.
-// SKLib uses headers-only approach where possible. Instead of using precompiled libraries, the suggested use
-// is as follows (see "test-comms-sockets" project for example): 
-// - use this file: "comms.hpp" anywhere where you USE sockets;
-// - dedicate a single .cpp file for implementation, and place the single line in it: #include <SKLib/comms-code.hpp>
-// This way, all code that can clobber usable names is contained in its own compilation unit.
-
-// For more information on WinSock itself, refer to MSDN, and also:
-//      FAQ: https://tangentsoft.net/wskfaq/
-//      I/O example: https://tangentsoft.net/wskfaq/examples/basics/select-server.cpp
+// The actual working code is moved to separate CODE file in order to eliminate namespace pollution coming from global
+// System API headers (such as Windows.h). CODE files are specific to the subsystem. Currently, the following
+// subsystems are available:
+// - TCP/IP Sockets   (code file: socket-code.hpp)
+// - RS-232 Serial I/O; USB to Serial support (rs232-code.hpp)
+// SKLib uses headers-only approach where possible. Instead of using precompiled libraries, the user shall dedicate
+// compilation unit for CODE file, so there can be no name pollution at compilation time, only has potential at linking
+// where C++ compiler provides mitigation measures. Example, we use Sockets. We need to:
+// - include this file: "comms.hpp" anywhere where you USE sockets;
+// - dedicate a single .cpp file for "library implementation", and place the single line in it:
+//   #include <SKLib/source/comms-code.hpp>
+// This way, any user code "doesn't know" about system-specific libraries, and the system functionality is accessed
+// at the link time.
 
 #ifndef SKLIB_INCLUDED_COMMS_HPP
 #define SKLIB_INCLUDED_COMMS_HPP
 
-#ifndef SKLIB_PRELOADED_COMMON_HEADERS
+#include<cstdint>
 #include<memory>
 #include<string>
-#endif
+
+/*  //sk
+#include<type_traits>
+#include<limits>
+#include<utility>
+
+#include"types.hpp"
+#include"math.hpp"
+*/
 
 namespace sklib
 {
-    namespace internal
-    {
-        struct stream_tcpip_opaque_workspace_type;
-    };
 
-    class stream_tcpip_type
-    {
-    private:
-        bool error_state = false;
-        int system_error_code;    // set to ERROR_SUCCESS=0 by default;
+#include "comms/socket.hpp"
+// #include "comms/rs232.hpp"
 
-    public:
-        static constexpr char loopback_ip_address[] = "127.0.0.1";
-
-        stream_tcpip_type(bool server, uint16_t port_no, const std::string& net_address = loopback_ip_address);
-        ~stream_tcpip_type();
-
-        bool is_error_state() const      { return error_state; }
-        int get_last_system_code() const { return system_error_code; }
-
-        bool is_server() const;
-        bool is_connected() const;
-
-        bool can_read();
-        bool can_write();
-
-        bool read(uint8_t* data);
-        bool write(uint8_t data);
-
-    private:
-        static const int MAXSOCKS_PIPE = 3;   // some small number
-
-        std::unique_ptr<::sklib::internal::stream_tcpip_opaque_workspace_type> stream_data;
-
-        // close all sockets, shutdown service, and set error state
-        bool net_cleanup_with_error();
-
-        // returns true if and only if the subsequent action can commence without blocking
-        // false in return may indicate error state (caller must verify)
-        enum class net_query_type { probe_can_accept = 0, probe_can_read, probe_can_write };
-        bool net_can_proceed(net_query_type what);
-
-        // returns true if no error
-        bool net_update_server_status();
-
-        // if server, drop active socket and return to listening; if client set error state
-        bool net_close_connection();
-    };
 };
 
 #endif // SKLIB_INCLUDED_COMMS_HPP
+

@@ -13,6 +13,18 @@ Types of project: MFC App, Console App
 Listed only properties that are explicitly set.
 
 
+PREREQUISITES for offloading binary garbage
+============================================
+
+Create directories:
+  C:\Users\Public\Linger
+  C:\Users\Public\Linger\vs
+
+From any solution root, run:
+  junction .vs C:\Users\Public\Linger\vs\<unique_name_related_to_solution>
+For example, for SKLib solution, inside directory ....\SKLib, run: junction .vs C:\Users\Public\Linger\vs\sklib
+
+
 CHANGE section
 ==============================
 

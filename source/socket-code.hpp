@@ -7,14 +7,13 @@
 // Special exception from GNU LGPL terms: you don't have to publish the compiled object binary file(s) for SKLib.
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
-//
 
 // This file contains all the calls to external library(ies).
 // Any system/standard header specific to the functions used is also included exclusively here.
 // See file: "comms.hpp" for details how to use the split-header arrangement.
 
-#ifndef SKLIB_INCLUDED_COMMS_IMPLEMENTATION
-#define SKLIB_INCLUDED_COMMS_IMPLEMENTATION
+#ifndef SKLIB_INCLUDED_SOCKET_IMPLEMENTATION
+#define SKLIB_INCLUDED_SOCKET_IMPLEMENTATION
 
 // code with actual usage of library function
 // keep it away from the main compilation unit to avoid namespace pollution
@@ -28,7 +27,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 // all definitions are in "exported" header
-#include "../comms.hpp"
+#include "../include/comms.hpp"
 
 namespace sklib
 {
