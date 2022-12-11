@@ -34,6 +34,9 @@
     <Filter Include="Header Files\include\utility">
       <UniqueIdentifier>{0bba5906-bcf1-4557-98b8-766a02a03824}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\w32-audio">
+      <UniqueIdentifier>{879fefbb-d4e4-4db1-aa1c-0742bf352cdc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sklib.hpp">
@@ -102,13 +105,13 @@
     <ClInclude Include="include\utility.hpp">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\utility\macro_overloading.hpp">
+    <ClInclude Include="include\utility\macro-overloading.hpp">
       <Filter>Header Files\include\utility</Filter>
     </ClInclude>
-    <ClInclude Include="include\w32_audio.hpp">
+    <ClInclude Include="include\w32-audio.hpp">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="source\w32_audio_code.hpp">
+    <ClInclude Include="source\w32-audio-code.hpp">
       <Filter>Header Files\source</Filter>
     </ClInclude>
     <ClInclude Include="include\comms.hpp">
@@ -119,6 +122,21 @@
     </ClInclude>
     <ClInclude Include="include\comms\socket.hpp">
       <Filter>Header Files\include\comms</Filter>
+    </ClInclude>
+    <ClInclude Include="include\w32-audio\waveout.hpp">
+      <Filter>Header Files\include\w32-audio</Filter>
+    </ClInclude>
+    <ClInclude Include="source\dll-code.hpp">
+      <Filter>Header Files\source</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\macro-misc.hpp">
+      <Filter>Header Files\include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\traits-extra.hpp">
+      <Filter>Header Files\include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\dll.hpp">
+      <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

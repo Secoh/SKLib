@@ -37,6 +37,9 @@ A. All Configurations / All Platforms
 Output Directory       = $(PUBLIC)\Linger\$(ProjectGuid)\$(MSBuildProjectDirectoryNoRoot)\$(Configuration)_$(Platform)\bin\
 Intermediate Directory = $(PUBLIC)\Linger\$(ProjectGuid)\$(MSBuildProjectDirectoryNoRoot)\$(Configuration)_$(Platform)\
 
+variant for projetcs that must have all binaries in one place (like DLLs)
+Output Directory       = $(PUBLIC)\Linger\bin\$(Configuration)_$(Platform)\
+
 C++ Language Standard  = ISO C++20 Standard
 
 (!) NOTE: For Library

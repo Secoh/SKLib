@@ -8,6 +8,7 @@
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 
+// -------------------------------------------------------
 // Provides means and example how to declare C macros, "overloaded" by number of parameters.
 // This is internal SKLib file and must NOT be included directly.
 

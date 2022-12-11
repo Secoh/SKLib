@@ -26,6 +26,7 @@
     <ClInclude Include="include\comms\rs232.hpp" />
     <ClInclude Include="include\comms\socket.hpp" />
     <ClInclude Include="include\crypto.hpp" />
+    <ClInclude Include="include\dll.hpp" />
     <ClInclude Include="include\ham.hpp" />
     <ClInclude Include="include\helpers.hpp" />
     <ClInclude Include="include\math.hpp" />
@@ -41,12 +42,16 @@
     <ClInclude Include="include\timer.hpp" />
     <ClInclude Include="include\types.hpp" />
     <ClInclude Include="include\utility.hpp" />
-    <ClInclude Include="include\utility\macro_overloading.hpp" />
-    <ClInclude Include="include\w32_audio.hpp" />
+    <ClInclude Include="include\utility\macro-misc.hpp" />
+    <ClInclude Include="include\utility\macro-overloading.hpp" />
+    <ClInclude Include="include\utility\traits-extra.hpp" />
+    <ClInclude Include="include\w32-audio.hpp" />
+    <ClInclude Include="include\w32-audio\waveout.hpp" />
     <ClInclude Include="sklib.hpp" />
+    <ClInclude Include="source\dll-code.hpp" />
     <ClInclude Include="source\socket-code.hpp" />
     <ClInclude Include="source\rs232-code.hpp" />
-    <ClInclude Include="source\w32_audio_code.hpp" />
+    <ClInclude Include="source\w32-audio-code.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
