@@ -79,10 +79,13 @@ Treat Lib Warnings As Errors = Yes
 
 3. Linker
 
-  a) Debugging
+  a) General
+Treat Linker Warnings As Errors = Yes
+
+  b) Debugging
 Generate Program Database File = $(SolutionDir)\_tmp\$(ProjectName)\$(Configuration)_$(Platform)\$(TargetName).pdb
 
-  b) Optimization
+  c) Optimization
 Link Time Code Generation = Use Link Time Code Generation (/LTCG)
 
 

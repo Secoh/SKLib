@@ -1,4 +1,4 @@
-// This file is part of SKLib: https://github.com/Secoh/SKLib
+д// This file is part of SKLib: https://github.com/Secoh/SKLib
 // Copyright [2020-2022] Secoh
 //
 // Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
@@ -59,7 +59,7 @@ Debug Information Format       = Program Database (/Zi)
 
   b) Output Files
 Assembler Output         - consider: Assembly, Machine Code and Source
-ASM List Location        = $(OutDir)asm\
+ASM List Location        = $(OutDir)asm\$(TargetName)\
 
 
 4. Linker
@@ -103,7 +103,10 @@ Treat Lib Warnings As Errors = Yes
 
 3. Linker
 
-  a) Optimization
+  a) General
+Treat Linker Warnings As Errors = Yes
+
+  b) Optimization
 Link Time Code Generation = Use Link Time Code Generation (/LTCG)
 
 
