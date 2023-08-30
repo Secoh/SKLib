@@ -61,22 +61,28 @@
 //          SKLIB_PLAIN_OPT_INT(option_name [ , default_value ] );
 //
 
+#ifdef SKLIB_CMDPAR_PARAM_PREFIX
+#define SKLIB_INTERNAL_CMDPAR_USE_PARAM_PREFIX SKLIB_CMDPAR_PARAM_PREFIX
+#else
+#define SKLIB_INTERNAL_CMDPAR_USE_PARAM_PREFIX
+#endif
+
 // === Class Names/Template parameters in the main CMDPAR table namespace
 // Must be made up such a way so accidental collision with command line parameter is unlikely
 
-#define SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE \
+#define SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE               \
 sklib_internal_2N5W3M28EFBZ8HSDY3O0HECRSWGXCB49_cmdpar_table_base
 
-#define SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE_CONDUIT \
+#define SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE_CONDUIT           \
 sklib_internal_3YDD0M3079BQY31YBFPZXOH22H844Y3A_cmdpar_table_anchor
 
-#define SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_EMBEDDED_LAYER \
+#define SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_EMBEDDED_LAYER                \
 sklib_internal_R8CN6GNPALNTILL5YILVJJKURH7WSTTT_cmdpar_embedded_member
 
-#define SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE \
+#define SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE                   \
 sklib_internal_WF86I91MC30BCXJYBORWAWC1OVDDW386_cmdpar_letter_type
 
-#define SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_ALTERNATIVE_PREFIX_SETTER \
+#define SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_ALTERNATIVE_PREFIX_SETTER     \
 sklib_internal_H9V8GG33G51W7JJ93VO2SI2HQG288040_alternative_prefix_setter
 
 // === Parameters collection is class template, declared by the header:
@@ -84,95 +90,75 @@ sklib_internal_H9V8GG33G51W7JJ93VO2SI2HQG288040_alternative_prefix_setter
 
 #define SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_TWO(name,type) \
     struct name : public ::sklib::implementation::SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE<type>
-
 #define SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_ONE(name) SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_TWO(name,char)
-#define SKLIB_DECLARE_CMD_PARAMS(...) SKLIB_MACRO_SELECT_ONE_TWO(SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_ONE, SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_TWO, __VA_ARGS__)
+#define SKLIB_DECLARE_CMD_PARAMS(...) SKLIB_MACRO_SELECT_ONE_TWO(SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_ONE, \
+                                                                 SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_TWO, __VA_ARGS__)
 
 // === Parameters, Options declarations
 
-/*
-#define SKLIB_OPTION_SWITCH(x) \
-    ::sklib::implementation::cmdpar_param_switch<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE, char> \
-    x{ ::sklib::implementation::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), #x };
+#define SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,suffix,name,...) \
+    ::sklib::implementation::cmdpar_param_##suffix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE, std::decay_t<decltype(*name)>> \
+    SKLIB_MACRO_SELF(SKLIB_INTERNAL_CMDPAR_USE_PARAM_PREFIX)##x \
+    { ::sklib::implementation::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), name, __VA_ARGS__ };
 
-#define SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,suffix,ntype,require,...) \
-    ::sklib::implementation::cmdpar_param_##suffix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE, ntype> \
-    x{ ::sklib::implementation::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), #x, require, __VA_ARGS__ };
-*/
+#define SKLIB_OPTION_SWITCH(x)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,switch,#x)
 
-#define SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,suffix,ntype,...) \
-    ::sklib::implementation::cmdpar_param_##suffix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE, ntype> \
-    x{ ::sklib::implementation::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), #x, __VA_ARGS__ };
+#define SKLIB_PARAM_INT(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int,#x,true,__VA_ARGS__)
+#define SKLIB_PARAM_UINT(x,...)     SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,uint,#x,true,__VA_ARGS__)
+#define SKLIB_PARAM_I64(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int64,#x,true,__VA_ARGS__)
+#define SKLIB_PARAM_DOUBLE(x,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,double,#x,true,__VA_ARGS__)
+#define SKLIB_PARAM_KEY(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,key,#x,true,__VA_ARGS__)
+#define SKLIB_PARAM_STRING(x,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,str,#x,true,__VA_ARGS__)
 
-#define SKLIB_OPTION_SWITCH(x)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,switch,char)
+#define SKLIB_OPTION_INT(x,...)     SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int,#x,false,__VA_ARGS__)
+#define SKLIB_OPTION_UINT(x,...)    SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,uint,#x,false,__VA_ARGS__)
+#define SKLIB_OPTION_I64(x,...)     SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int64,#x,false,__VA_ARGS__)
+#define SKLIB_OPTION_DOUBLE(x,...)  SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,double,#x,false,__VA_ARGS__)
+#define SKLIB_OPTION_KEY(x,...)     SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,key,#x,false,__VA_ARGS__)
+#define SKLIB_OPTION_STRING(x,...)  SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,str,#x,false,__VA_ARGS__)
 
-#define SKLIB_PARAM_INT(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int,char,true,__VA_ARGS__)
-#define SKLIB_PARAM_UINT(x,...)     SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,uint,char,true,__VA_ARGS__)
-#define SKLIB_PARAM_I64(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int64,char,true,__VA_ARGS__)
-#define SKLIB_PARAM_DOUBLE(x,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,double,char,true,__VA_ARGS__)
-#define SKLIB_PARAM_KEY(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,key,char,true,__VA_ARGS__)
-#define SKLIB_PARAM_STRING(x,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,str,char,true,__VA_ARGS__)
+#define SKLIB_OPTION_HELP(x)        SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,help,#x)
 
-#define SKLIB_OPTION_INT(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int,char,false,__VA_ARGS__)
-#define SKLIB_OPTION_UINT(x,...)     SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,uint,char,false,__VA_ARGS__)
-#define SKLIB_OPTION_I64(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int64,char,false,__VA_ARGS__)
-#define SKLIB_OPTION_DOUBLE(x,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,double,char,false,__VA_ARGS__)
-#define SKLIB_OPTION_KEY(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,key,char,false,__VA_ARGS__)
-#define SKLIB_OPTION_STRING(x,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,str,char,false,__VA_ARGS__)
+#define SKLIB_PLAIN_INT(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int,"",true,__VA_ARGS__)
+#define SKLIB_PLAIN_UINT(x,...)     SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,uint,"",true,__VA_ARGS__)
+#define SKLIB_PLAIN_I64(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int64,"",true,__VA_ARGS__)
+#define SKLIB_PLAIN_DOUBLE(x,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,double,"",true,__VA_ARGS__)
+#define SKLIB_PLAIN_KEY(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,key,"",true,__VA_ARGS__)
+#define SKLIB_PLAIN_STRING(x,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,str,"",true,__VA_ARGS__)
 
-/*
-#define SKLIB_PARAM_INT(x,...)      param_int<char>    x{ this, #x , true, __VA_ARGS__ };
-#define SKLIB_PARAM_UINT(x,...)     param_uint<char>   x{ this, #x , true, __VA_ARGS__ };
-#define SKLIB_PARAM_I64(x,...)      param_int64<char>  x{ this, #x , true, __VA_ARGS__ };
-#define SKLIB_PARAM_DOUBLE(x,...)   param_double<char> x{ this, #x , true, __VA_ARGS__ };
-#define SKLIB_PARAM_KEY(x,...)      param_key<char>    x{ this, #x , true, __VA_ARGS__ };
-#define SKLIB_PARAM_STRING(x,...)   param_str<char>    x{ this, #x , true, __VA_ARGS__ };
+#define SKLIB_PLAIN_INT_OPTIONAL(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int,"",false,__VA_ARGS__)
+#define SKLIB_PLAIN_UINT_OPTIONAL(x,...)     SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,uint,"",false,__VA_ARGS__)
+#define SKLIB_PLAIN_I64_OPTIONAL(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int64,"",false,__VA_ARGS__)
+#define SKLIB_PLAIN_DOUBLE_OPTIONAL(x,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,double,"",false,__VA_ARGS__)
+#define SKLIB_PLAIN_KEY_OPTIONAL(x,...)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,key,"",false,__VA_ARGS__)
+#define SKLIB_PLAIN_STRING_OPTIONAL(x,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,str,"",false,__VA_ARGS__)
 
-#define SKLIB_OPTION_INT(x,...)     param_int<char>    x{ this, #x , false, __VA_ARGS__ };
-#define SKLIB_OPTION_UINT(x,...)    param_uint<char>   x{ this, #x , false, __VA_ARGS__ };
-#define SKLIB_OPTION_INT64(x,...)   param_int64<char>  x{ this, #x , false, __VA_ARGS__ };
-#define SKLIB_OPTION_DOUBLE(x,...)  param_double<char> x{ this, #x , false, __VA_ARGS__ };
-#define SKLIB_OPTION_KEY(x,...)     param_key<char>    x{ this, #x , false, __VA_ARGS__ };
-#define SKLIB_OPTION_STRING(x,...)  param_str<char>    x{ this, #x , false, __VA_ARGS__ };
-*/
+#define SKLIB_PARAM_INT_ALT_NAME(x,m,...)    SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int,m,true,__VA_ARGS__)
+#define SKLIB_PARAM_UINT_ALT_NAME(x,m,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,uint,m,true,__VA_ARGS__)
+#define SKLIB_PARAM_I64_ALT_NAME(x,m,...)    SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int64,m,true,__VA_ARGS__)
+#define SKLIB_PARAM_DOUBLE_ALT_NAME(x,m,...) SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,double,m,true,__VA_ARGS__)
+#define SKLIB_PARAM_KEY_ALT_NAME(x,m,...)    SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,key,m,true,__VA_ARGS__)
+#define SKLIB_PARAM_STRING_ALT_NAME(x,m,...) SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,str,m,true,__VA_ARGS__)
 
-#define SKLIB_OPTION_HELP(x,...)    param_help<char>   x{ this, #x , __VA_ARGS__ };
+#define SKLIB_OPTION_SWITCH_ALT_NAME(x,m)    SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,switch,m)
 
-#define SKLIB_PLAIN_INT(x,...)      param_int<char>    x{ this, "" , true, __VA_ARGS__ };
-#define SKLIB_PLAIN_INT64(x,...)    param_int64<char>  x{ this, "" , true, __VA_ARGS__ };
-#define SKLIB_PLAIN_DOUBLE(x,...)   param_double<char> x{ this, "" , true, __VA_ARGS__ };
-#define SKLIB_PLAIN_KEY(x,...)      param_key<char>    x{ this, "" , true, __VA_ARGS__ };
-#define SKLIB_PLAIN_STRING(x,...)   param_str<char>    x{ this, "" , true, __VA_ARGS__ };
+#define SKLIB_OPTION_INT_ALT_NAME(x,m,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int,m,false,__VA_ARGS__)
+#define SKLIB_OPTION_UINT_ALT_NAME(x,m,...)  SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,uint,m,false,__VA_ARGS__)
+#define SKLIB_OPTION_I64_ALT_NAME(x,m,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,int64,m,false,__VA_ARGS__)
+#define SKLIB_OPTION_DOUBLE_ALT_NAME(x,m,...) SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,double,m,false,__VA_ARGS__)
+#define SKLIB_OPTION_KEY_ALT_NAME(x,m,...)   SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,key,m,false,__VA_ARGS__)
+#define SKLIB_OPTION_STRING_ALT_NAME(x,m,...) SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,str,m,false,__VA_ARGS__)
 
-#define SKLIB_PLAIN_OPTION_INT(x,...)      param_int<char>    x{ this, "" , false, __VA_ARGS__ };
-#define SKLIB_PARAM_OPTION_INT64(x,...)    param_int64<char>  x{ this, "" , false, __VA_ARGS__ };
-#define SKLIB_PARAM_OPTION_DOUBLE(x,...)   param_double<char> x{ this, "" , false, __VA_ARGS__ };
-#define SKLIB_PARAM_OPTION_KEY(x,...)      param_key<char>    x{ this, "" , false, __VA_ARGS__ };
-#define SKLIB_PARAM_OPTION_STRING(x,...)   param_str<char>    x{ this, "" , false, __VA_ARGS__ };
+#define SKLIB_OPTION_HELP_ALT_NAME(x,m)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,help,m)
 
-#define SKLIB_PARAM_INT_NAME(x,m,...)      param_int<std::decay_t<decltype(*m)>>    x{ this, m , true, __VA_ARGS__ };
-#define SKLIB_PARAM_UINT_NAME(x,m,...)     param_uint<std::decay_t<decltype(*m)>>   x{ this, m , true, __VA_ARGS__ };
-#define SKLIB_PARAM_I64_NAME(x,m,...)      param_int64<std::decay_t<decltype(*m)>>  x{ this, m , true, __VA_ARGS__ };
-#define SKLIB_PARAM_DOUBLE_NAME(x,m,...)   param_double<std::decay_t<decltype(*m)>> x{ this, m , true, __VA_ARGS__ };
-#define SKLIB_PARAM_KEY_NAME(x,m,...)      param_key<std::decay_t<decltype(*m)>>    x{ this, m , true, __VA_ARGS__ };
-#define SKLIB_PARAM_STRING_NAME(x,m,...)   param_str<std::decay_t<decltype(*m)>>    x{ this, m , true, __VA_ARGS__ };
-
-#define SKLIB_OPTION_SWITCH_NAME(x,m)      param_switch<std::decay_t<decltype(*m)>> x{ this, m };
-
-#define SKLIB_OPTION_INT_NAME(x,m,...)     param_int<std::decay_t<decltype(*m)>>    x{ this, m , false, __VA_ARGS__ };
-#define SKLIB_OPTION_UINT_NAME(x,m,...)    param_uint<std::decay_t<decltype(*m)>>   x{ this, m , false, __VA_ARGS__ };
-#define SKLIB_OPTION_INT64_NAME(x,m,...)   param_int64<std::decay_t<decltype(*m)>>  x{ this, m , false, __VA_ARGS__ };
-#define SKLIB_OPTION_DOUBLE_NAME(x,m,...)  param_double<std::decay_t<decltype(*m)>> x{ this, m , false, __VA_ARGS__ };
-#define SKLIB_OPTION_KEY_NAME(x,m,...)     param_key<std::decay_t<decltype(*m)>>    x{ this, m , false, __VA_ARGS__ };
-#define SKLIB_OPTION_STRING_NAME(x,m,...)  param_str<std::decay_t<decltype(*m)>>    x{ this, m , false, __VA_ARGS__ };
-
-#define SKLIB_OPTION_HELP_NAME(x,m,...)    param_help<std::decay_t<decltype(*m)>>   x{ this, m , __VA_ARGS__ };
-
-#define SKLIB_PARAMS_ALT_PREFIX(c) \
+#define SKLIB_CMD_PARAMS_ALT_PREFIX(c) \
     ::sklib::implementation::cmdpar_parser_prefix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE> \
     SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_ALTERNATIVE_PREFIX_SETTER \
     { ::sklib::implementation::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), c };
 
+#define SKLIB_CMD_PARAMS_INITIALIZER(name) name() = default; \
+    name(int argn, const SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE* const* argc, int arg_start = 1, bool do_reset = true) \
+    { this->operator()(argn, argc, arg_start, do_reset); }
 
 // === Parameters Collection and Parser classes
 
@@ -227,6 +213,12 @@ namespace sklib
         template<class letter_type> cmdpar_status_base<letter_type>*
             cmdpar_table_to_params_list_header(SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE<letter_type>*);
 
+#define SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(letter_type) \
+    typedef ::sklib::cmdpar_option_flags oflags;                 \
+    typedef ::sklib::cmdpar_parser_flags pflags;                 \
+    typedef cmdpar_param_base<letter_type> param_base;           \
+    typedef cmdpar_status_base<letter_type> status_base;
+
         template<class letter_type>
         class cmdpar_status_base    // this is part main parameter table; defined here because
         {                           // portions of cmdpar_status_type MUST be visible from here
@@ -261,13 +253,14 @@ namespace sklib
         class cmdpar_param_base
         {
             friend SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE<letter_type>;
-            friend cmdpar_status_type<letter_type>;
 
         protected:
-            uint8_t option_status = ::sklib::cmdpar_option_flags::nothing;
+            SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(letter_type);
 
-            bool is_required() const       { return (option_status & ::sklib::cmdpar_option_flags::required); }
-            bool is_help() const           { return (option_status & ::sklib::cmdpar_option_flags::is_help); }
+            uint8_t option_status = oflags::nothing;
+
+            bool is_required() const       { return (option_status & oflags::required); }
+            bool is_help() const           { return (option_status & oflags::is_help); }
             bool is_named_param() const    { return this->name_len; }
 
             const unsigned name_len = 0;
@@ -290,22 +283,22 @@ namespace sklib
             virtual void do_reset_impl() {} // specific cleanup for a typed parameter; no action for switch
             void do_reset()
             {
-                option_status = ::sklib::cmdpar_option_flags::nothing;
+                option_status = oflags::nothing;
                 do_reset_impl();
             }
 
         public:
             auto get_status() const     { return option_status; }
-            bool is_present() const     { return (option_status & ::sklib::cmdpar_option_flags::present); }
-            bool help_requested() const { return (option_status & ::sklib::cmdpar_option_flags::help_request); }
+            bool is_present() const     { return (option_status & oflags::present); }
+            bool help_requested() const { return (option_status & oflags::help_request); }
 
-            explicit constexpr cmdpar_param_base(cmdpar_status_base<letter_type>* root,
+            explicit constexpr cmdpar_param_base(status_base* root,
                                                  unsigned param_name_len,
                                                  bool param_required)
                 : name_len(param_name_len)
                 , next_param(root->param_list_entry)
             {
-                if (param_required) option_status |= ::sklib::cmdpar_option_flags::required;
+                if (param_required) option_status |= oflags::required;
                 root->param_list_entry = this;
             }
         };
@@ -330,9 +323,7 @@ namespace sklib
         private:
             struct  // Unnamed struct for private Embedded object; addressing from outside is impossible
             {
-                typedef ::sklib::cmdpar_option_flags oflags;
-                typedef ::sklib::cmdpar_parser_flags pflags;
-                typedef ::sklib::implementation::cmdpar_param_base<letter_type> param_base;
+                SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(letter_type);
 
                 class cmdpar_status_type : public cmdpar_status_base<letter_type>
                 {
@@ -612,7 +603,7 @@ namespace sklib
 
         template<class letter_type>
         cmdpar_status_base<letter_type>*
-            cmdpar_table_to_params_list_header(SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE<letter_type>* what)
+        cmdpar_table_to_params_list_header(SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE<letter_type>* what)
         {
             return &(what->SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_EMBEDDED_LAYER.Status);
         }
@@ -625,6 +616,8 @@ namespace sklib
         class cmdpar_param_base_named : public cmdpar_param_base<input_letter_type>
         {
         protected:
+            SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(input_letter_type);
+
             const name_letter_type* const name_store = nullptr;
 
             bool is_match(const input_letter_type* arg) const
@@ -635,7 +628,7 @@ namespace sklib
         public:
             auto name() const { return name_store; }
 
-            explicit constexpr cmdpar_param_base_named(cmdpar_status_base<input_letter_type>* root,
+            explicit constexpr cmdpar_param_base_named(status_base* root,
                                                        const name_letter_type* param_name,
                                                        bool param_required)
                 : name_store(param_name)
@@ -646,11 +639,14 @@ namespace sklib
         template<class input_letter_type, class name_letter_type>
         class cmdpar_param_switch : public cmdpar_param_base_named<input_letter_type, name_letter_type>
         {
+        protected:
+            SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(input_letter_type);
+
         public:
             auto value() const    { return this->is_present(); }
             operator auto() const { return this->is_present(); }
 
-            explicit constexpr cmdpar_param_switch(cmdpar_status_base<input_letter_type>* root,
+            explicit constexpr cmdpar_param_switch(status_base* root,
                                                    const name_letter_type* param_name)
                 : cmdpar_param_base_named<input_letter_type, name_letter_type>(root, param_name, false)
             {}
@@ -661,6 +657,8 @@ namespace sklib
         class cmdpar_param_##suffix : public cmdpar_param_base_named<input_letter_type, name_letter_type> \
         {                                                                           \
         protected:                                                                  \
+            SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(input_letter_type);         \
+                                                                                    \
             const type value_initial = type();                                      \
             type value_store = type();                                              \
                                                                                     \
@@ -668,20 +666,17 @@ namespace sklib
             {                                                                       \
                 unsigned pstop = 0;                                                 \
                 value_store = ::sklib::parser<type>(arg, &pstop);                   \
-                if (!pstop) this->option_status |= ::sklib::cmdpar_option_flags::error_empty; \
+                if (!pstop) this->option_status |= oflags::error_empty;             \
                 return arg + pstop;                                                 \
             }                                                                       \
                                                                                     \
-            void do_reset_impl()                                                    \
-            {                                                                       \
-                value_store = value_initial;                                        \
-            }                                                                       \
+            void do_reset_impl()  { value_store = value_initial; }                  \
                                                                                     \
         public:                                                                     \
             auto value() const    { return value_store; }                           \
             operator auto() const { return value_store; }                           \
                                                                                     \
-            explicit constexpr cmdpar_param_##suffix(cmdpar_status_base<input_letter_type>* root, \
+            explicit constexpr cmdpar_param_##suffix(status_base* root,             \
                                               const name_letter_type* param_name,   \
                                               bool param_required = false,          \
                                               type defval = type())                 \
@@ -694,13 +689,13 @@ namespace sklib
         SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(uint, stoi, unsigned);
         SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(int64, stoi, int64_t);
         SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER(double, stod, double);
-#undef SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER
-
 
         template<class input_letter_type, class name_letter_type>
         class cmdpar_param_key : public cmdpar_param_base_named<input_letter_type, name_letter_type>
         {
         protected:
+            SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(input_letter_type);
+
             const input_letter_type value_initial = this->global_defval_key;
             input_letter_type value_store = this->global_defval_key;
 
@@ -708,23 +703,20 @@ namespace sklib
             {
                 value_store = *arg;
                 if (value_store) return arg + 1;
-                this->option_status |= ::sklib::cmdpar_option_flags::error_empty;
+                this->option_status |= oflags::error_empty;
                 return arg;
             }
 
-            void do_reset_impl()
-            {
-                value_store = value_initial;
-            }
+            void do_reset_impl()  { value_store = value_initial; }
 
         public:
             auto value()    const { return value_store; }
             operator auto() const { return value_store; }
 
-            explicit constexpr cmdpar_param_key(cmdpar_status_base<input_letter_type>* root,
+            explicit constexpr cmdpar_param_key(status_base* root,
                                          const name_letter_type* param_name,
                                          bool param_required = false,
-                                         input_letter_type defval = cmdpar_param_base<input_letter_type>::global_defval_key)
+                                         input_letter_type defval = param_base::global_defval_key)
                 : value_initial(defval)
                 , value_store(defval)
                 , cmdpar_param_base_named<input_letter_type, name_letter_type>(root, param_name, param_required)
@@ -735,8 +727,10 @@ namespace sklib
         class cmdpar_param_str : public cmdpar_param_base_named<input_letter_type, name_letter_type>
         {
         protected:
-            const input_letter_type* const value_initial = this->global_defval_zstring;
-            const input_letter_type* value_store = this->global_defval_zstring;
+            SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(input_letter_type);
+
+            const input_letter_type* const value_initial = param_base::global_defval_zstring;
+            const input_letter_type* value_store = param_base::global_defval_zstring;
 
             const input_letter_type* do_decode(const input_letter_type* arg)
             {
@@ -744,24 +738,17 @@ namespace sklib
                 return arg + ::sklib::strlen<unsigned>(arg);
             }
 
-            const input_letter_type* get_string_value() const // access from param_base
-            {
-                return value_store;
-            }
-
-            void do_reset_impl()
-            {
-                value_store = value_initial;
-            }
+            const input_letter_type* get_string_value() const { return value_store; }
+            void do_reset_impl()  { value_store = value_initial; }
 
         public:
             auto value() const    { return value_store; }
             operator auto() const { return value_store; }
 
-            explicit constexpr cmdpar_param_str(cmdpar_status_base<input_letter_type>* root,
+            explicit constexpr cmdpar_param_str(status_base* root,
                                          const name_letter_type* param_name,
                                          bool param_required = false,
-                                         const input_letter_type* defval = cmdpar_param_base<input_letter_type>::global_defval_zstring)
+                                         const input_letter_type* defval = param_base::global_defval_zstring)
                 : value_initial(defval)
                 , value_store(defval)
                 , cmdpar_param_base_named<input_letter_type, name_letter_type>(root, param_name, param_required)
@@ -771,13 +758,14 @@ namespace sklib
         template<class input_letter_type, class name_letter_type>
         class cmdpar_param_help : public cmdpar_param_str<input_letter_type, name_letter_type>
         {
+        protected:
+            SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(input_letter_type);
+
         public:
-            explicit constexpr cmdpar_param_help(cmdpar_status_base<input_letter_type>* root,
+            explicit constexpr cmdpar_param_help(status_base* root,
                                                  const name_letter_type* param_name)
                 : cmdpar_param_str<input_letter_type, name_letter_type>(root, param_name)
-            {
-                this->option_status |= ::sklib::cmdpar_option_flags::is_help;
-            }
+            { this->option_status |= oflags::is_help; }
         };
 
     // === Alternative Settings
@@ -788,10 +776,13 @@ namespace sklib
             cmdpar_parser_prefix(cmdpar_status_base<letter_type>* root, letter_type custom_prefix)
             { root->cur_prefix = custom_prefix; }
         };
-
     };
-
 };
+
+// Cleanup
+
+#undef SKLIB_INTERNAL_CMDPAR_DECLARE_NUMERIC_PARAM_HOLDER
+#undef SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES
 
 #endif // SKLIB_INCLUDED_CMDPAR_HPP
 

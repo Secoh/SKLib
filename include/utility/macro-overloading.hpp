@@ -23,6 +23,9 @@
 #endif
 #endif
 
+#define SKLIB_MACRO_SELF(that) that
+#define SKLIB_MACRO_CONCAT_TWO(one,two) one##two
+
 #define SKLIB_INTERNAL_MACRO_SUBSTITUTE_ONE_TWO(one,two,what,...) what
 #define SKLIB_MACRO_SELECT_ONE_TWO(one,two,...) SKLIB_SUPPLEMENT_EXPAND_COMMA(SKLIB_INTERNAL_MACRO_SUBSTITUTE_ONE_TWO(__VA_ARGS__, two, one, dummy)(__VA_ARGS__))
 
