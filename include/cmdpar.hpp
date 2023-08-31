@@ -257,6 +257,7 @@ namespace sklib
         protected:
             SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(letter_type);
 
+            const uint8_t option_required_v = oflags::nothing;
             uint8_t option_status = oflags::nothing;
 
             bool is_required() const       { return (option_status & oflags::required); }
@@ -283,7 +284,7 @@ namespace sklib
             virtual void do_reset_impl() {} // specific cleanup for a typed parameter; no action for switch
             void do_reset()
             {
-                option_status = oflags::nothing;
+                option_status = option_required_v;
                 do_reset_impl();
             }
 
@@ -297,8 +298,9 @@ namespace sklib
                                                  bool param_required)
                 : name_len(param_name_len)
                 , next_param(root->param_list_entry)
+                , option_required_v(param_required ? oflags::required : oflags::nothing)
             {
-                if (param_required) option_status |= oflags::required;
+                option_status = option_required_v;
                 root->param_list_entry = this;
             }
         };
@@ -370,7 +372,7 @@ namespace sklib
                     param_base* select = nullptr;
                     bool seen_match = false;
 
-                    for (param_base* ptr = static_cast<param_base*>(Status.param_list_entry); ptr; ptr = ptr->next_param)
+                    for (param_base* ptr = Status.param_list_entry; ptr; ptr = ptr->next_param)
                     {
                         if (ptr->is_named_param() && (!select || ptr->name_len >= select->name_len) && ptr->is_match(opt))   // search for longest match
                         {
@@ -413,7 +415,7 @@ namespace sklib
                 bool apply_plain_param(const letter_type* opt)
                 {
                     param_base* select = nullptr;
-                    for (param_base* ptr = static_cast<param_base*>(Status.param_list_entry); ptr; ptr = ptr->next_param)
+                    for (param_base* ptr = Status.param_list_entry; ptr; ptr = ptr->next_param)
                     {
                         if (!ptr->is_named_param() && !ptr->is_present()) select = ptr;
                     }
@@ -522,7 +524,7 @@ namespace sklib
                     // 2. collect flags and conditions
 
                     set_pflags(pflags::empty);
-                    for (param_base* ptr = static_cast<param_base*>(Status.param_list_entry); ptr; ptr = ptr->next_param)
+                    for (param_base* ptr = Status.param_list_entry; ptr; ptr = ptr->next_param)
                     {
                         if (ptr->is_present())
                         {
@@ -550,7 +552,7 @@ namespace sklib
                     // lets check if -help has parameter; then it is different whether help request is about specific parameter
                     if (Status.help_requested())
                     {
-                        for (const param_base* ptr = static_cast<param_base*>(Status.param_list_entry); ptr; ptr = ptr->next_param)
+                        for (const param_base* ptr = Status.param_list_entry; ptr; ptr = ptr->next_param)
                         {
                             if (ptr->help_requested())
                             {
@@ -559,7 +561,7 @@ namespace sklib
                                 if (!argument_length) continue;
 
                                 bool help_argument_taken = false;
-                                for (param_base* chk = static_cast<param_base*>(Status.param_list_entry); chk; chk = chk->next_param)
+                                for (param_base* chk = Status.param_list_entry; chk; chk = chk->next_param)
                                 {
                                     if (chk->name_len == argument_length && chk->is_match(argument))
                                     {
@@ -573,7 +575,7 @@ namespace sklib
                         }
 
                         bool help_argument_seen = false;
-                        for (const param_base* ptr = static_cast<param_base*>(Status.param_list_entry); ptr; ptr = ptr->next_param)
+                        for (const param_base* ptr = Status.param_list_entry; ptr; ptr = ptr->next_param)
                         {
                             if (ptr->is_present() && ptr->is_named_param()) help_argument_seen = true;
                         }
@@ -760,6 +762,8 @@ namespace sklib
         {
         protected:
             SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(input_letter_type);
+
+            void do_reset_impl() { this->option_status |= oflags::is_help; }
 
         public:
             explicit constexpr cmdpar_param_help(status_base* root,
