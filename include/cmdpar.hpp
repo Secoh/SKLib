@@ -220,7 +220,7 @@ namespace sklib
     typedef cmdpar_status_base<letter_type> status_base;
 
         template<class letter_type>
-        class cmdpar_status_base    // this is part main parameter table; defined here because
+        class cmdpar_status_base    // this is part of main parameter table; defined here because
         {                           // portions of cmdpar_status_type MUST be visible from here
             friend cmdpar_param_base<letter_type>;
             friend cmdpar_parser_prefix<letter_type>;

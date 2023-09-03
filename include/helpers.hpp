@@ -9,8 +9,8 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
-#ifndef SKLIB_INCLUDED_UTILITY_HPP
-#define SKLIB_INCLUDED_UTILITY_HPP
+#ifndef SKLIB_INCLUDED_HELPERS_HPP
+#define SKLIB_INCLUDED_HELPERS_HPP
 
 #ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include <type_traits>
@@ -35,6 +35,9 @@
 #define SKLIB_TYPES_IS_STDWSTRING(T)        (std::is_same_v<std::remove_cv_t<T>, std::wstring>)
 #define SKLIB_TYPES_IS_STDSTRING(T)         (SKLIB_TYPES_IS_STDCSTRING(T) || SKLIB_TYPES_IS_STDWSTRING(T)) 
 #define SKLIB_TYPES_IS_ANYSTRING(T)         (SKLIB_TYPES_IS_STRING(T) || SKLIB_TYPES_IS_STDSTRING(T))
+
+//TODO: extend
+#define SKLIB_INTERNAL_TEMPLATE_IF_INT(T)   template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
 
 #define SKLIB_INTERNAL_TEMPLATE_IF_INT_T    template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
 #define SKLIB_INTERNAL_TEMPLATE_IF_UINT_T   template<class T, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), bool> = true>

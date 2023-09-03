@@ -139,11 +139,41 @@ namespace sklib
                 return get();
             }
 
-            template<class D>  //sk: impossible!
-            constexpr T update_packed(const ::sklib::internal::do_not_deduce<D>& data)  // good for fundamental types and *packed* POD's
+            // fast but implementation-dependent Update for fundamental types and *packed* POD's
+            // deprecated anywhere where portability is critical
+            template<class D>
+            constexpr T update_packed(const ::sklib::internal::do_not_deduce<D>& data)
             {
                 static_assert(sizeof(uint8_t) == 1, "This cannot happen, size of byte is 1 by definition");
                 return update(reinterpret_cast<const uint8_t *>(&data), sizeof(D));
+            }
+
+            // hardware-agnostic CRC update for an integer, t
+            SKLIB_INTERNAL_TEMPLATE_IF_INT(D)
+            constexpr T update_integer_lsb(D val, unsigned length = sizeof(D))
+            {
+                typedef typename std::make_unsigned_t<D> uD;
+                auto uval = static_cast<uD>(val);
+                for (unsigned i=0; i<length; i++)
+                {
+                    uint8_t data = (uint8_t)(uval & OCTET_MASK);
+                    uval >>= OCTET_BITS;
+                    update(&data, 1);
+                }
+                return get();
+            }
+
+            SKLIB_INTERNAL_TEMPLATE_IF_INT(D)
+            constexpr T update_integer_msb(D val)
+            {
+                typedef typename std::make_unsigned_t<D> uD;
+                auto uval = static_cast<uD>(D);
+                for (int i=OCTET_MASK*(int)(sizeof(D)-1); i>=0; i-=OCTET_MASK)
+                {
+                    uint8_t data = (uint8_t)(uval >> i);
+                    update(&data, 1);
+                }
+                return get();
             }
 
         protected:

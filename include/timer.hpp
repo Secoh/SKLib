@@ -9,6 +9,11 @@
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 //
 
+//TODO:
+// whitepaper
+// typeless time input must be in seconds!
+// new timer type: checkpoint - like timeout but resets itself after returning true
+
 #ifndef SKLIB_INCLUDED_TIMER_HPP
 #define SKLIB_INCLUDED_TIMER_HPP
 
@@ -246,6 +251,7 @@ namespace sklib
 
     // Timeout and Stopwatch timers implemented around std::chrono::steady_clock
     // Intended for use either in timeout, or stopwatch mode, however mixed operation is possible in certain cases
+    // Strobe is special version of timeout when it resets itself after returning "timeout=true" - parameter in is_timeout()
     // Timer declaration:  stopwatch_t [<false>] variable [(timeout_interval)] ;
     // Timeout start time is captured at the time of creation (or can be set by start() member function)
     // Timer is started at creation by default, or created stopped if <false> is specified
@@ -351,18 +357,22 @@ namespace sklib
         // more than previously specified timeout duration has elapsed since timer creation or last update
         // When enabled, bool() operator also returns is_timeout()
         //
-        bool is_timeout() const
-        { return is_timeout(time_delay); }
+        bool is_timeout(bool automatic_reset = false)
+        { return is_timeout(time_delay, automatic_reset); }
 
         // Returns true if timeout has occured, i.e.
         // more than timeout_s seconds have elapsed since timer creation or last update
         //
-        bool is_timeout(const duration_helper_type& timeout) const
-        { return (read() > timeout.value); }
+        bool is_timeout(const duration_helper_type& timeout, bool automatic_reset = false)
+        {
+            if (read() <= timeout.value) return false;
+            if (automatic_reset) reset();
+            return true;
+        }
 
         // synonym for is_timeout()
-        explicit operator bool() const { return is_timeout(); }
-
+        explicit operator bool() { return is_timeout(); }
+        bool operator() (bool automatic_reset = false) { return is_timeout(automatic_reset); }
         // Returns true if the timer is running
         //
         bool is_running() const { return timer_active; }
