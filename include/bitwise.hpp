@@ -498,14 +498,16 @@ namespace sklib
     // -------------------------------------------------------------------
     // Application of bit stream abstratction - file based per-bit I/O
 
+//TODO: must be "open" member function
+
     class bits_file_type : public bits_stream_base_type
     {
     private:
         std::fstream fs;
         std::ios_base::openmode fs_mode;
 
-        bool can_read() const { return (fs_mode & std::ios_base::in); }
-        bool can_write() const { return (fs_mode & std::ios_base::out); }
+        bool is_readable() const  { return (fs_mode & std::ios_base::in); }
+        bool is_writeable() const { return (fs_mode & std::ios_base::out); }
 
     public:
         template<class T, std::enable_if_t<SKLIB_TYPES_IS_ANYSTRING(T), bool> = true>
@@ -514,7 +516,7 @@ namespace sklib
             , fs_mode(mode)
             , fs(filename, mode | std::ios_base::binary)
         {
-            if (can_read() && can_write() && !fs.is_open())  // extend RW mode: if file doesn't exist, create
+            if (is_readable() && is_writeable() && !fs.is_open())  // extend RW mode: if file doesn't exist, create
             {
                 fs.open(filename, std::ios_base::out);
                 fs.close();
@@ -527,7 +529,7 @@ namespace sklib
     private:
         bool redirect_read_byte(uint8_t& data)
         {
-            if (!can_read() || fs.eof()) return false;
+            if (!is_readable() || fs.eof()) return false;
 
             char c = 0;
             fs.read(&c, 1);
@@ -544,7 +546,7 @@ namespace sklib
         void redirect_write_byte(uint8_t data)
         {
             char c = data;
-            if (can_write()) fs.write(&c, 1);
+            if (is_writeable()) fs.write(&c, 1);
         }
         static void write_byte_proc(bits_stream_base_type* root, uint8_t data)
         {
@@ -553,16 +555,16 @@ namespace sklib
 
         void action_after_reset()
         {
-            if (can_read()) fs.seekg(0);
-            if (can_write()) fs.seekp(0);
+            if (is_readable()) fs.seekg(0);
+            if (is_writeable()) fs.seekp(0);
         }
         void action_after_flush()
         {
-            if (can_write()) fs.flush();
+            if (is_writeable()) fs.flush();
         }
         void action_before_rewind()
         {
-            if (can_read()) fs.seekg(0);
+            if (is_readable()) fs.seekg(0);
         }
         static void stream_action(bits_stream_base_type* root, hook_type what)
         {
