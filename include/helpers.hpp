@@ -12,12 +12,10 @@
 #ifndef SKLIB_INCLUDED_HELPERS_HPP
 #define SKLIB_INCLUDED_HELPERS_HPP
 
-#ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include <type_traits>
 #include <string>
 #include <iostream>
 #include <iomanip>
-#endif
 
 
 #define SKLIB_TYPES_IS_INTEGER(T)           (std::is_integral_v<T> && !std::is_same_v<std::remove_cv_t<T>, bool>)
@@ -36,6 +34,9 @@
 #define SKLIB_TYPES_IS_STDSTRING(T)         (SKLIB_TYPES_IS_STDCSTRING(T) || SKLIB_TYPES_IS_STDWSTRING(T)) 
 #define SKLIB_TYPES_IS_ANYSTRING(T)         (SKLIB_TYPES_IS_STRING(T) || SKLIB_TYPES_IS_STDSTRING(T))
 
+#define SKLIB_TYPES_IS_INTEGER_64(T)        (std::is_same_v<std::remove_cv_t<T>, int64_t> || std::is_same_v<std::remove_cv_t<T>, uint64_t>)
+#define SKLIB_TYPES_IS_INTEGER_NOT_64(T)    (SKLIB_TYPES_IS_INTEGER(T) && !SKLIB_TYPES_IS_INTEGER_64(T))
+
 //TODO: extend
 #define SKLIB_INTERNAL_TEMPLATE_IF_INT(T)   template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
 
@@ -46,6 +47,9 @@
 #define SKLIB_INTERNAL_FEATURE_IF_UINT_T    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T static constexpr      /* "class feature" rather than just member item */
 
 #define SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(match_type)  template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, match_type), bool> = true>
+
+
+#define SKLIB_INTERNAL_TEMPLATE_IF_DERIVED(T,BAS) template<class T, std::enable_if_t<std::is_base_of_v<BAS, T>, bool> = true>
 
 
 

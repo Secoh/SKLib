@@ -59,6 +59,10 @@ namespace sklib
 
 // #define SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(match_type)  template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, match_type), bool> = true>
 
+#define SKLIB_TEMPLATE_IF_INT(T)    template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
+#define SKLIB_TEMPLATE_IF_UINT(T)   template<class T, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), bool> = true>
+#define SKLIB_TEMPLATE_IF_SINT(T)   template<class T, std::enable_if_t<SKLIB_TYPES_IS_SIGNED_INTEGER(T), bool> = true>
+
 
     namespace supplement
     {
@@ -101,6 +105,12 @@ namespace sklib
     constexpr auto to_unsigned_if_integer(const T& v)
     {
         return static_cast<make_unsigned_if_integer_type<T>>(v);
+    }
+
+    constexpr auto bool_xor(bool A, bool B)
+    {
+        return (A ? !B : B);
+//        return (!A && B) || (A && !B);
     }
 };
 

@@ -17,11 +17,9 @@
 #ifndef SKLIB_INCLUDED_TIMER_HPP
 #define SKLIB_INCLUDED_TIMER_HPP
 
-#ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include <thread>
 #include <chrono>
 #include <ratio>
-#endif
 
 #include "helpers.hpp"     // this also loads <type_traits>
 

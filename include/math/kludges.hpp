@@ -42,3 +42,10 @@ constexpr bool is_clamped_cap(const T& x, const T& low, const T& cap)
     return (x >= low && x < cap);
 }
 
+template<class T, std::enable_if_t<SKLIB_TYPES_IS_SIGNED_INTEGER(T) || SKLIB_TYPES_IS_FLOATING_POINT(T), bool> = true>
+constexpr T abs(const T& what)
+{
+    return ((what < 0) ? -what : what);
+}
+
+

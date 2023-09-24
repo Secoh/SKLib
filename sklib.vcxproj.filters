@@ -37,6 +37,9 @@
     <Filter Include="Header Files\include\w32-audio">
       <UniqueIdentifier>{879fefbb-d4e4-4db1-aa1c-0742bf352cdc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\math\algebra">
+      <UniqueIdentifier>{e7b779f9-ce03-4925-b008-2da418dc4a21}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sklib.hpp">
@@ -137,6 +140,24 @@
     </ClInclude>
     <ClInclude Include="include\dll.hpp">
       <Filter>Header Files\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\primes.hpp">
+      <Filter>Header Files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\bezout.hpp">
+      <Filter>Header Files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\cpu-support.hpp">
+      <Filter>Header Files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\algebra.hpp">
+      <Filter>Header Files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\algebra\edom-int.hpp">
+      <Filter>Header Files\include\math\algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\algebra\edom-signed-uint.hpp">
+      <Filter>Header Files\include\math\algebra</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

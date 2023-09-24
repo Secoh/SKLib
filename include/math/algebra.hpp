@@ -1,5 +1,5 @@
 // This file is part of SKLib: https://github.com/Secoh/SKLib
-// Copyright [2019-2022] Secoh
+// Copyright [2020-2023] Secoh
 //
 // Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
 // You may not use this file except in compliance with the License.
@@ -7,40 +7,13 @@
 // Special exception from GNU LGPL terms: you don't have to publish the compiled object binary file(s) for SKLib.
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
-//
 
-#ifndef SKLIB_INCLUDED_ALL
-#define SKLIB_INCLUDED_ALL
+// Provides certain algebraic objects and/or operations on them.
+// This is internal SKLib file and must NOT be included directly.
 
-/*
-#include <cstdio>
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <algorithm>
-#include <string>
-#include <vector>
-#include <memory>
-#include <utility>
-#include <type_traits>
-#include <mutex>
-#include <thread>
-#include <chrono>
-#include <ratio>
-*/
+// Euclidean domains
+// Operators defined: addition, subtraction, multiplication, and representation according to Euclid's division lemma
+// For each Euclidean type, the function sklib::edivrem is defined: for A divided by B, get quotent, remainder
 
-// To keep all header-only SkLib code in one place
-// (e.g. to accelerate loading precompiled headers in MSVC)
-// just list all available SkLib modules in one file
-
-#include "include/helpers.hpp"
-#include "include/bitwise.hpp"
-#include "include/checksum.hpp"
-#include "include/timer.hpp"
-
-#include "include/comms.hpp"
-
-
-
-#endif // SKLIB_INCLUDED_ALL
-
+#include "algebra/edom-int.hpp"             // support for C++ integers
+#include "algebra/edom-signed-uint.hpp"     // "uint plus sign bit", maximum bit count for the data type

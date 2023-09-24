@@ -15,12 +15,10 @@
 #ifndef SKLIB_INCLUDED_BITWISE_HPP
 #define SKLIB_INCLUDED_BITWISE_HPP
 
-#ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include <utility>
 #include <iostream>
 #include <fstream>
 #include <string>
-#endif
 
 #include "helpers.hpp"     // this also loads <type_traits>
 

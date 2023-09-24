@@ -11,19 +11,12 @@
 // Provides template basic math functions that can be constexpr.
 // This is internal SKLib file and must NOT be included directly.
 
-template<class R, class V>
-constexpr auto npow(R x, V p)
+template<class R, class V, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(V), bool> = true>
+constexpr auto upow(R x, V p)
 {
-    static_assert(is_integer_val<V>, "SKLIB ** npow() is special flavor of pow() with integer-only exponent");
+    R z = R(1);
 
-    if (std::is_signed_v<V> && p < 0)
-    {
-        x = 1. / x;
-        p = 0 - p;   // hack to prevent complaining about unary minus at unsigned
-    }
-
-    R z = 1.;
-    while (p)
+    while (p > 0)
     {
         if (p % 2) z *= x;
         x *= x;
@@ -31,5 +24,12 @@ constexpr auto npow(R x, V p)
     }
 
     return z;
+}
+
+template<class R, class V, std::enable_if_t<SKLIB_TYPES_IS_SIGNED_INTEGER(V), bool> = true>
+constexpr auto ipow(R x, V p)
+{
+    typedef make_unsigned_if_integer_type<V> uV;
+    return (p<0) ? upow(1/x, (uV)-p) : upow(x, (uV)p);
 }
 

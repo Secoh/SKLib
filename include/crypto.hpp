@@ -12,10 +12,8 @@
 #ifndef SKLIB_INCLUDED_CRYPTO_HPP
 #define SKLIB_INCLUDED_CRYPTO_HPP
 
-#ifndef SKLIB_PRELOADED_COMMON_HEADERS
 #include<algorithm>
 //#include<string>
-#endif
 
 #include "bitwise.hpp"
 

@@ -14,13 +14,23 @@
 
 #include<type_traits>
 
-#include"types.hpp"
+#include "types.hpp"
+
+//TODO: may be don't need?
+#include "helpers.hpp"
 
 namespace sklib
 {
 
 #include "math/kludges.hpp"
+
+#include "math/cpu-support.hpp"
+
+#include "math/algebra.hpp"
+
 #include "math/pow.hpp"
+#include "math/primes.hpp"
+#include "math/bezout.hpp"
 
 };
 
