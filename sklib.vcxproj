@@ -31,10 +31,11 @@
     <ClInclude Include="include\helpers.hpp" />
     <ClInclude Include="include\math.hpp" />
     <ClInclude Include="include\math\algebra.hpp" />
+    <ClInclude Include="include\math\algebra\bezout.hpp" />
     <ClInclude Include="include\math\algebra\edom-int.hpp" />
     <ClInclude Include="include\math\algebra\edom-signed-uint.hpp" />
-    <ClInclude Include="include\math\bezout.hpp" />
-    <ClInclude Include="include\math\pow.hpp" />
+    <ClInclude Include="include\math\algebra\field-modular.hpp" />
+    <ClInclude Include="include\math\algebra\pow.hpp" />
     <ClInclude Include="include\math\kludges.hpp" />
     <ClInclude Include="include\math\primes.hpp" />
     <ClInclude Include="include\math\cpu-support.hpp" />

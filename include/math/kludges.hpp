@@ -48,4 +48,45 @@ constexpr T abs(const T& what)
     return ((what < 0) ? -what : what);
 }
 
+// helper for random integers / random range for testing
+namespace implementation
+{
+    template<class T, int N_down>
+    class random_size_integer_device_unsigned
+    {
+    private:
+        // https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution
+        std::random_device rd;
+        std::mt19937 gen { rd() };
+        std::uniform_int_distribution<T> distrib;
+
+    public:
+        T operator() ()
+        {
+            auto shift = int(distrib(gen) % N_down);
+            return distrib(gen) >> shift;
+        }
+    };
+
+    template<class T, int N_down>
+    class random_size_integer_device_signed
+    {
+    private:
+        random_size_integer_device_unsigned<std::make_unsigned_t<T>, N_down> uRND;
+
+    public:
+        T operator() ()
+        {
+            auto V = uRND();
+            bool pos = (V & 1);
+            T V1 = T(V >> 1);
+            return (pos ? V1 : -V1);
+        }
+    };
+}; // namespace implementation
+
+template<class T, int N_down, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
+using random_size_integer_device = std::conditional_t<std::is_signed_v<T>,
+    sklib::implementation::random_size_integer_device_signed<T, N_down>,
+    sklib::implementation::random_size_integer_device_unsigned<T, N_down>>;
 

@@ -22,7 +22,7 @@ private:
 
     void add_self(T v2, bool p2)
     {
-        if (!::sklib::bool_xor(P, p2)) V += v2;
+        if (!sklib::bool_xor(P, p2)) V += v2;
         else if (V > v2) V -= v2;
         else
         {
@@ -36,7 +36,7 @@ public:
 
 //    template<class T1, std::enable_if_t<SKLIB_TYPES_IS_SIGNED_INTEGER(T1), bool> = true>
     SKLIB_TEMPLATE_IF_SINT(T1)
-    constexpr signed_uint(T1 x) : P(x>=0), V(::sklib::abs(x)) {}
+    constexpr signed_uint(T1 x) : P(x>=0), V(sklib::abs(x)) {}
 
 //    template<class T1, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T1), bool> = true>
     SKLIB_TEMPLATE_IF_UINT(T1)
@@ -67,9 +67,14 @@ public:
 
     friend signed_uint<T> operator* (signed_uint<T> X, const signed_uint<T>& Y) { return (X *= Y); }
 
-    //sk TODO: comparison operators; explicit bool()
+    explicit operator bool() const { return (V != 0); }
+    bool operator== (const signed_uint& X) const { return (V == X.V && !(V && sklib::bool_xor(P, X.P))); }
+    bool operator!= (const signed_uint& X) const { return !operator== (X); }
+    bool operator< (const signed_uint& X) const { return P ? (X.P && V<X.V) : (X.P || V>X.V); }
+    bool operator>= (const signed_uint& X) const { return !operator< (X); }
 
-
+    friend bool operator> (const signed_uint& X, const signed_uint& Y) { return Y.operator< (X); }
+    friend bool operator<= (const signed_uint & X, const signed_uint & Y) { return !(X > Y); }
 };
 
 SKLIB_TEMPLATE_IF_UINT(T)
@@ -78,14 +83,17 @@ signed_uint<T> edivrem(const signed_uint<T>& A, const signed_uint<T>& B, signed_
     auto x = B.abs();
     if (x)
     {
-        auto q = sklib::implementation::uidivrem(A.abs(), x, x);
+        auto q = sklib::implementation::uidivrem(A.abs(), x, &x);
         bool s = (B.sign() > 0);
 
         if (A.sign() < 0)
         {
-            q++;
             s = !s;
-            x = B.abs() - x;
+            if (x)
+            {
+                q++;
+                x = B.abs() - x;
+            }
         }
 
         if (R) *R = x;
@@ -94,5 +102,22 @@ signed_uint<T> edivrem(const signed_uint<T>& A, const signed_uint<T>& B, signed_
 
     if (R) *R = 0;
     return {};
+}
+
+namespace supplement
+{
+    SKLIB_TEMPLATE_IF_UINT(T)
+    bool e_isnegative(const sklib::signed_uint<T>& x) { return (x.sign() < 0); }
+}; // namespace supplement
+
+SKLIB_TEMPLATE_IF_UINT(T) signed_uint<T> operator/ (const signed_uint<T>& X, const signed_uint<T>& Y)
+{
+    return edivrem(X, Y);
+}
+
+SKLIB_TEMPLATE_IF_UINT(T) signed_uint<T> operator% (signed_uint<T> X, const signed_uint<T>& Y)
+{
+    edivrem(X, Y, &X);
+    return X;
 }
 

@@ -1,5 +1,5 @@
 // This file is part of SKLib: https://github.com/Secoh/SKLib
-// Copyright [2020-2022] Secoh
+// Copyright [2020-2023] Secoh
 //
 // Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
 // You may not use this file except in compliance with the License.
@@ -7,33 +7,34 @@
 // Special exception from GNU LGPL terms: you don't have to publish the compiled object binary file(s) for SKLib.
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
-//
 
-#ifndef SKLIB_INCLUDED_MATH_HPP
-#define SKLIB_INCLUDED_MATH_HPP
+// Provides basic operations for modular arithmetics, including division.
+// This is internal SKLib file and must NOT be included directly.
 
-#include <random>
-#include <type_traits>
-#include <intrin.h>
-#include <immintrin.h>
-
-#include "types.hpp"
-
-//TODO: may be don't need?
-#include "helpers.hpp"
-
-namespace sklib
+SKLIB_TEMPLATE_IF_UINT(T)
+class modp
 {
+private:
+    T P = 0;
+    T V = 0;
+    bool err = false;
 
-#include "math/kludges.hpp"
+    typedef sklib::implementation::uint_extend<T> T_ex;
 
-#include "math/cpu-support.hpp"
+    modp& copy(T_ex value)
+    {
+        if (P) V = value % P;
+        else err = true;
+    }
 
-#include "math/algebra.hpp"
+public:
+    modp(T prime, T value) : P(prime), V(value) {}
+    modp(const modp&) = default;
+    modp() = default;
 
-#include "math/primes.hpp"
-
+    T& operator=(T value)
+    {
+        V = (T % P);
+    }
 };
-
-#endif // SKLIB_INCLUDED_MATH_HPP
 

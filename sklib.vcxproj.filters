@@ -90,9 +90,6 @@
     <ClInclude Include="include\math.hpp">
       <Filter>Header Files\include</Filter>
     </ClInclude>
-    <ClInclude Include="include\math\pow.hpp">
-      <Filter>Header Files\include\math</Filter>
-    </ClInclude>
     <ClInclude Include="include\string\lang\russian.hpp">
       <Filter>Header Files\include\string\lang</Filter>
     </ClInclude>
@@ -144,9 +141,6 @@
     <ClInclude Include="include\math\primes.hpp">
       <Filter>Header Files\include\math</Filter>
     </ClInclude>
-    <ClInclude Include="include\math\bezout.hpp">
-      <Filter>Header Files\include\math</Filter>
-    </ClInclude>
     <ClInclude Include="include\math\cpu-support.hpp">
       <Filter>Header Files\include\math</Filter>
     </ClInclude>
@@ -157,6 +151,15 @@
       <Filter>Header Files\include\math\algebra</Filter>
     </ClInclude>
     <ClInclude Include="include\math\algebra\edom-signed-uint.hpp">
+      <Filter>Header Files\include\math\algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\algebra\bezout.hpp">
+      <Filter>Header Files\include\math\algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\algebra\pow.hpp">
+      <Filter>Header Files\include\math\algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\algebra\field-modular.hpp">
       <Filter>Header Files\include\math\algebra</Filter>
     </ClInclude>
   </ItemGroup>

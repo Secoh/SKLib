@@ -21,18 +21,20 @@
 // Divides A >= 0 by B > 0 and returns quotent in the name, remainder in R
 
 template<class T>
-T bezout(const T& A, const T& B, T& ka, T& kb)
+T bezout(T A, T B, T& ka, T& kb)
 {
     ka=1;
     kb=0;
-    int ua=0, ub=1, k=1;
-    int *r[2] = { &A, &B };
-    int *s[2] = { &ka, &ua };
-    int *t[2] = { &kb, &ub };
+    T ja = 0;
+    T jb = 1;
+    T *r[2] = { &A, &B };
+    T *s[2] = { &ka, &ja };
+    T *t[2] = { &kb, &jb };
 
+    int k=1;
     while (true)
     {
-        int q = ::sklib::edivrem(*r[1-k], *r[k], *r[1-k]);
+        T q = sklib::edivrem(*r[1-k], *r[k], r[1-k]);
         if (!*r[1-k]) break;
 
         *s[1-k] -= q * *s[k];
@@ -40,6 +42,19 @@ T bezout(const T& A, const T& B, T& ka, T& kb)
         k = 1-k;
     }
 
-    if (k) { ka=ua; kb=ub;}
-    return *r[k];
+    if (k)
+    {
+        ka = ja;
+        kb = jb;
+    }
+
+    A = *r[k];
+    if (sklib::supplement::e_isnegative(A))
+    {
+        A = -A;
+        ka = -ka;
+        kb = -kb;
+    }
+    return A;
 }
+
