@@ -40,12 +40,35 @@ namespace implementation
     inline void cpu_umul128_64(uint64_t A, uint64_t B, uint64_t* Mhi, uint64_t* Mlo)
     {
 #if defined(_MSC_VER) && defined(_M_AMD64) && !defined(_M_ARM64EC)
-        auto lo = _umul128(A, A, Mhi);
+        auto lo = _umul128(A, B, Mhi);
         if (Mlo) *Mlo = lo;
 #elif defined(__GNUC__) && defined(__x86_64__)
         static_assert(false, "Not implemented yet");
 #endif
     }
+
+    // Adds two 128-bit unsigned integers
+    inline void cpu_uadd128_64(uint64_t Ahi, uint64_t Alo, uint64_t Bhi, uint64_t Blo, uint64_t& Rhi, uint64_t& Rlo)
+    {
+#if defined(_MSC_VER) && defined(_M_AMD64) && !defined(_M_ARM64EC)
+        char c = _addcarry_u64(0, Alo, Blo, &Rlo);
+        _addcarry_u64(c, Ahi, Bhi, &Rhi);
+#elif defined(__GNUC__) && defined(__x86_64__)
+        static_assert(false, "Not implemented yet");
+#endif
+    }
+
+    // Subtracts two 128-bit unsigned integers, R := A - B
+    inline void cpu_usub128_64(uint64_t Ahi, uint64_t Alo, uint64_t Bhi, uint64_t Blo, uint64_t& Rhi, uint64_t& Rlo)
+    {
+#if defined(_MSC_VER) && defined(_M_AMD64) && !defined(_M_ARM64EC)
+        char c = _subborrow_u64(0, Alo, Blo, &Rlo);
+        _subborrow_u64(c, Ahi, Bhi, &Rhi);
+#elif defined(__GNUC__) && defined(__x86_64__)
+        static_assert(false, "Not implemented yet");
+#endif
+    }
+
 
     // Divides 128-bit unsigned integer by 64-bit unsigned integer, quotent may exceed 64 bit
     // Returns remainder in R, quotent in Qhi, Qlo
@@ -71,58 +94,103 @@ namespace implementation
 
     public:
         uNNex(T lo) : data(lo) {}
+        uNNex(T hi, T lo) : data((T_ex(hi) << N_shift) + lo) {}
         uNNex(const uNNex&) = default;
         uNNex() = default;
 
         T hi() const { return T((data >> N_shift) & T_mask); }
         T lo() const { return T(data & T_mask); }
 
-        uNNex& add(T x) { data += x; }
+        explicit operator bool() { return bool(data); }
 
-        uNNex& sub(T x, bool carry_hi = false)
+        uNNex& add(const uNNex& X)
         {
-            if (carry_hi) data += T_carry - x;
-            else data -= x;
+            data += X.data;
+            return *this;
         }
 
-        // warning: ignores high portion of the data, if any
-        uNNex& mul_lo(T x) { data = (data & T_mask) * x; }
-
-        // special version of divide: ignores high portion of the data,
-        // replaces it by "hi" parameter, then makes the divide
-        // high portion of the quotent may be nonzero
-        uNNex& div_lo(T hi, T x, T* rem = nullptr)
+        uNNex& sub(const uNNex& X)
         {
-            uidivrem((T_ex(hi) << N_shift) + (data & T_mask), x, rem);
+            data -= X.data;
+            return *this;
+        }
+
+        // special multiplication
+        // ignores high portion of the data, if any
+        uNNex& mul(T x)
+        {
+            data = (data & T_mask) * x;
+            return *this;
+        }
+
+        // special divide - uses high portion of dividend, however,
+        // high portion of the quotent MUST be zero, otherwise UB
+        uNNex& div(T x, T* rem = nullptr)
+        {
+            T_ex rem1;
+            data = uidivrem<T_ex>(data, x, &rem1);
+            if (rem) *rem = T(rem1);
+            return *this;
         }
     };
 
-    struct u64ex
+    class u64ex
     {
-        uint64_t Hi=0, Lo=0;
+    private:
+        uint64_t data_hi=0, data_lo=0;
 
-        u64ex(uint64_t data) : Lo(data) {}
+    public:
+        u64ex(uint64_t lo) : data_lo(lo) {}
+        u64ex(uint64_t hi, uint64_t lo) : data_hi(hi), data_lo(lo) {}
         u64ex(const u64ex&) = default;
         u64ex() = default;
 
-        u64ex& operator+= (uint64_t x)
-        {}
+        uint64_t hi() const { return data_hi; }
+        uint64_t lo() const { return data_lo; }
 
-        u64ex& operator-= (uint64_t x)
-        {}
+        explicit operator bool() { return bool(data_hi) || bool(data_lo); }
+
+        u64ex& add(const u64ex& X)
+        {
+            cpu_uadd128_64(data_hi, data_lo, X.data_hi, X.data_lo, data_hi, data_lo);
+            return *this;
+        }
+
+        u64ex& sub(const u64ex& X)
+        {
+            cpu_usub128_64(data_hi, data_lo, X.data_hi, X.data_lo, data_hi, data_lo);
+            return *this;
+        }
+
+        // special multiplication
+        // ignores high portion of the data, if any
+        u64ex& mul(uint64_t x)
+        {
+            cpu_umul128_64(data_lo, x, &data_hi, &data_lo);
+            return *this;
+        }
+
+        // special divide - uses high portion of dividend, however,
+        // high portion of the quotent MUST be zero, otherwise UB
+        u64ex& div(uint64_t x, uint64_t* rem = nullptr)
+        {
+            data_lo = cpu_udiv128_64(data_hi, data_lo, x, rem);
+            data_hi = 0;
+            return *this;
+        }
 
     };
 
     template<class T> struct uint_extend
     {
         static_assert(SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), "Error: uint_extend<> is only defined for unsigned integers");
-        typedef uint16_t type;
+        typedef uNNex<uint8_t, uint16_t, 8> type;
     };
-    template<> struct uint_extend<uint16_t> { typedef uint32_t type; };
-    template<> struct uint_extend<uint32_t> { typedef uint64_t type; };
+    template<> struct uint_extend<uint16_t> { typedef uNNex<uint16_t, uint32_t, 16> type; };
+    template<> struct uint_extend<uint32_t> { typedef uNNex<uint32_t, uint64_t, 32> type; };
     template<> struct uint_extend<uint64_t> { typedef u64ex type; };
 
-
+    template<class T> using uint_extend_t = uint_extend<T>::type;
 
 
 }; // namespace implementation

@@ -14,27 +14,62 @@
 SKLIB_TEMPLATE_IF_UINT(T)
 class modp
 {
+//    typedef uint64_t T;
+
 private:
     T P = 0;
     T V = 0;
     bool err = false;
 
-    typedef sklib::implementation::uint_extend<T> T_ex;
+    typedef sklib::implementation::uint_extend<T> TT;
+    typedef sklib::signed_uint<T> TS;
 
-    modp& copy(T_ex value)
+    void mmul(T x)
     {
-        if (P) V = value % P;
-        else err = true;
+        sklib::implementation::uint_extend_t<T> U(V);
+        U.mul(x).div(P, &V);
     }
 
 public:
-    modp(T prime, T value) : P(prime), V(value) {}
+    modp(T prime, T value = 0) : P(prime), V(value % std::max(prime, T(1))), err(!prime) {}
     modp(const modp&) = default;
     modp() = default;
 
-    T& operator=(T value)
+    bool is_valid() const { return !err; }
+
+    modp reciprocal()
     {
-        V = (T % P);
+        if (!err)
+        {
+            TS kP, kV;
+            auto d = bezout(TS(P), TS(V), kP, kV);
+            if (d == 1 && kV) return { P, ((kV.sign()<0) ? P-kV.abs() : kV.abs()) };
+        }
+
+        return { 0, 0 };
     }
+
+    modp& operator*= (const modp& X)
+    {
+        mmul(X.V);
+        return *this;
+    }
+
+    modp& operator*= (T x)
+    {
+        mmul(x);
+        return *this;
+    }
+
+    friend modp& operator* (modp X, const modp& Y) { return X *= Y; }
+    friend modp& operator* (modp X, T Y) { return X *= Y; }
+    friend modp& operator* (T X, modp Y) { return Y *= X; }
+
+    T operator() () const { return V; }
+
+//    T& operator=(T value)
+//    {
+//        V = (T % P);
+//    }
 };
 
