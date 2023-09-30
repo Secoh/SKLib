@@ -14,8 +14,6 @@
 SKLIB_TEMPLATE_IF_UINT(T)
 class modp
 {
-//    typedef uint64_t T;
-
 private:
     T P = 0;
     T V = 0;
@@ -43,7 +41,7 @@ public:
         {
             TS kP, kV;
             auto d = bezout(TS(P), TS(V), kP, kV);
-            if (d == 1 && kV) return { P, ((kV.sign()<0) ? P-kV.abs() : kV.abs()) };
+            if (d == 1 && kV) return { P, ((kV.sign()<0) ? T(P-kV.abs()) : kV.abs()) };
         }
 
         return { 0, 0 };
