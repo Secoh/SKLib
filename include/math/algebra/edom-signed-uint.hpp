@@ -83,7 +83,7 @@ signed_uint<T> edivrem(const signed_uint<T>& A, const signed_uint<T>& B, signed_
     auto x = B.abs();
     if (x)
     {
-        auto q = sklib::implementation::uidivrem(A.abs(), x, &x);
+        auto q = sklib::opaque::uidivrem(A.abs(), x, &x);
         bool s = (B.sign() > 0);
 
         if (A.sign() < 0)

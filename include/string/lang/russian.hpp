@@ -13,7 +13,7 @@
 
 
 
-namespace internal
+namespace opaque
 {
     // credits for idea: https://ctrpeach.io/posts/cpp20-string-literal-template-parameters/
 

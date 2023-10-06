@@ -11,12 +11,12 @@
 // Provides various supporting functions, mostly hardware-bound.
 // This is internal SKLib file and must NOT be included directly.
 
-namespace implementation
+namespace opaque
 {
     // Divides A >= 0 by B > 0 and returns quotent in the name, remainder in R
     // The function attempts to use the fact that hardware DIV instruction computes both in the same time
     // Undefined behavior for A < 0 or B < 0 or B == 0
-    template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
+    SKLIB_TEMPLATE_IF_INT(T)            //sk template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
     inline T uidivrem(T A, T B, T* R)
     {
         if (R) *R = A % B;
@@ -85,7 +85,7 @@ namespace implementation
     template<class T, class T_ex, unsigned N_shift>    //sk later: maybe use bitwise
     class uNNex
     {
-        static_assert(SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), "Error: uint_extend<> is only defined for unsigned integers");
+        static_assert(sklib::is_unsigned_integer_v<T>, "Error: uint_extend<> is only defined for unsigned integers");
 
     private:
         static constexpr T_ex T_carry = (T_ex(1) << N_shift);
@@ -193,5 +193,5 @@ namespace implementation
     template<class T> using uint_extend_t = uint_extend<T>::type;
 
 
-}; // namespace implementation
+}; // namespace opaque
 

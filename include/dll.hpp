@@ -102,7 +102,7 @@
 #endif
 
 namespace sklib {
-namespace internal {
+namespace opaque {
 
     // type of function call compatible with SKLib DLL
     typedef int(SKLIB_INTERNAL_DLL_CDECL* dll_generic_entry)(int);
@@ -119,7 +119,7 @@ namespace internal {
     // DLL entry (function) descriptor, except the specifc calling details
     class dll_function_info
     {
-        friend ::sklib::internal::sklib_internal_dll_interface_type;
+        friend ::sklib::opaque::sklib_internal_dll_interface_type;
 
     public:
         const std::string name;
@@ -129,7 +129,7 @@ namespace internal {
         dll_function_info(const std::string& fn, bool reqd) : name(fn), is_required(reqd) {}
 
     protected:
-        ::sklib::internal::dll_generic_entry address = nullptr;
+        ::sklib::opaque::dll_generic_entry address = nullptr;
     };
 
     // common DLL interface functionality
@@ -139,8 +139,8 @@ namespace internal {
         dll_interface_helper();  // default constructor/destructor cannot coexist with smart pointer to incomplete type
         ~dll_interface_helper();
 
-        std::unique_ptr<::sklib::internal::dll_opaque_workspace_type> handle;
-        std::vector<::sklib::internal::dll_function_info*> func_list;
+        std::unique_ptr<::sklib::opaque::dll_opaque_workspace_type> handle;
+        std::vector<::sklib::opaque::dll_function_info*> func_list;
 
         // this object reflects DLL status; it is exposed to caller code by operator() of the DLL class
         struct
@@ -185,7 +185,7 @@ namespace internal {
                 ;  // future: add more ifdefs and mode designators as needed
         }
 
-        static uint32_t get_remote_calling_mode(::sklib::internal::dll_generic_entry address)
+        static uint32_t get_remote_calling_mode(::sklib::opaque::dll_generic_entry address)
         {
             static_assert(sizeof(calling_mode_type::ptr_beacon_func) == sizeof(address), "SKLIB ** INTERNAL ERROR ** DLL Function Address Mismatch (Beacon)");
             return (address ? reinterpret_cast<calling_mode_type::ptr_beacon_func>(address)() : calling_mode_type::NOTHING);
@@ -200,15 +200,15 @@ namespace internal {
         bool open_dll_impl(const SKLIB_INTERNAL_DLL_FILENAME_CHAR_TYPE* dll_name, uint32_t caller_mode, bool request_mode_check);
         bool is_dll_open();
         void close_dll(bool update_load_status = true);  // <-- only closes DLL handle, don't clear function poinetrs, leaves alone Handle variable
-        void get_address(const char* symbol, bool required, ::sklib::internal::dll_generic_entry& address, unsigned& sys_load_error);
+        void get_address(const char* symbol, bool required, ::sklib::opaque::dll_generic_entry& address, unsigned& sys_load_error);
     };
 
     // the base class for DLL interface must not contain any members other than prefixed by "sklib_internal", or overloaded operators
     class sklib_internal_dll_interface_type
     {
     protected:
-        ::sklib::internal::dll_interface_helper sklib_internal;
-        struct sklib_internal_dll_test_impl : protected ::sklib::internal::dll_test_base {};
+        ::sklib::opaque::dll_interface_helper sklib_internal;
+        struct sklib_internal_dll_test_impl : protected ::sklib::opaque::dll_test_base {};
 
     public:
         sklib_internal_dll_interface_type(const SKLIB_INTERNAL_DLL_FILENAME_CHAR_TYPE* dll_name) { sklib_internal.open_dll(dll_name); }
@@ -259,7 +259,7 @@ namespace internal {
     template<class, class> class dll_function_entry;
 
     template<class sptype, class rtype, class... targs>
-    class dll_function_entry<sptype, typename rtype(targs...)> : public ::sklib::internal::dll_function_info
+    class dll_function_entry<sptype, typename rtype(targs...)> : public ::sklib::opaque::dll_function_info
     {
     public:
         typedef rtype ret_type;
@@ -272,7 +272,7 @@ namespace internal {
         sptype data_segment = nullptr;
 
     public:
-        dll_function_entry(sptype dsptr, ::sklib::internal::dll_interface_helper* root, const char* name, bool reqd = true)
+        dll_function_entry(sptype dsptr, ::sklib::opaque::dll_interface_helper* root, const char* name, bool reqd = true)
             : dll_function_entry(root, name, reqd)
         {
             data_segment = dsptr;
@@ -281,7 +281,7 @@ namespace internal {
         typedef rtype(*ptr_func_type)(targs...);
 #endif
 
-        dll_function_entry(::sklib::internal::dll_interface_helper* root, const char* name, bool reqd = true) : dll_function_info(name, reqd)
+        dll_function_entry(::sklib::opaque::dll_interface_helper* root, const char* name, bool reqd = true) : dll_function_info(name, reqd)
         {
             root->func_list.push_back(this);
             if (root->is_dll_open()) root->get_address(name, reqd, address, sys_load_error);
@@ -311,7 +311,7 @@ namespace internal {
         operator ptr_func_type() const { return address; }
     };
 
-}; // internal
+}; // opaque
 }; // sklib
 
 //
@@ -323,7 +323,7 @@ namespace internal {
   #ifndef SKLIB_DLL_DISABLE_RUNTIME_CHECK
     #define SKLIB_INTERNAL_DLL_EXPORT_BEACON extern "C" SKLIB_INTERNAL_DLL_VISIBILITY \
         constexpr uint32_t SKLIB_INTERNAL_DLL_CDECL SKLIB_INTERNAL_DLL_BEACON_FUNCTION() \
-        { return ::sklib::internal::dll_interface_helper::get_calling_mode(); }
+        { return ::sklib::opaque::dll_interface_helper::get_calling_mode(); }
   #else
     #define SKLIB_INTERNAL_DLL_EXPORT_BEACON
     #ifdef SKLIB_DLL_ENABLE_INSTANCE_DATA_SEGMENT   // future: check for other calling modes that affect DLL exporting
@@ -362,10 +362,10 @@ namespace internal {
 
 #else // Not SKLIB_DLL_EXPORT
 
-  #define SKLIB_DLL_INTERFACE(ClassName) struct ClassName : public ::sklib::internal::sklib_internal_dll_interface_type
+  #define SKLIB_DLL_INTERFACE(ClassName) struct ClassName : public ::sklib::opaque::sklib_internal_dll_interface_type
 
   #ifdef SKLIB_DLL_ENABLE_INSTANCE_DATA_SEGMENT
-    #define SKLIB_DLL_DATA_SEGMENT static_assert(std::is_base_of_v<::sklib::internal::dll_test_base, sklib_internal_dll_test_impl>, \
+    #define SKLIB_DLL_DATA_SEGMENT static_assert(std::is_base_of_v<::sklib::opaque::dll_test_base, sklib_internal_dll_test_impl>, \
         "SKLIB DLL ** Declaration of DATA SEGMENT must go BEFORE class implementation"); struct sklib_internal_dll_instance_data_segment_type
     #define SKLIB_DLL_CLASS_IMPLEMENT struct sklib_internal_dll_test_impl {}; \
         using sklib_internal_dll_interface_type::sklib_internal_dll_interface_type; \
@@ -374,9 +374,9 @@ namespace internal {
         sklib_internal_dll_instance_data_segment_type& operator*()  { return sklib_internal_dll_instance_data_segment; }
 
     #define SKLIB_INTERNAL_DLL_FUNC(rtype,reqd,fname,...) \
-        static_assert(!std::is_base_of_v<::sklib::internal::dll_test_base, sklib_internal_dll_test_impl>, \
+        static_assert(!std::is_base_of_v<::sklib::opaque::dll_test_base, sklib_internal_dll_test_impl>, \
             "SKLIB DLL ** Class implementation must be done BEFORE declaration of DLL ENTRY"); \
-        ::sklib::internal::dll_function_entry<sklib_internal_dll_instance_data_segment_type*, rtype(__VA_ARGS__)> \
+        ::sklib::opaque::dll_function_entry<sklib_internal_dll_instance_data_segment_type*, rtype(__VA_ARGS__)> \
         fname{&sklib_internal_dll_instance_data_segment, &this->sklib_internal, #fname, reqd};
   #else
     #define SKLIB_DLL_DATA_SEGMENT \
@@ -385,7 +385,7 @@ namespace internal {
     #define SKLIB_DLL_CLASS_IMPLEMENT \
         using sklib_internal_dll_interface_type::sklib_internal_dll_interface_type;
     #define SKLIB_INTERNAL_DLL_FUNC(rtype,reqd,fname,...) \
-        ::sklib::internal::dll_function_entry<void, rtype(__VA_ARGS__)> fname{&this->sklib_internal, #fname, reqd};
+        ::sklib::opaque::dll_function_entry<void, rtype(__VA_ARGS__)> fname{&this->sklib_internal, #fname, reqd};
   #endif
 
   #define SKLIB_DLL_FUNC(rtype,fname,...) SKLIB_INTERNAL_DLL_FUNC(rtype,true,fname,__VA_ARGS__)

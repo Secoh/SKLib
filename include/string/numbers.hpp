@@ -83,7 +83,7 @@
 
 // This is internal SKLib file and must NOT be included directly.
 
-namespace internal   // stoi-specific helpers
+namespace opaque   // stoi-specific helpers
 {
     // Compute the cutoff value between legal numbers and illegal numbers. That is the largest legal value, divided by
     // the base. An input number that is greater than this value, if followed by a legal input character, is too big.
@@ -246,7 +246,7 @@ constexpr auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_
     while (is_space(str[pos])) pos++;
 
     bool neg = false;
-    internal::stoi_update_sign< letter_type, length_type, std::is_signed_v<result_type>>(str, neg, pos);
+    opaque::stoi_update_sign< letter_type, length_type, std::is_signed_v<result_type>>(str, neg, pos);
 
     // This note and the next one are for legal reasons. All other folks may ignore.
     // Note the pattern "0x", prefix for hexadecimal number, and the code to handle it.
@@ -283,8 +283,8 @@ constexpr auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_
 
     result_type acc = 0;
     if (!((std::is_signed_v<result_type> && neg)
-            ? internal::stoi_convert_negative(str, acc, pos, base)
-            : internal::stoi_convert_positive(str, acc, pos, base)))
+            ? opaque::stoi_convert_negative(str, acc, pos, base)
+            : opaque::stoi_convert_positive(str, acc, pos, base)))
     {
         pos = 0;
     }
@@ -326,7 +326,7 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* en
     }
 
     bool neg = false;
-    internal::stoi_update_sign< letter_type, length_type, true>(str, neg, pos);
+    opaque::stoi_update_sign< letter_type, length_type, true>(str, neg, pos);
 
     if (std::numeric_limits<result_type>::has_infinity && stranequ(str+pos, inf, inf_len))
     {
@@ -360,14 +360,14 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* en
     }
 
     result_type M = 0;
-    bool any = internal::stoi_convert_positive(str, M, pos, base);
+    bool any = opaque::stoi_convert_positive(str, M, pos, base);
 
     // if dot is present, read fraction part
 
     if (str[pos] == '.')
     {
         pos++;
-        any = internal::stod_convert_decimal(str, M, pos, base) || any;
+        any = opaque::stod_convert_decimal(str, M, pos, base) || any;
     }
 
     // check for exponent which is signed integer
@@ -386,10 +386,10 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* en
             pos_exp++;
 
             bool neg_exp = false;
-            internal::stoi_update_sign< letter_type, length_type, true>(str, neg_exp, pos_exp);
+            opaque::stoi_update_sign< letter_type, length_type, true>(str, neg_exp, pos_exp);
 
             unsigned rise = 0;
-            if (internal::stoi_convert_positive(str, rise, pos_exp, base))
+            if (opaque::stoi_convert_positive(str, rise, pos_exp, base))
             {
                 pos = pos_exp;
                 M = (neg_exp ? M / npow<result_type>(base_exp, rise) : M * npow<result_type>(base_exp, rise));

@@ -1,5 +1,5 @@
 // This file is part of SKLib: https://github.com/Secoh/SKLib
-// Copyright [2019-2022] Secoh
+// Copyright [2019-2023] Secoh
 //
 // Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
 // You may not use this file except in compliance with the License.
@@ -12,28 +12,13 @@
 #ifndef SKLIB_INCLUDED_ALL
 #define SKLIB_INCLUDED_ALL
 
-/*
-#include <cstdio>
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <algorithm>
-#include <string>
-#include <vector>
-#include <memory>
-#include <utility>
-#include <type_traits>
-#include <mutex>
-#include <thread>
-#include <chrono>
-#include <ratio>
-*/
-
 // To keep all header-only SkLib code in one place
 // (e.g. to accelerate loading precompiled headers in MSVC)
 // just list all available SkLib modules in one file
 
-#include "include/helpers.hpp"
+#include "include/types.hpp"
+#include "include/utility.hpp"
+
 #include "include/bitwise.hpp"
 #include "include/checksum.hpp"
 #include "include/timer.hpp"

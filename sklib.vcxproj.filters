@@ -40,6 +40,15 @@
     <Filter Include="Header Files\include\math\algebra">
       <UniqueIdentifier>{e7b779f9-ce03-4925-b008-2da418dc4a21}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\math\primes">
+      <UniqueIdentifier>{c2deee87-c411-45d9-acb1-e122d81ed349}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\bitwise">
+      <UniqueIdentifier>{c34f5779-974c-4805-9679-64894eaa832b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\include\types">
+      <UniqueIdentifier>{09025b6d-1f47-46d1-aeb7-d92b7a9e2f47}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sklib.hpp">
@@ -58,9 +67,6 @@
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\ham.hpp">
-      <Filter>Header Files\include</Filter>
-    </ClInclude>
-    <ClInclude Include="include\helpers.hpp">
       <Filter>Header Files\include</Filter>
     </ClInclude>
     <ClInclude Include="include\string.hpp">
@@ -99,9 +105,6 @@
     <ClInclude Include="include\string\unicode.hpp">
       <Filter>Header Files\include\string</Filter>
     </ClInclude>
-    <ClInclude Include="include\math\kludges.hpp">
-      <Filter>Header Files\include\math</Filter>
-    </ClInclude>
     <ClInclude Include="include\utility.hpp">
       <Filter>Header Files\include</Filter>
     </ClInclude>
@@ -132,7 +135,7 @@
     <ClInclude Include="include\utility\macro-misc.hpp">
       <Filter>Header Files\include\utility</Filter>
     </ClInclude>
-    <ClInclude Include="include\utility\traits-extra.hpp">
+    <ClInclude Include="include\utility\misc-helpers.hpp">
       <Filter>Header Files\include\utility</Filter>
     </ClInclude>
     <ClInclude Include="include\dll.hpp">
@@ -161,6 +164,33 @@
     </ClInclude>
     <ClInclude Include="include\math\algebra\field-modular.hpp">
       <Filter>Header Files\include\math\algebra</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\primes\enumeration.hpp">
+      <Filter>Header Files\include\math\primes</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\primes\eratosphenes.hpp">
+      <Filter>Header Files\include\math\primes</Filter>
+    </ClInclude>
+    <ClInclude Include="include\types\detect-type.hpp">
+      <Filter>Header Files\include\types</Filter>
+    </ClInclude>
+    <ClInclude Include="include\types\int-conv.hpp">
+      <Filter>Header Files\include\types</Filter>
+    </ClInclude>
+    <ClInclude Include="include\types\int-bits.hpp">
+      <Filter>Header Files\include\types</Filter>
+    </ClInclude>
+    <ClInclude Include="include\types\misc-types.hpp">
+      <Filter>Header Files\include\types</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\std-func.hpp">
+      <Filter>Header Files\include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\random-size-int.hpp">
+      <Filter>Header Files\include\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utility\testing-specific.hpp">
+      <Filter>Header Files\include\utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

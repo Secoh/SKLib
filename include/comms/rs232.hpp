@@ -18,7 +18,7 @@
 
 namespace sklib
 {
-    namespace internal
+    namespace opaque
     {
         namespace rs232_indexes
         {
@@ -130,7 +130,7 @@ namespace sklib
 
 // -------------------------- exposed -----------------------------
 
-    namespace internal
+    namespace opaque
     {
         struct rs232_opaque_workspace_type;
     };
@@ -177,7 +177,7 @@ namespace sklib
 
     protected:
         int port_no;
-        std::unique_ptr<::sklib::internal::rs232_opaque_workspace_type> port_data;
+        std::unique_ptr<::sklib::opaque::rs232_opaque_workspace_type> port_data;
         bool error_state;
         bool break_state;
         int system_error_code;    // set to ERROR_SUCCESS=0 by default;

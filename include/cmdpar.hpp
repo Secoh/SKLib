@@ -89,7 +89,7 @@ sklib_internal_H9V8GG33G51W7JJ93VO2SI2HQG288040_alternative_prefix_setter
 //
 
 #define SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_TWO(name,type) \
-    struct name : public ::sklib::implementation::SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE<type>
+    struct name : public ::sklib::opaque::SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE<type>
 #define SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_ONE(name) SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_TWO(name,char)
 #define SKLIB_DECLARE_CMD_PARAMS(...) SKLIB_MACRO_SELECT_ONE_TWO(SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_ONE, \
                                                                  SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_TWO, __VA_ARGS__)
@@ -97,9 +97,9 @@ sklib_internal_H9V8GG33G51W7JJ93VO2SI2HQG288040_alternative_prefix_setter
 // === Parameters, Options declarations
 
 #define SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,suffix,name,...) \
-    ::sklib::implementation::cmdpar_param_##suffix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE, std::decay_t<decltype(*name)>> \
+    ::sklib::opaque::cmdpar_param_##suffix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE, std::decay_t<decltype(*name)>> \
     SKLIB_MACRO_SELF(SKLIB_INTERNAL_CMDPAR_USE_PARAM_PREFIX)##x \
-    { ::sklib::implementation::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), name, __VA_ARGS__ };
+    { ::sklib::opaque::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), name, __VA_ARGS__ };
 
 #define SKLIB_OPTION_SWITCH(x)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,switch,#x)
 
@@ -152,9 +152,9 @@ sklib_internal_H9V8GG33G51W7JJ93VO2SI2HQG288040_alternative_prefix_setter
 #define SKLIB_OPTION_HELP_ALT_NAME(x,m)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,help,m)
 
 #define SKLIB_CMD_PARAMS_ALT_PREFIX(c) \
-    ::sklib::implementation::cmdpar_parser_prefix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE> \
+    ::sklib::opaque::cmdpar_parser_prefix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE> \
     SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_ALTERNATIVE_PREFIX_SETTER \
-    { ::sklib::implementation::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), c };
+    { ::sklib::opaque::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), c };
 
 #define SKLIB_CMD_PARAMS_INITIALIZER(name) name() = default; \
     name(int argn, const SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE* const* argc, int arg_start = 1, bool do_reset = true) \
@@ -195,7 +195,7 @@ namespace sklib
         static constexpr uint8_t is_help       = 0x80;  // hack: this bit signals that the option is used in help subsystem
     };
 
-    namespace implementation
+    namespace opaque
     {
     // ====================================================================================================
     // === Parser Status Data and I/O
@@ -314,7 +314,7 @@ namespace sklib
         // minimum, and also make a name likely to be unique.
 
         template<class letter_type = char>
-        class SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE : public ::sklib::implementation::SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE_CONDUIT<letter_type>
+        class SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE : public ::sklib::opaque::SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE_CONDUIT<letter_type>
         {
             static_assert(std::is_same_v<letter_type, std::decay_t<letter_type>>, "SKLIB ** Data type representing a character must have no qualifiers.");
             static_assert(::sklib::is_integer_val<letter_type>, "SKLIB ** Data type representing a character must be integer.");

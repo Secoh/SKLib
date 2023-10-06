@@ -20,8 +20,7 @@
 #include <thread>
 #include <chrono>
 #include <ratio>
-
-#include "helpers.hpp"     // this also loads <type_traits>
+#include <type_traits>
 
 // 1. Convert time in certain real-world units to C++ time representation
 
@@ -85,8 +84,8 @@ namespace sklib
 
 // special: template active for integer or floating type T, makes up type LGT=unsigned long long or long double for respective T, return type is constexpr auto
 #define SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_FROM_UNITS(funkname,opconv)                                           \
-    template<class T, class LGT = std::conditional_t<SKLIB_TYPES_IS_INTEGER(T), unsigned long long, long double>,    \
-                      std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T) || SKLIB_TYPES_IS_FLOATING_POINT(T), bool> = true>  \
+    template<class T, class LGT = std::conditional_t<sklib::is_integer_v<T>, unsigned long long, long double>,    \
+                      std::enable_if_t<sklib::is_numeric_v<T>, bool> = true>  \
     constexpr auto funkname (T t) { return operator""opconv (LGT(t)); }    // NB: no spaces around ""
 
     SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_FROM_UNITS( time_seconds,      _s_sklib  );
@@ -142,8 +141,8 @@ namespace sklib
 // makes up type LGT=unsigned long long or long double for respective T, return type is constexpr auto
 #define SKLIB_INTERNAL_TIMER_DECLARE_CONVERTER_TO_UNITS(funkname,unitref)                                \
     template<class TT, class tRep, class tPeriod = std::ratio<1>,                                        \
-        class LGT = std::conditional_t<SKLIB_TYPES_IS_INTEGER(TT), unsigned long long, long double>,     \
-        std::enable_if_t<SKLIB_TYPES_IS_INTEGER(TT) || SKLIB_TYPES_IS_FLOATING_POINT(TT), bool> = true>  \
+        class LGT = std::conditional_t<sklib::is_integer_v<TT>, unsigned long long, long double>,     \
+        std::enable_if_t<sklib::is_numeric_v<TT>, bool> = true>  \
     constexpr TT funkname (const std::chrono::duration<tRep, tPeriod>& t)                                \
     { return TT((std::chrono::duration_cast<std::chrono::duration<LGT, unitref>>(t)).count()); }
 

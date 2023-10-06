@@ -13,7 +13,7 @@
 
 SKLIB_TEMPLATE_IF_UINT(T) T edivrem(T A, T B, T* R = nullptr)
 {
-    if (B) return sklib::implementation::uidivrem(A, B, R);
+    if (B) return sklib::opaque::uidivrem(A, B, R);
 
     if (R) *R = 0;
     return 0;
@@ -35,11 +35,11 @@ SKLIB_TEMPLATE_IF_SINT(T) T edivrem(T A, T B, T* R = nullptr)
 
     if (A >= 0)
     {
-        q1 = sklib::implementation::uidivrem(A, B, &r1);
+        q1 = sklib::opaque::uidivrem(A, B, &r1);
     }
     else
     {
-        q1= -sklib::implementation::uidivrem(-A, B, &r1);
+        q1= -sklib::opaque::uidivrem(-A, B, &r1);
         if (r1) { q1--; r1=B-r1; }
     }
 

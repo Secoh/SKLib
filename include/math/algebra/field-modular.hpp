@@ -12,6 +12,7 @@
 // This is internal SKLib file and must NOT be included directly.
 
 SKLIB_TEMPLATE_IF_UINT(T)
+//template<class T, std::enable_if_t<is_unsigned_integer_vyy<T>, bool> = true>
 class modp
 {
 private:
@@ -19,12 +20,12 @@ private:
     T V = 0;
     bool err = false;
 
-    typedef sklib::implementation::uint_extend<T> TT;
+    typedef sklib::opaque::uint_extend<T> TT;
     typedef sklib::signed_uint<T> TS;
 
     void mmul(T x)
     {
-        sklib::implementation::uint_extend_t<T> U(V);
+        sklib::opaque::uint_extend_t<T> U(V);
         U.mul(x).div(P, &V);
     }
 

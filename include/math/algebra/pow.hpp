@@ -11,7 +11,7 @@
 // Provides template basic math functions that can be constexpr.
 // This is internal SKLib file and must NOT be included directly.
 
-template<class R, class V, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(V), bool> = true>
+template<class R, class V, std::enable_if_t<sklib::is_integer_v<V>, bool> = true>
 constexpr auto upow(R x, V p)
 {
     R z = R(1);
@@ -26,7 +26,7 @@ constexpr auto upow(R x, V p)
     return z;
 }
 
-template<class R, class V, std::enable_if_t<SKLIB_TYPES_IS_SIGNED_INTEGER(V), bool> = true>
+template<class R, class V, std::enable_if_t<sklib::is_signed_integer_v<V>, bool> = true>
 constexpr auto ipow(R x, V p)
 {
     typedef make_unsigned_if_integer_type<V> uV;

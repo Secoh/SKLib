@@ -24,7 +24,7 @@ namespace supplement
 
         constexpr collection_cstring_type() = default;
 
-        constexpr collection_cstring_type(const collection_cstring_type<::sklib::internal::alternate_maximum(N, 2u) - 1>& in)   // for completeness, only N >= 2 are used
+        constexpr collection_cstring_type(const collection_cstring_type<::sklib::opaque::alt_max(N, 2u) - 1>& in)   // for completeness, only N >= 2 are used
         {
             for (unsigned k = 0; k < in.N; k++) text[k] = in.text[k];
         }
@@ -36,7 +36,7 @@ namespace supplement
     };
 };
 
-namespace internal
+namespace opaque
 {
     template<unsigned N>
     constexpr auto partial_collection_cstring(const ::sklib::supplement::collection_cstring_type<N>& A, const char* str)
@@ -60,7 +60,7 @@ constexpr auto collection_cstring(const char* str, Args... args)
 {
     ::sklib::supplement::collection_cstring_type<1> R;
     R.text[0] = str;
-    return ::sklib::internal::partial_collection_cstring(R, args...);
+    return ::sklib::opaque::partial_collection_cstring(R, args...);
 }
 
 template<>

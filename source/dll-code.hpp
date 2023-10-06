@@ -33,16 +33,16 @@
 
 #endif
 
-struct sklib::internal::dll_opaque_workspace_type
+struct sklib::opaque::dll_opaque_workspace_type
 {
     HMODULE hdll = NULL;
 };
 
 // constructor and destructor may visit the default destructor for the Opaque type
-sklib::internal::dll_interface_helper::dll_interface_helper() {}
-sklib::internal::dll_interface_helper::~dll_interface_helper() {}
+sklib::opaque::dll_interface_helper::dll_interface_helper() {}
+sklib::opaque::dll_interface_helper::~dll_interface_helper() {}
 
-bool sklib::internal::dll_interface_helper::open_dll_impl(const SKLIB_INTERNAL_DLL_FILENAME_CHAR_TYPE* dll_name, uint32_t caller_mode, bool request_mode_check)
+bool sklib::opaque::dll_interface_helper::open_dll_impl(const SKLIB_INTERNAL_DLL_FILENAME_CHAR_TYPE* dll_name, uint32_t caller_mode, bool request_mode_check)
 {
     if (!handle) handle = std::make_unique<dll_opaque_workspace_type>();
     if (is_dll_open()) close_dll();
@@ -72,7 +72,7 @@ bool sklib::internal::dll_interface_helper::open_dll_impl(const SKLIB_INTERNAL_D
     return false;
 }
 
-void sklib::internal::dll_interface_helper::close_dll(bool update_load_status)
+void sklib::opaque::dll_interface_helper::close_dll(bool update_load_status)
 {
     if (!is_dll_open()) return;
 
@@ -83,13 +83,13 @@ void sklib::internal::dll_interface_helper::close_dll(bool update_load_status)
     if (update_load_status) dll_info.dll_load_status = dll_info.dll_status_code.NOT_LOADED;
 }
 
-bool sklib::internal::dll_interface_helper::is_dll_open()
+bool sklib::opaque::dll_interface_helper::is_dll_open()
 {
     return handle && handle->hdll;
 }
 
-void sklib::internal::dll_interface_helper::get_address(const char* symbol, bool required,
-                                                        ::sklib::internal::dll_generic_entry& address, unsigned& sys_load_error)
+void sklib::opaque::dll_interface_helper::get_address(const char* symbol, bool required,
+                                                        ::sklib::opaque::dll_generic_entry& address, unsigned& sys_load_error)
 {
     if (is_dll_open())
     {
