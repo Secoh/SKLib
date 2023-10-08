@@ -12,7 +12,6 @@
 // This is internal SKLib file and must NOT be included directly.
 
 SKLIB_TEMPLATE_IF_UINT(T)
-//template<class T, std::enable_if_t<is_unsigned_integer_vyy<T>, bool> = true>
 class modp
 {
 private:
@@ -60,9 +59,9 @@ public:
         return *this;
     }
 
-    friend modp& operator* (modp X, const modp& Y) { return X *= Y; }
-    friend modp& operator* (modp X, T Y) { return X *= Y; }
-    friend modp& operator* (T X, modp Y) { return Y *= X; }
+    friend modp operator* (modp X, const modp& Y) { return X *= Y; }
+    friend modp operator* (modp X, T Y) { return X *= Y; }
+    friend modp operator* (T X, modp Y) { return Y *= X; }
 
     T operator() () const { return V; }
 

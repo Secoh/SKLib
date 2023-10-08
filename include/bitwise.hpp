@@ -24,68 +24,6 @@
 
 namespace sklib
 {
-    static_assert(sizeof(char) == 1, "SKLIB ** INTERNAL ERROR ** sizeof(char) must be equal to 1");
-
-    // -------------------------------------------------
-    // Integer type traits
-    // (constants for a given type T if T is integer)
-
-    static constexpr unsigned OCTET_BITS = 8;
-
-    namespace supplement
-    {
-        SKLIB_TEMPLATE_IF_INT(T) static constexpr unsigned bits_data_width() { return OCTET_BITS * (unsigned)sizeof(T); }
-        SKLIB_TEMPLATE_IF_INT(T) static constexpr unsigned bits_data_width_less_sign() { return bits_data_width<T>() - (std::is_signed_v<T> ? 1 : 0); }
-
-        // generalized static constexpr functions for arbitrary bit count
-
-        template<class T, unsigned Width, SKLIB_INTERNAL_ENABLE_IF_INT(T)>
-        static constexpr T bits_short_data_range()
-        {
-            static_assert(Width < bits_data_width_less_sign<T>(),
-                "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bits");
-            return (T(1) << Width);
-        }
-
-        template<class T, unsigned Width, SKLIB_INTERNAL_ENABLE_IF_INT(T)>
-        static constexpr T bits_short_data_high_1()
-        {
-            static_assert(Width > 0, "SKLIB ** INTERNAL ERROR ** Bit count must be nonzero");
-            static_assert(Width <= bits_data_width_less_sign<T>(), "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bits");
-            return (T(1) << (Width-1));
-        }
-
-        template<class T, unsigned Width, SKLIB_INTERNAL_ENABLE_IF_INT(T)>
-        static constexpr T bits_short_data_mask()
-        {
-            return (bits_short_data_high_1<T, Width>() | T(bits_short_data_high_1<T, Width>()-1));
-        }
-
-        SKLIB_TEMPLATE_IF_INT(T) static constexpr T bits_short_data_range(unsigned width)
-        {
-            return (T(1) << width);
-        }
-        SKLIB_TEMPLATE_IF_INT(T) static constexpr T bits_short_data_high_1(unsigned width)
-        {
-            return (T(1) << (width-1));
-        }
-        SKLIB_TEMPLATE_IF_INT(T) static constexpr T bits_short_data_mask(unsigned width)
-        {
-            return (bits_short_data_high_1<T>(width) | T(bits_short_data_high_1<T>(width)-1));
-        }
-
-        // specialized static constexpr functions for entire data type
-
-        SKLIB_TEMPLATE_IF_UINT(T) static constexpr T  bits_data_high_1() { return bits_short_data_high_1<T, bits_data_width<T>()>(); }
-        SKLIB_TEMPLATE_IF_UINT(T) static constexpr  T  bits_data_mask() { return (bits_data_high_1<T>() | T(bits_data_high_1<T>() - 1)); }
-
-        SKLIB_TEMPLATE_IF_UINT(T) static constexpr  T  bits_data_low_half() { return ((T(1) << (bits_data_width<T>()/2)) - 1); }
-        SKLIB_TEMPLATE_IF_UINT(T) static constexpr  T  bits_data_high_half() { return (bits_data_low_half<T>() << (bits_data_width<T>()/2)); }
-    };
-
-    static constexpr uint8_t OCTET_MASK         = ::sklib::supplement::bits_data_mask<uint8_t>();
-    static constexpr size_t  OCTET_ADDRESS_SPAN = OCTET_MASK + 1;
-
     // --------------------------------
     // Helper/reference tables
     // used for: flip, distance, rank, distance, base64
@@ -121,7 +59,7 @@ namespace sklib
 
         SKLIB_TEMPLATE_IF_UINT(T) static constexpr T bits_flip_bruteforce(::sklib::supplement::do_not_deduce<T> data)
         {
-            return bits_flip_bruteforce<T>(data, ::sklib::supplement::bits_data_width<T>());
+            return bits_flip_bruteforce<T>(data, sklib::bits_width_v<T>);
         }
     };
 
@@ -176,7 +114,7 @@ namespace sklib
         SKLIB_TEMPLATE_IF_UINT(T) static constexpr unsigned bits_distance_bruteforce(T data)
         {
             unsigned R = 0;
-            constexpr unsigned N = ::sklib::supplement::bits_data_width<T>();
+            constexpr unsigned N = sklib::bits_width_v<T>;
             for (unsigned i=0; i<N; i++, data >>= 1) if (data & 1) R++;
             return R;
         }
@@ -237,7 +175,7 @@ namespace sklib
             }
         }
 
-        template<class T, unsigned N = bits_data_width<T>()>
+        template<class T, unsigned N = sklib::bits_width_v<T>>
         static constexpr unsigned bits_rank_bruteforce(T data, unsigned max_bits_count = N)
         {
             auto udata = std::make_unsigned_t<T>(data);
@@ -267,17 +205,17 @@ namespace sklib
         }
         static constexpr unsigned rank16(uint16_t v)
         {
-            return ((v & ::sklib::supplement::bits_data_high_half<uint16_t>()) ? rank8(uint8_t(v >> OCTET_BITS)) + OCTET_BITS : rank8(uint8_t(v)));
+            return ((v & sklib::bits_high_half_v<uint16_t>) ? rank8(uint8_t(v >> OCTET_BITS)) + OCTET_BITS : rank8(uint8_t(v)));
         }
         static constexpr unsigned rank32(uint32_t v)
         {
-            constexpr unsigned N_half = ::sklib::supplement::bits_data_width<uint16_t>();
-            return ((v & ::sklib::supplement::bits_data_high_half<uint32_t>()) ? rank16(uint16_t(v >> N_half)) + N_half : rank16(uint16_t(v)));
+            constexpr unsigned N_half = sklib::bits_width_v<uint16_t>;
+            return ((v & sklib::bits_high_half_v<uint32_t>) ? rank16(uint16_t(v >> N_half)) + N_half : rank16(uint16_t(v)));
         }
         static constexpr unsigned rank64(uint64_t v)
         {
-            constexpr unsigned N_half = ::sklib::supplement::bits_data_width<uint32_t>();
-            return ((v & ::sklib::supplement::bits_data_high_half<uint64_t>()) ? rank32(uint32_t(v >> N_half)) + N_half : rank32(uint32_t(v)));
+            constexpr unsigned N_half = sklib::bits_width_v<uint32_t>;
+            return ((v & sklib::bits_high_half_v<uint64_t>) ? rank32(uint32_t(v >> N_half)) + N_half : rank32(uint32_t(v)));
         }
     };
 
@@ -318,13 +256,14 @@ namespace sklib
             unsigned bit_count;
             T data;
 
-            bits_variable_pack_type(T v, unsigned N = ::sklib::supplement::bits_data_width<T>()) : data(v), bit_count(N) {}
+            bits_variable_pack_type(T v, unsigned N = sklib::bits_width_v<T>) : data(v), bit_count(N) {}
         };
 
         template<int N, class T, SKLIB_INTERNAL_ENABLE_IF_INT(T)>
         class bits_fixed_pack_type : public sklib::opaque::bits_variable_pack_anchor
         {
-            static_assert(N <= ::sklib::supplement::bits_data_width<T>(), "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bits");
+            static_assert(N <= sklib::bits_width_v<T>,
+                "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bits");
 
         public:
             static constexpr unsigned bit_count = N;
@@ -339,7 +278,7 @@ namespace sklib
     { return ::sklib::supplement::bits_fixed_pack_type<N, T>(v); }
 
     SKLIB_TEMPLATE_IF_INT(T)
-    constexpr auto bits_pack(T v, unsigned N = ::sklib::supplement::bits_data_width<T>())
+    constexpr auto bits_pack(T v, unsigned N = sklib::bits_width_v<T>)
     { return ::sklib::supplement::bits_variable_pack_type<T>(v, N); }
 
     class bits_stream_base_type     // using big-endian model
@@ -486,14 +425,14 @@ namespace sklib
 
     protected:
         static constexpr uint8_t byte_low_mask[OCTET_BITS + 1] = { 0,
-            ::sklib::supplement::bits_short_data_mask<uint8_t, 1>(),
-            ::sklib::supplement::bits_short_data_mask<uint8_t, 2>(),
-            ::sklib::supplement::bits_short_data_mask<uint8_t, 3>(),
-            ::sklib::supplement::bits_short_data_mask<uint8_t, 4>(),
-            ::sklib::supplement::bits_short_data_mask<uint8_t, 5>(),
-            ::sklib::supplement::bits_short_data_mask<uint8_t, 6>(),
-            ::sklib::supplement::bits_short_data_mask<uint8_t, 7>(),
-            ::sklib::supplement::bits_short_data_mask<uint8_t, 8>() };
+            sklib::bits_data_mask_v<uint8_t, 1>,
+            sklib::bits_data_mask_v<uint8_t, 2>,
+            sklib::bits_data_mask_v<uint8_t, 3>,
+            sklib::bits_data_mask_v<uint8_t, 4>,
+            sklib::bits_data_mask_v<uint8_t, 5>,
+            sklib::bits_data_mask_v<uint8_t, 6>,
+            sklib::bits_data_mask_v<uint8_t, 7>,
+            sklib::bits_data_mask_v<uint8_t, 8> };
 
         uint8_t  accumulator_sender = 0;
         unsigned clear_bits_sender = OCTET_BITS;
@@ -597,7 +536,7 @@ namespace sklib
         public:
             static constexpr int encoding_bit_length = 6;
             static constexpr size_t dictionary_size = (1 << encoding_bit_length);
-            static constexpr uint8_t dictionary_address_mask = ::sklib::supplement::bits_short_data_mask<uint8_t, encoding_bit_length>(); // same as (dictionary_size-1)
+            static constexpr uint8_t dictionary_address_mask = sklib::bits_data_mask_v<uint8_t, encoding_bit_length>; // same as (dictionary_size-1)
             static constexpr char dictionary[dictionary_size+1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
             static constexpr char EOL_char = '=';
 

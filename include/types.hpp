@@ -12,6 +12,7 @@
 #ifndef SKLIB_INCLUDED_TYPES_HPP
 #define SKLIB_INCLUDED_TYPES_HPP
 
+#include <climits>
 #include <type_traits>
 #include <string>
 

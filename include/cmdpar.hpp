@@ -317,7 +317,7 @@ namespace sklib
         class SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE : public ::sklib::opaque::SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE_CONDUIT<letter_type>
         {
             static_assert(std::is_same_v<letter_type, std::decay_t<letter_type>>, "SKLIB ** Data type representing a character must have no qualifiers.");
-            static_assert(::sklib::is_integer_val<letter_type>, "SKLIB ** Data type representing a character must be integer.");
+            static_assert(sklib::is_integer_v<letter_type>, "SKLIB ** Data type representing a character must be integer.");
 
             friend cmdpar_status_base<letter_type>*
                 cmdpar_table_to_params_list_header<letter_type>(SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE*);

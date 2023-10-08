@@ -31,11 +31,5 @@ SKLIB_TEMPLATE_IF_UINT(T) constexpr T prime_candidate_to_index(T p)
 }
 
 SKLIB_TEMPLATE_IF_UINT(T)
-struct prime_candidate_index_cap
-{
-    static constexpr T value = sklib::supplement::bits_data_mask<T>();
-};
-
-SKLIB_TEMPLATE_IF_UINT(T)
-using prime_candidate_index_cap_v = prime_candidate_index_cap<T>::value;
+inline constexpr T prime_candidate_index_cap_v = prime_candidate_to_index<T>(sklib::bits_mask_v<T>);
 

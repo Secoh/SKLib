@@ -229,9 +229,9 @@ constexpr auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_
 {
     typedef std::decay_t<target_type> result_type;
 
-    static_assert(is_numeric_val<result_type>, "SKLIB ** Result of stoi() must be a numerical value");
-    static_assert(is_integer_val<letter_type>, "SKLIB ** String letter must be represented by integer value");
-    static_assert(is_integer_val<std::decay_t<length_type>>, "SKLIB **- String position/length must be represented by integer value");
+    static_assert(is_numeric_v<result_type>, "SKLIB ** Result of stoi() must be a numerical value");
+    static_assert(is_integer_v<letter_type>, "SKLIB ** String letter must be represented by integer value");
+    static_assert(is_integer_v<std::decay_t<length_type>>, "SKLIB **- String position/length must be represented by integer value");
 
     // new: treat invalid base as 0 (no base)
     // still, like in the original code, base=1 is UB and is not handled
@@ -360,14 +360,14 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* en
     }
 
     result_type M = 0;
-    bool any = opaque::stoi_convert_positive(str, M, pos, base);
+    bool any = sklib::opaque::stoi_convert_positive(str, M, pos, base);
 
     // if dot is present, read fraction part
 
     if (str[pos] == '.')
     {
         pos++;
-        any = opaque::stod_convert_decimal(str, M, pos, base) || any;
+        any = sklib::opaque::stod_convert_decimal(str, M, pos, base) || any;
     }
 
     // check for exponent which is signed integer
@@ -386,13 +386,13 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* en
             pos_exp++;
 
             bool neg_exp = false;
-            opaque::stoi_update_sign< letter_type, length_type, true>(str, neg_exp, pos_exp);
+            sklib::opaque::stoi_update_sign< letter_type, length_type, true>(str, neg_exp, pos_exp);
 
             unsigned rise = 0;
-            if (opaque::stoi_convert_positive(str, rise, pos_exp, base))
+            if (sklib::opaque::stoi_convert_positive(str, rise, pos_exp, base))
             {
                 pos = pos_exp;
-                M = (neg_exp ? M / npow<result_type>(base_exp, rise) : M * npow<result_type>(base_exp, rise));
+                M = (neg_exp ? M / sklib::upow<result_type>(base_exp, rise) : M * sklib::upow<result_type>(base_exp, rise));
             }
         }
     }

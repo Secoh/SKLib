@@ -73,6 +73,8 @@ std::enable_if_t<sklib::is_integer_of_size_v<T, match_type>, bool> = true
 #define SKLIB_TEMPLATE_IF_UINT(T)   template<class T, SKLIB_INTERNAL_ENABLE_IF_UINT(T)>
 #define SKLIB_TEMPLATE_IF_SINT(T)   template<class T, SKLIB_INTERNAL_ENABLE_IF_SINT(T)>
 
+#define SKLIB_TEMPLATE_IF_NOT_INT(T) template<class T, std::enable_if_t<!sklib::is_integer_v<T>, bool> = true>
+
 #define SKLIB_TEMPLATE_IF_DERIVED(T,BAS) template<class T, SKLIB_INTERNAL_ENABLE_IF_DERIVED(T,BAS)>
 
 #define SKLIB_TEMPLATE_IF_INT_OF_SIZE(T,match_type) \

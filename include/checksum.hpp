@@ -25,8 +25,8 @@ namespace sklib
         template<class T>
         static constexpr void crc_generate_table(T(&U)[OCTET_ADDRESS_SPAN], unsigned length, T polynomial, bool msb = false)
         {
-            const T high_bit = ::sklib::supplement::bits_short_data_high_1<T>(length);
-            const T mask = ::sklib::supplement::bits_short_data_mask<T>(length);
+            const T high_bit = sklib::bits_data_high_1<T>(length);
+            const T mask = sklib::bits_data_mask<T>(length);
 
             polynomial &= mask;
             U[0] = 0;
@@ -49,7 +49,7 @@ namespace sklib
                 T vcrc = T(1);
                 T poly_lsb = crc_make_polynomial<T>(msb, length, polynomial);
 
-                for (int i = ::sklib::supplement::bits_data_high_1<uint8_t>(); i; i >>= 1)
+                for (int i = sklib::bits_high_1_v<uint8_t>; i; i >>= 1)
                 {
                     auto have_low = vcrc & T(1);
                     vcrc >>= 1;
@@ -77,8 +77,7 @@ namespace sklib
         private:
             const ::sklib::opaque::encapsulated_array_octet_index_type<T>& Table;
 
-            template<class T1> static constexpr bool tiny_container()
-            { return (::sklib::supplement::bits_data_width<T1>() <= OCTET_BITS); }
+            template<class T1> static constexpr bool tiny_container_v = (sklib::bits_width_v<T1> <= OCTET_BITS);
 
         protected:              // initialization order depends on the sequence in which const variables are declared
             const T mask;       // see: https://en.cppreference.com/w/cpp/language/constructor
@@ -97,8 +96,8 @@ namespace sklib
             constexpr crc_base_type(const ::sklib::opaque::encapsulated_array_octet_index_type<T>& table_in, bool mode_MSB, unsigned Length, T Normal_Polynomial, T Start_Value)
                 : Table(table_in)
                 , MSB(mode_MSB)
-                , mask(::sklib::supplement::bits_short_data_mask<T>(Length))
-                , high_bit(::sklib::supplement::bits_short_data_high_1<T>(Length))
+                , mask(sklib::bits_data_mask<T>(Length))
+                , high_bit(sklib::bits_data_high_1<T>(Length))
                 , Polynomial_Degree(Length)
                 , Polynomial(::sklib::opaque::crc_make_polynomial<T>(mode_MSB, Length, (Normal_Polynomial & mask)))   // mask is declared before Polynomial and others
                 , msb_shift(Length > OCTET_BITS ? Length - OCTET_BITS : OCTET_BITS - Length)
@@ -184,19 +183,19 @@ namespace sklib
 
             // "normal" CRC formulas, for any bit count (and size of data)
 
-            template<class T1, std::enable_if_t<!tiny_container<T1>(), bool> = true>
+            template<class T1, std::enable_if_t<!tiny_container_v<T1>, bool> = true>
             constexpr void add_msb_long(uint8_t ch)
             {
                 vcrc = (T1(vcrc << OCTET_BITS) ^ Table.data[((vcrc >> msb_shift) ^ ch) & OCTET_MASK]);   // MSB longer than 8 bits
             }
 
-            template<class T1, std::enable_if_t<!tiny_container<T1>(), bool> = true>
+            template<class T1, std::enable_if_t<!tiny_container_v<T1>, bool> = true>
             constexpr void add_msb_short(uint8_t ch)
             {
                 vcrc = (T1(vcrc << OCTET_BITS) ^ Table.data[((vcrc << msb_shift) ^ ch) & OCTET_MASK]);   // MSB shorter than 8 bits
             }
 
-            template<class T1, std::enable_if_t<!tiny_container<T1>(), bool> = true>
+            template<class T1, std::enable_if_t<!tiny_container_v<T1>, bool> = true>
             constexpr void add_lsb_long(uint8_t ch)
             {
                 vcrc = (T1(vcrc >> OCTET_BITS) ^ Table.data[(vcrc ^ ch) & OCTET_MASK]);   // LSB longer than 8 bits
@@ -204,19 +203,19 @@ namespace sklib
 
             // versions for small data type, eliminating portions of normal formula
 
-            template<class T1, std::enable_if_t<tiny_container<T1>(), bool> = true>
+            template<class T1, std::enable_if_t<tiny_container_v<T1>, bool> = true>
             constexpr void add_msb_long(uint8_t ch)
             {
                 vcrc = Table.data[((vcrc >> msb_shift) ^ ch) & OCTET_MASK];   // MSB, formally longer than 8 bits (doesn't make sense)
             }
 
-            template<class T1, std::enable_if_t<tiny_container<T1>(), bool> = true>
+            template<class T1, std::enable_if_t<tiny_container_v<T1>, bool> = true>
             constexpr void add_msb_short(uint8_t ch)
             {
                 vcrc = Table.data[((vcrc << msb_shift) ^ ch) & OCTET_MASK];   // MSB shorter than 8 bits
             }
 
-            template<class T1, std::enable_if_t<tiny_container<T1>(), bool> = true> constexpr void add_lsb_long(uint8_t ch)
+            template<class T1, std::enable_if_t<tiny_container_v<T1>, bool> = true> constexpr void add_lsb_long(uint8_t ch)
             {
                 add_bare(ch);   // LSB, formally longer than 8 bits - same as Bare
             }
@@ -260,7 +259,7 @@ namespace sklib
             {
                 if (MSB)
                 {
-                    uint8_t m = ::sklib::supplement::bits_data_high_1<uint8_t>();
+                    uint8_t m = sklib::bits_high_1_v<uint8_t>;
                     for (int i = 0; i < OCTET_BITS; i++, m >>= 1) add_bit_msb_bruteforce(ch & m);
                 }
                 else // LSB
@@ -290,14 +289,14 @@ namespace sklib
         {}
     };
 
-    template<class T, unsigned Length, T Normal_Polynomial, bool mode_MSB = false, T Start_Value = ::sklib::supplement::bits_short_data_mask<T>(Length)>
+    template<class T, unsigned Length, T Normal_Polynomial, bool mode_MSB = false, T Start_Value = sklib::bits_data_mask_v<T, Length>>
     class crc_fixed_type : public ::sklib::supplement::crc_base_type<T>
     {
         static_assert(SKLIB_TYPES_IS_INTEGER(T), "CRC Polynomial representation must be integer of approptiate size");
         static_assert(Length >= 1, "CRC Polynomial must be at least 1 bit long");
-        static_assert(::sklib::supplement::bits_data_width_less_sign<T>() >= Length, "Data type for CRC must be large enough to hold the polynomial (sign bit must not be used)");
+        static_assert(sklib::bits_width_less_sign_v<T> >= Length, "Data type for CRC must be large enough to hold the polynomial (sign bit must not be used)");
         static_assert(Normal_Polynomial > 0 && Normal_Polynomial % 2, "CRC Polynomial representation shall be odd positive integer");
-        static_assert(Normal_Polynomial <= ::sklib::supplement::bits_short_data_mask<T, Length>(), "CRC Polynomial representation must be within the specified length");
+        static_assert(Normal_Polynomial <= sklib::bits_data_mask_v<T, Length>, "CRC Polynomial representation must be within the specified length");
 
     protected:
         static constexpr ::sklib::opaque::encapsulated_array_octet_index_type<T> Table =
@@ -309,7 +308,7 @@ namespace sklib
         static constexpr bool MSB = mode_MSB;
         static constexpr unsigned Polynomial_Degree = Length;
         static constexpr T Polynomial =
-            ::sklib::opaque::crc_make_polynomial<T>(mode_MSB, Length, (Normal_Polynomial & ::sklib::supplement::bits_short_data_mask<T>(Length)));
+            ::sklib::opaque::crc_make_polynomial<T>(mode_MSB, Length, (Normal_Polynomial & sklib::bits_data_mask<T>(Length)));
 
         static constexpr const T* get_table() { return Table.data; }
 

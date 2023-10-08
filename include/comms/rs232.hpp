@@ -14,7 +14,7 @@
 //for now...
 #pragma once
 
-#include "bitwise.hpp"
+#include "../types.hpp"   //sk ?!!
 
 namespace sklib
 {
@@ -33,7 +33,7 @@ namespace sklib
                 {
                     count = idx_count;
                     width = ::sklib::bits_rank<unsigned>(idx_count - 1);
-                    mask = ::sklib::supplement::bits_short_data_mask<unsigned>(width);
+                    mask = sklib::bits_data_mask<unsigned>(width);
                 }
 
                 constexpr props_group(const props_group& prev, int idx_count) : props_group(idx_count)  // normal index propagation
@@ -120,7 +120,7 @@ namespace sklib
             static constexpr props_group timeout_send_gp    { timeout_recv_gp, timeout_send_idx_count };
 
             static constexpr props_group available_gp       { timeout_send_gp };
-            static_assert(available_gp.offset < ::sklib::supplement::bits_data_width_less_sign<unsigned>(),
+            static_assert(available_gp.offset < sklib::bits_width_less_sign_v<unsigned>,
                           "SKLIB -- INTERNAL ERROR -- RS232: Line properties don\'t fit target type (unsigned int)");
 
 

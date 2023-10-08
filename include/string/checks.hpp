@@ -15,13 +15,13 @@
 
 namespace opaque
 {
-    template<class V, std::enable_if_t<is_integer_val<V>, bool> = true>
+    SKLIB_TEMPLATE_IF_INT(V)
     constexpr bool strcmp_impl_test_and_dec_if_int_else_true(V& n)
     {
         return (n-- > 0);
     }
 
-    template<class V, std::enable_if_t<!is_integer_val<V>, bool> = true>
+    SKLIB_TEMPLATE_IF_NOT_INT(V)
     constexpr bool strcmp_impl_test_and_dec_if_int_else_true(V&)
     {
         return true;
@@ -30,8 +30,8 @@ namespace opaque
     template<class T1, class T2, class V, bool Cap>
     constexpr int strcmp_impl(const T1* str1, const T2* str2, V n)
     {
-        static_assert(is_integer_val<T1> && is_integer_val<T2>, "SKLIB ** Strings are represented by arrays of integers (e.g. chars)");
-        static_assert(is_integer_val<V> || std::is_same_v<V, void*>, "SKLIB ** String length must be integer");
+        static_assert(sklib::is_integer_v<T1> && sklib::is_integer_v<T2>, "SKLIB ** Strings are represented by arrays of integers (e.g. chars)");
+        static_assert(sklib::is_integer_v<V> || std::is_same_v<V, void*>, "SKLIB ** String length must be integer");
 
         typedef std::make_unsigned_t<T1> U1;
         typedef std::make_unsigned_t<T2> U2;
@@ -161,7 +161,7 @@ constexpr bool stranequ(const T1* str1, const T2* str2, V n)
 template<class V = size_t, class T = char>
 constexpr auto strlen(const T* str)
 {
-    static_assert(is_integer_val<T>, "SKLIB ** Strings are represented by arrays of integers (e.g. chars)");
+    static_assert(is_integer_v<T>, "SKLIB ** Strings are represented by arrays of integers (e.g. chars)");
 
     std::decay_t<V> N = 0;
     while (*str++) N++;

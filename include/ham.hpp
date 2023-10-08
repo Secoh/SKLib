@@ -21,10 +21,10 @@ namespace sklib
 {
     static constexpr uint16_t ham_morse_code_point_base = ::sklib::ascii::SPC;
     static constexpr int      ham_morse_code_point_width = 6;
-    static constexpr uint16_t ham_morse_code_point_range = ::sklib::supplement::bits_short_data_range<int16_t>(ham_morse_code_point_width);
+    static constexpr uint16_t ham_morse_code_point_range = sklib::bits_data_cap_v<int16_t, ham_morse_code_point_width>;
     static constexpr uint16_t ham_morse_code_max_length = 7;
     static constexpr int      ham_morse_code_length_width = ::sklib::bits_rank(ham_morse_code_max_length);
-    static_assert(ham_morse_code_point_width + ham_morse_code_max_length + ham_morse_code_length_width <= ::sklib::supplement::bits_data_width<uint16_t>(),
+    static_assert(ham_morse_code_point_width + ham_morse_code_max_length + ham_morse_code_length_width <= sklib::bits_width_v<uint16_t>,
         "SKLIB ** INTERNAL ERROR ** Data type must be large enough to hold Morse encoding package");
 
     // === 16 bit encoding ===
@@ -44,7 +44,7 @@ namespace sklib
     //
     constexpr uint16_t ham_package_morse_symbol(char letter, const char* ditdah)
     {
-        constexpr auto total_bits = ::sklib::supplement::bits_data_width<decltype(ham_package_morse_symbol(0, ""))>();
+        constexpr auto total_bits = sklib::bits_width_v<decltype(ham_package_morse_symbol(0, ""))>;
 
         if (letter >= 'a' && letter <= 'z') letter -= ('a'-'A');
         uint16_t code_point = std::bit_cast<unsigned char>(letter);
@@ -84,7 +84,7 @@ namespace sklib
     //
     constexpr uint8_t ham_package_morse_sequence(const char* ditdah)
     {
-        constexpr auto total_bits = ::sklib::supplement::bits_data_width<decltype(ham_package_morse_sequence(""))>();
+        constexpr auto total_bits = sklib::bits_width_v<decltype(ham_package_morse_sequence(""))>;
 
         const size_t size = ::sklib::strlen(ditdah);
         if (size >= total_bits) return 0;
