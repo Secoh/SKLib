@@ -192,5 +192,17 @@
     <ClInclude Include="include\utility\testing-specific.hpp">
       <Filter>Header Files\include\utility</Filter>
     </ClInclude>
+    <ClInclude Include="include\bitwise\bmanip.hpp">
+      <Filter>Header Files\include\bitwise</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bitwise\bstream.hpp">
+      <Filter>Header Files\include\bitwise</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bitwise\bfstream.hpp">
+      <Filter>Header Files\include\bitwise</Filter>
+    </ClInclude>
+    <ClInclude Include="include\bitwise\base64.hpp">
+      <Filter>Header Files\include\bitwise</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

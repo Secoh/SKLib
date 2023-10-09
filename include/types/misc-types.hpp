@@ -21,11 +21,8 @@ namespace supplement
 // -------------------------------------------------------
 // Distinguish on consteval level whether a type is forward-declared of fully defined
 
-    template<class T, class = void>
-    struct is_complete : std::false_type {};
-
-    template<class T>
-    struct is_complete<T, decltype(void(sizeof(T)))> : std::true_type {};
+    template<class T, class = void> struct is_complete : std::false_type {};
+    template<class T> struct is_complete<T, decltype(void(sizeof(T)))> : std::true_type {};
 
 // Example how to use
 // -----------------------
@@ -43,5 +40,13 @@ namespace supplement
 // Reference: https://stackoverflow.com/questions/57624408/sfinae-detect-if-type-is-defined
 //            https://devblogs.microsoft.com/oldnewthing/20190710-00/?p=102678 (Raymond Chen)
 
-};
+// -------------------------------------------------------
+// Equivalent of std::array, possibly verbatim
+// However, we do need guarantee that it uses only C/C++ language structure and keywords
+// Thus, the following explicit re-implementation
+
+    template<class T, size_t N> struct encapsulated_array_type { T data[N]; };
+    SKLIB_TEMPLATE_IF_INT(T) using encapsulated_array_octet_index_type = encapsulated_array_type<T, sklib::OCTET_ADDRESS_SPAN>;
+
+}; // namespace supplement
 

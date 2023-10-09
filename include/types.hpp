@@ -16,7 +16,7 @@
 #include <type_traits>
 #include <string>
 
-// June 2021-2023
+// October 2023
 // Current supported language flavor is C++20
 
 namespace sklib

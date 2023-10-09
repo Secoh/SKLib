@@ -63,7 +63,7 @@ namespace sklib
         template<class T>
         static constexpr auto crc_create_table(unsigned L, T P, bool msb)
         {
-            encapsulated_array_octet_index_type<T> R = { 0 };
+            sklib::supplement::encapsulated_array_octet_index_type<T> R = { 0 };
             crc_generate_table<T>(R.data, L, P, msb);
             return R;
         }
@@ -75,7 +75,7 @@ namespace sklib
         class crc_base_type     //sk !! move it to Internal
         {
         private:
-            const ::sklib::opaque::encapsulated_array_octet_index_type<T>& Table;
+            const sklib::supplement::encapsulated_array_octet_index_type<T>& Table;
 
             template<class T1> static constexpr bool tiny_container_v = (sklib::bits_width_v<T1> <= OCTET_BITS);
 
@@ -93,7 +93,7 @@ namespace sklib
             const unsigned Polynomial_Degree;
             const T Polynomial;
 
-            constexpr crc_base_type(const ::sklib::opaque::encapsulated_array_octet_index_type<T>& table_in, bool mode_MSB, unsigned Length, T Normal_Polynomial, T Start_Value)
+            constexpr crc_base_type(const sklib::supplement::encapsulated_array_octet_index_type<T>& table_in, bool mode_MSB, unsigned Length, T Normal_Polynomial, T Start_Value)
                 : Table(table_in)
                 , MSB(mode_MSB)
                 , mask(sklib::bits_data_mask<T>(Length))
@@ -278,7 +278,7 @@ namespace sklib
         static_assert(SKLIB_TYPES_IS_INTEGER(T), "CRC Polynomial representation must be integer of approptiate size");
 
     protected:
-        ::sklib::opaque::encapsulated_array_octet_index_type<T> Table;
+        sklib::supplement::encapsulated_array_octet_index_type<T> Table;
 
     public:
         typedef T type;
@@ -299,8 +299,8 @@ namespace sklib
         static_assert(Normal_Polynomial <= sklib::bits_data_mask_v<T, Length>, "CRC Polynomial representation must be within the specified length");
 
     protected:
-        static constexpr ::sklib::opaque::encapsulated_array_octet_index_type<T> Table =
-                             ::sklib::opaque::crc_create_table<T>(Length, Normal_Polynomial, mode_MSB);   // this data block becomes statically linked
+        static constexpr sklib::supplement::encapsulated_array_octet_index_type<T> Table =
+                             sklib::opaque::crc_create_table<T>(Length, Normal_Polynomial, mode_MSB);   // this data block becomes statically linked
 
     public:
         typedef T type;

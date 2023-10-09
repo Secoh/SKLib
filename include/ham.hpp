@@ -103,7 +103,7 @@ namespace sklib
         return code;
     }
 
-    static constexpr void generate_table(const std::initializer_list<std::pair<char, const char*>>& config, ::sklib::opaque::encapsulated_array_type<uint8_t, ham_morse_code_point_range>& table)
+    static constexpr void generate_table(const std::initializer_list<std::pair<char, const char*>>& config, sklib::supplement::encapsulated_array_type<uint8_t, ham_morse_code_point_range>& table)
     {
         for (const auto& elem : config)
         {
@@ -121,7 +121,7 @@ namespace sklib
 
     static constexpr auto create_table(const std::initializer_list<std::pair<char, const char*>>& config)
     {
-        ::sklib::opaque::encapsulated_array_type<uint8_t, ham_morse_code_point_range> R{ 0 };
+        sklib::supplement::encapsulated_array_type<uint8_t, ham_morse_code_point_range> R{ 0 };
         generate_table(config, R);
         return R;
     }
@@ -149,12 +149,12 @@ namespace sklib
 
     struct ham_morse_code_standard_table
     {
-        static constexpr ::sklib::opaque::encapsulated_array_type<uint8_t, ham_morse_code_point_range> Codes = create_standard_latin_table();
+        static constexpr sklib::supplement::encapsulated_array_type<uint8_t, ham_morse_code_point_range> Codes = create_standard_latin_table();
     };
 
     struct ham_morse_code_table
     {
-        const ::sklib::opaque::encapsulated_array_type<uint8_t, ham_morse_code_point_range> Codes = create_standard_latin_table();
+        const sklib::supplement::encapsulated_array_type<uint8_t, ham_morse_code_point_range> Codes = create_standard_latin_table();
         constexpr ham_morse_code_table(const std::initializer_list<std::pair<char, const char*>>& config) : Codes(create_table(config)) {}
         constexpr ham_morse_code_table() = default;
     };

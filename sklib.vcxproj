@@ -20,6 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\bitwise.hpp" />
+    <ClInclude Include="include\bitwise\base64.hpp" />
+    <ClInclude Include="include\bitwise\bfstream.hpp" />
+    <ClInclude Include="include\bitwise\bmanip.hpp" />
+    <ClInclude Include="include\bitwise\bstream.hpp" />
     <ClInclude Include="include\checksum.hpp" />
     <ClInclude Include="include\cmdpar.hpp" />
     <ClInclude Include="include\comms.hpp" />
