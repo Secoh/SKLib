@@ -46,6 +46,8 @@ std::is_same_v<std::remove_cv_t<std::remove_pointer_t<T>>, wchar_t>;
 template<class T>
 inline constexpr bool is_stringz = sklib::is_cstringz<T> || sklib::is_wstringz<T>;
 
+#ifndef SKLIB_TARGET_MCU
+
 template<class T>
 inline constexpr bool is_std_cstring = std::is_same_v<std::remove_cv_t<T>, std::string>;
 
@@ -57,6 +59,13 @@ inline constexpr bool is_std_string = sklib::is_std_cstring<T> || sklib::is_std_
 
 template<class T>
 inline constexpr bool is_any_string = sklib::is_stringz<T> || sklib::is_std_string<T>;
+
+#else
+
+template<class T>
+inline constexpr bool is_any_string = sklib::is_stringz<T>;
+
+#endif
 
 // conditional template declarations
 

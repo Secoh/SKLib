@@ -14,7 +14,10 @@
 
 #include <climits>
 #include <type_traits>
+
+#ifndef SKLIB_TARGET_MCU
 #include <string>
+#endif
 
 // October 2023
 // Current supported language flavor is C++20
