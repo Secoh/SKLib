@@ -39,6 +39,9 @@
     <ClInclude Include="include\math\algebra\edom-signed-uint.hpp" />
     <ClInclude Include="include\math\algebra\field-modular.hpp" />
     <ClInclude Include="include\math\algebra\pow.hpp" />
+    <ClInclude Include="include\math\geometry.hpp" />
+    <ClInclude Include="include\math\geometry\spherical.hpp" />
+    <ClInclude Include="include\math\geometry\vectors.hpp" />
     <ClInclude Include="include\math\primes.hpp" />
     <ClInclude Include="include\math\cpu-support.hpp" />
     <ClInclude Include="include\math\primes\enumeration.hpp" />

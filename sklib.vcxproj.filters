@@ -49,6 +49,9 @@
     <Filter Include="Header Files\include\types">
       <UniqueIdentifier>{09025b6d-1f47-46d1-aeb7-d92b7a9e2f47}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\include\math\geometry">
+      <UniqueIdentifier>{84809b4b-5e57-46ad-8497-466136c24683}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sklib.hpp">
@@ -203,6 +206,15 @@
     </ClInclude>
     <ClInclude Include="include\bitwise\base64.hpp">
       <Filter>Header Files\include\bitwise</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\geometry\vectors.hpp">
+      <Filter>Header Files\include\math\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\geometry.hpp">
+      <Filter>Header Files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\math\geometry\spherical.hpp">
+      <Filter>Header Files\include\math\geometry</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
