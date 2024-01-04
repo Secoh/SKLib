@@ -15,6 +15,10 @@ template<class T>
 inline constexpr bool is_integer_v = std::is_integral_v<T> && !std::is_same_v<std::remove_cv_t<T>, bool>;
 
 template<class T>
+inline constexpr bool is_integer_pointer_or_nullptr_v =
+    (std::is_pointer_v<T> && is_integer_v<std::remove_pointer_t<T>>) || std::is_null_pointer_v<T>;
+
+template<class T>
 inline constexpr bool is_signed_integer_v = sklib::is_integer_v<T> && std::is_signed_v<T>;
 
 template<class T>
@@ -69,6 +73,9 @@ inline constexpr bool is_any_string = sklib::is_stringz<T>;
 
 // conditional template declarations
 
+#define SKLIB_INTERNAL_ENABLE_IF_CONDITION(Test)    std::enable_if_t<(Test), bool> = true
+
+//sk update!
 #define SKLIB_INTERNAL_ENABLE_IF_INT(T)    std::enable_if_t<sklib::is_integer_v<T>, bool> = true
 #define SKLIB_INTERNAL_ENABLE_IF_UINT(T)   std::enable_if_t<sklib::is_unsigned_integer_v<T>, bool> = true
 #define SKLIB_INTERNAL_ENABLE_IF_SINT(T)   std::enable_if_t<sklib::is_signed_integer_v<T>, bool> = true

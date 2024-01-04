@@ -48,6 +48,7 @@
     <ClInclude Include="include\math\primes\eratosphenes.hpp" />
     <ClInclude Include="include\string.hpp" />
     <ClInclude Include="include\string\collection.hpp" />
+    <ClInclude Include="include\string\safe-std-string.hpp" />
     <ClInclude Include="include\string\unicode.hpp" />
     <ClInclude Include="include\string\lang\russian.hpp" />
     <ClInclude Include="include\string\ascii.hpp" />

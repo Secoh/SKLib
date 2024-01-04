@@ -216,5 +216,8 @@
     <ClInclude Include="include\math\geometry\spherical.hpp">
       <Filter>Header Files\include\math\geometry</Filter>
     </ClInclude>
+    <ClInclude Include="include\string\safe-std-string.hpp">
+      <Filter>Header Files\include\string</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

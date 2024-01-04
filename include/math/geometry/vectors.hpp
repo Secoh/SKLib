@@ -12,18 +12,19 @@
 // This is internal SKLib file and must NOT be included directly.
 
 #define SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(op_compound_token,op_binary_token) \
-vect_impl& operator op_compound_token (const element_wise_type& src)                        \
+auto& operator op_compound_token (const element_wise_type& src)                        \
 {                                                                                           \
-    auto src_inner = src.get_vect();                                                        \
+    auto src_inner = src.get_vect();                                        \
     for (unsigned i=0; i<N; i++) data[i] op_compound_token src_inner.data[i];               \
-    return *this;                                                                           \
+    return thisVect();                                                                           \
 }                                                                                           \
-friend vect_impl operator op_binary_token (vect_impl A, const element_wise_type& B) { return A op_compound_token B; }                   \
-friend vect_impl operator op_binary_token (const element_wise_type& A, const vect_impl& B) { return A.copy_vect() op_binary_token ~B; } \
-friend vect_impl operator op_binary_token (const element_wise_type& A, const element_wise_type& B) { return A.copy_vect() op_binary_token B; }
+/*auto& operator op_compound_token (const element_wise_type& src) { return operator op_compound_token (src.get_vect()); }    */                    \
+friend auto operator op_binary_token (Vect A, const element_wise_type& B) { return A op_compound_token B; }                   \
+friend auto operator op_binary_token (const element_wise_type& A, const Vect& B) { return A.copy_vect() op_binary_token ~B; } \
+friend auto operator op_binary_token (const element_wise_type& A, const element_wise_type& B) { return A.copy_vect() op_binary_token B; }
 
 #define SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY_EW(op_token)    \
-friend vect_impl operator op_token (const element_wise_type& src)       \
+friend auto operator op_token (const element_wise_type& src)       \
 {                                                                       \
     auto copy = src.copy_vect();                                        \
     for (unsigned i=0; i<N; i++) copy.data[i] = op_token copy.data[i];  \
@@ -32,51 +33,65 @@ friend vect_impl operator op_token (const element_wise_type& src)       \
 
 #define SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY(op_token)  \
 SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY_EW(op_token);      \
-friend vect_impl operator op_token (const vect_impl& src) { return op_token (~src); }
+friend auto operator op_token (const Vect& src) { return op_token (~src); }
 
 #define SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY(op_compound_token,op_binary_token)        \
-vect_impl& operator op_compound_token (T k)                                                     \
+auto& operator op_compound_token (T k)                                                     \
 {                                                                                               \
     for (unsigned i=0; i<N; i++) data[i] op_compound_token k;                                   \
-    return *this;                                                                               \
+    return thisVect();                                                                               \
 }                                                                                               \
-friend vect_impl operator op_binary_token (vect_impl A, T k) { return A op_compound_token k; }  \
-friend vect_impl operator op_binary_token (const element_wise_type& A, T k) { return A.copy_vect() op_binary_token k; }
+friend auto operator op_binary_token (Vect A, T k) { return A op_compound_token k; }  \
+friend auto operator op_binary_token (const element_wise_type& A, T k) { return A.copy_vect() op_binary_token k; }
 
 namespace opaque
 {
-    template<unsigned N, class T>
+    // using Curiously Recurring Template Pattern idiom
+    // see, for example https://en.cppreference.com/w/cpp/language/crtp
+    template<class Vect, unsigned N, class T>
     class vect_impl
     {
     protected:
         T data[N] = {};
 
+        Vect&       thisVect()       { return static_cast<Vect&>(*this); }
+        const Vect& thisVect() const { return static_cast<const Vect&>(*this); }
+
         template<class Source>
-        void load_array(const Source& input)
+        auto& load_array(const Source& input)
         {
             for (unsigned i=0; i<N; i++) data[i] = input[i];
+            return thisVect();
         }
 
     public:
-        vect_impl() = default;
-        vect_impl(const std::array<T, N>& input) { load_array(input); }
-        vect_impl(const vect_impl& input)        { load_array(input.data); }
+        vect_impl()                       = default;    // normal predefined transformations
+        vect_impl(const vect_impl& input) = default;
+        vect_impl(vect_impl&& input)      = default;
+        ~vect_impl()                      = default;
 
-        vect_impl& operator= (const vect_impl& input)        { load_array(input.data); }
-        vect_impl& operator= (const std::array<T, N>& input) { load_array(input); }
+        vect_impl& operator= (const vect_impl& input) = delete; //default;
+        vect_impl& operator= (vect_impl&& input)      = delete; //default;
+
+// do we need it at all?
+//        vect_impl            (const std::array<T, N>& input)  { load_array(input); }
+//        vect_impl& operator= (const std::array<T, N>& input)  { return load_array(input); }
 
         class element_wise_type
         {
         protected:
-            const vect_impl &mirror;
+            const Vect &mirror;
 
         public:
-            explicit element_wise_type(const vect_impl& parent) : mirror(parent) {}
-            const vect_impl& get_vect() const { return mirror; }
-            vect_impl copy_vect() const { return mirror; }
+            explicit element_wise_type(const Vect& parent) : mirror(parent) {}
+            const Vect& get_vect() const { return mirror; }
+            Vect copy_vect() const { return mirror; }
         };
 
-        const element_wise_type operator~ () const { return (const element_wise_type)(*this); }
+        const element_wise_type operator~ () const
+        {
+            return element_wise_type(thisVect());
+        }
 
         // for completeness
         SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY_EW(~);
@@ -102,15 +117,15 @@ namespace opaque
         // vector-specific operations
 
         // addition
-        vect_impl& operator+= (const vect_impl& src) { return operator+= (~src); }
-        friend vect_impl operator+ (vect_impl A, const vect_impl& B) { return A += B; }
+        auto& operator+= (const Vect& src) { return operator+= (~src); }
+        friend auto operator+ (Vect A, const Vect& B) { return A += B; }
 
         // subtraction
-        vect_impl& operator-= (const vect_impl& src) { return operator-= (~src); }
-        friend vect_impl operator- (vect_impl A, const vect_impl& B) { return A -= B; }
+        auto& operator-= (const Vect& src) { return operator-= (~src); }
+        friend auto operator- (Vect A, const Vect& B) { return A -= B; }
 
         // scalar product
-        friend T operator* (const vect_impl& A, const vect_impl& B)
+        friend auto operator* (const Vect& A, const Vect& B)
         {
             auto sum = T();
             for (unsigned i=0; i<N; i++) sum += A.data[i] * B.data[i];
@@ -118,47 +133,71 @@ namespace opaque
         }
 
         // length
-        T abs() const { return std::sqrt(*this * *this); }
-        vect_impl norm() const { return *this / abs(); }
+        auto abs() const
+        {
+            const Vect& V = thisVect();
+            return std::sqrt(V * V);
+        }
+        auto norm() const { return thisVect() / abs(); }
 
         // angle (radians)
-        friend double operator^ (const vect_impl& A, const vect_impl& B)
+        friend auto operator^ (const Vect& A, const Vect& B)
         { return std::acos( (A * B) / (A.abs() * B.abs()) ); }
 
         // scale
         SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY(*=,*);
         SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY(/=,/);
-        friend vect_impl operator* (T k, vect_impl A) { return A * k; }
-        friend vect_impl operator* (T k, const element_wise_type& A) { return A * k; }
+        friend auto operator* (T k, Vect A) { return A * k; }
+        friend auto operator* (T k, const element_wise_type& A) { return A * k; }
+    };
+
+    template<unsigned N, class T, SKLIB_INTERNAL_ENABLE_IF_CONDITION(N>3)>
+    class vect_impl_N : public vect_impl<vect_impl_N<N,T>, N, T>
+    {
     };
 
     template<class T>
-    class vect_impl_2 : public vect_impl<2, T>
+    class vect_impl_2 : public vect_impl<vect_impl_2<T>, 2, T>
     {
     public:
         T& X = this->data[0];
         T& Y = this->data[1];
 
-        vect_impl_2() = default;
+        vect_impl_2()                         = default;
+        vect_impl_2(const vect_impl_2& input) = default;
+        vect_impl_2(vect_impl_2&& input)      = default;
+        ~vect_impl_2()                        = default;
+
         vect_impl_2(const std::array<T, 2>& input) : vect_impl<2, T>(input) {}
-        vect_impl_2(const vect_impl_2& input)      : vect_impl<2, T>(input) {}
         vect_impl_2(T x, T y, T z)                 : vect_impl<2, T>({x, y, z}) {}
+
+        vect_impl_2& operator= (const vect_impl_2& input) { this->load_array(input.data); return *this; }
+        vect_impl_2& operator= (vect_impl_2&& input) = default;
 
         friend T operator% (const vect_impl_2& A, const vect_impl_2& B) { return A.X * B.Y - A.Y * B.X; }
     };
 
     template<class T>
-    class vect_impl_3 : public vect_impl<3, T>
+    class vect_impl_3 : public vect_impl<vect_impl_3<T>, 3, T>
     {
     public:
         T& X = this->data[0];
         T& Y = this->data[1];
         T& Z = this->data[2];
 
-        vect_impl_3() = default;
-        vect_impl_3(const std::array<T, 3>& input) : vect_impl<3, T>(input) {}
-        vect_impl_3(const vect_impl_3& input)      : vect_impl<3, T>(input) {}
-        vect_impl_3(T x, T y, T z)                 : vect_impl<3, T>({x, y, z}) {}
+        vect_impl_3()  = default;
+        ~vect_impl_3() = default;
+
+        vect_impl_3(const vect_impl_3& input) : vect_impl<vect_impl_3<T>, 3, T>(input) {}
+        vect_impl_3(vect_impl_3&& input)      : vect_impl<vect_impl_3<T>, 3, T>(input) {}               // ??? order of init?
+//        vect_impl_3(const vect_impl<3, T>& input) : vect_impl<3, T>(input) {}
+//        vect_impl_3(vect_impl<3, T>&& input)      : vect_impl<3, T>(input) {}
+
+        vect_impl_3(const std::array<T, 3>& input) { this->load_array(input); }
+        vect_impl_3(T x, T y, T z)                 { this->load_array(std::array<T, 3>{x, y, z}); }
+
+        vect_impl_3& operator= (const vect_impl_3& input) { this->load_array(input.data); return *this; }
+        vect_impl_3& operator= (vect_impl_3&& input) = default;
 
         vect_impl_3& operator%= (const vect_impl_3& src)
         {
@@ -190,8 +229,14 @@ template<unsigned N, class T = double>
 using Vect =
     std::conditional_t<std::less<int>{}(N, 3),
         std::conditional_t<std::less<int>{}(N, 2), T, sklib::opaque::vect_impl_2<T> >,
-        std::conditional_t<std::less<int>{}(N, 4), sklib::opaque::vect_impl_3<T>, sklib::opaque::vect_impl<N, T> > >;
+        std::conditional_t<std::less<int>{}(N, 4), sklib::opaque::vect_impl_3<T>, sklib::opaque::vect_impl_N<N, T> > >;
 
 using Vect2d = sklib::opaque::vect_impl_2<double>;
 using Vect3d = sklib::opaque::vect_impl_3<double>;
+
+inline Vect3d Spherical(double R, double Fi, double Th)
+{
+    auto rsth = R * sin(Th);
+    return { rsth*cos(Fi), rsth*sin(Fi), R*cos(Th) };
+}
 

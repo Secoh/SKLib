@@ -224,14 +224,17 @@ namespace opaque   // stoi-specific helpers
 
 //sk TODO add description
 //
-template<class target_type, class letter_type, class length_type = size_t>
-constexpr auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_t base = 0)
+template<class target_type, class letter_type, class length_type_ptr = size_t*>
+constexpr auto stoi(const letter_type* str, length_type_ptr endpos = nullptr, int8_t base = 0)
 {
     typedef std::decay_t<target_type> result_type;
 
+    typedef std::conditional_t<std::is_null_pointer_v<length_type_ptr>, size_t,
+                               std::decay_t<std::remove_pointer_t<length_type_ptr>> > length_type;
+
     static_assert(is_numeric_v<result_type>, "SKLIB ** Result of stoi() must be a numerical value");
     static_assert(is_integer_v<letter_type>, "SKLIB ** String letter must be represented by integer value");
-    static_assert(is_integer_v<std::decay_t<length_type>>, "SKLIB **- String position/length must be represented by integer value");
+    static_assert(is_integer_v<length_type>, "SKLIB **- String position/length must be represented by integer value, or be nullptr");
 
     // new: treat invalid base as 0 (no base)
     // still, like in the original code, base=1 is UB and is not handled
@@ -289,21 +292,25 @@ constexpr auto stoi(const letter_type* str, length_type* endpos = nullptr, int8_
         pos = 0;
     }
 
-    if (endpos) *endpos = pos;
+    length_type *receiver = endpos; // workaround: endpos can be of nullptr_t type, while length_type is never null
+    if (receiver) *receiver = pos;
     return acc;
 }
 
 // Radix base is discovered automatically using extended C++17 rules
 //sk TODO add description
 //
-template<class target_type, class letter_type, class length_type = size_t>
-constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* endpos = nullptr)
+template<class target_type, class letter_type, class length_type_ptr = size_t*>
+constexpr std::decay_t<target_type> stod(const letter_type* str, length_type_ptr endpos = nullptr)
 {
     typedef std::decay_t<target_type> result_type;
 
+    typedef std::conditional_t<std::is_null_pointer_v<length_type_ptr>, size_t,
+                               std::decay_t<std::remove_pointer_t<length_type_ptr>> > length_type;
+
     static_assert(std::is_floating_point_v<result_type>, "SKLIB -- Result of stod() must be floating-point value");
     static_assert(std::is_integral_v<letter_type>, "SKLIB -- String letter must be represented by integer value");
-    static_assert(std::is_integral_v<std::decay_t<length_type>>, "SKLIB -- String position/length must be represented by integer value");
+    static_assert(std::is_integral_v<length_type>, "SKLIB -- String position/length must be represented by integer value");
 
     int8_t base = 10;
     length_type pos = 0;
@@ -401,7 +408,8 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type* en
         pos = 0;
     }
 
-    if (endpos) *endpos = pos;
+    length_type *receiver = endpos; // workaround: endpos can be of nullptr_t type, while length_type is never null
+    if (receiver) *receiver = pos;
     return (neg ? -M : M);
 }
 
