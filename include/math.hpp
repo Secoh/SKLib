@@ -24,6 +24,11 @@
 
 #include "utility.hpp"
 
+
+// for debug!
+#include <iostream>
+#include <map>
+
 namespace sklib
 {
 

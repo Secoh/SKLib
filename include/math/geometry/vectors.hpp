@@ -11,78 +11,81 @@
 // Provides the basic Vector algebra.
 // This is internal SKLib file and must NOT be included directly.
 
-#ifdef SKLIB_MATH_VECTOR_DEBUG_CON
-#define SKLIB_INTERNAL_MATH_VECTOR_CONSTEXPR
-#define SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS(params_str,op_str,next_op_str) \
-std::cout << "N=" << N << "; Call " << op_str << " ("<< params_str << ") -> " << next_op_str << (*next_op_str ? "\n" : "");
-#define SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(what) \
-for (unsigned i=0; i<N; i++) std::cout << (i?",":"") << (what).data[i]; std::cout << "\n";
-#else
-#define SKLIB_INTERNAL_MATH_VECTOR_CONSTEXPR constexpr
-#define SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS(params_str,op_str,next_op_str)
-#define SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(what)
-#endif
+#define SKLIB_INTERNAL_MATH_VECTOR_FOREACH for (unsigned i=0; i<N; i++)
 
-#define SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(op_compound_token,op_binary_token) \
-auto& operator op_compound_token (const element_wise_type& src)                        \
-{   \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("EW",#op_compound_token, "");                                                                                        \
-    auto src_inner = src.get_vect();                                        \
-    for (unsigned i=0; i<N; i++) data[i] op_compound_token src_inner.data[i];               \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(*this);         \
-    return thisVect();                                                                           \
-}                                                                                           \
-friend auto operator op_binary_token (Vect A, const element_wise_type& B) \
-{ \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("Vec,EW", #op_binary_token, #op_compound_token);                                                                                        \
-    return A op_compound_token B; \
-}                   \
-friend auto operator op_binary_token (const element_wise_type& A, const Vect& B) \
-{ \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("EW,Vec", #op_binary_token, #op_compound_token);                                                                                        \
-    return A.copy_vect() op_binary_token ~B; \
-} \
-friend auto operator op_binary_token (const element_wise_type& A, const element_wise_type& B) \
-{ \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("EW,EW", #op_binary_token, #op_compound_token);                                                                                        \
-    return A.copy_vect() op_binary_token B; \
+#define SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(fname,op_compound_token,op_binary_token) \
+private:                                                                            \
+static constexpr void fname (T *dest, const T *src)                                 \
+{                                                                                   \
+    SKLIB_INTERNAL_MATH_VECTOR_FOREACH dest[i] op_compound_token src[i];            \
+}                                                                                   \
+static constexpr void fname##alt (T *dest, const T *src)                            \
+{                                                                                   \
+    SKLIB_INTERNAL_MATH_VECTOR_FOREACH dest[i] = dest[i] op_binary_token src[i];    \
+}                                                                                   \
+public:                                                                             \
+auto& operator op_compound_token (const element_wise_type& X)                       \
+{                                                                                   \
+    return fname(data, X.copy.data), thisVect();                                    \
+}                                                                                   \
+friend constexpr auto operator op_binary_token (Vect A, const element_wise_type& B) \
+{                                                                                   \
+    return fname##alt(A.data, B.copy.data), A;                                      \
+}                                                                                   \
+friend constexpr auto operator op_binary_token (element_wise_type A, const Vect& B) \
+{                                                                                   \
+    return fname##alt(A.copy.data, B.data), A.copy;                                 \
+}                                                                                   \
+friend constexpr auto operator op_binary_token (element_wise_type A, const element_wise_type& B) \
+{                                                                                   \
+    return fname##alt(A.copy.data, B.copy.data), A.copy;                            \
 }
 
-#define SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY_EW(op_token)    \
-friend auto operator op_token (const element_wise_type& src)       \
-{                                                                       \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("EW", #op_token, "copy");    \
-    auto copy = src.copy_vect();                                        \
-    for (unsigned i=0; i<N; i++) copy.data[i] = op_token copy.data[i];  \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(copy); \
-    return copy;                                                        \
+#define SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY_EW(fname,op_token)          \
+private:                                                                            \
+static constexpr void fname##unary (T *data)                                        \
+{                                                                                   \
+    SKLIB_INTERNAL_MATH_VECTOR_FOREACH data[i] = op_token data[i];                  \
+}                                                                                   \
+public:                                                                             \
+friend constexpr auto operator op_token (element_wise_type X)                       \
+{                                                                                   \
+    return fname##unary(X.copy.data), X.copy;                                       \
 }
 
-#define SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY(op_token)  \
-SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY_EW(op_token);      \
-friend auto operator op_token (const Vect& src) \
-{ \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("Vec", #op_token, #op_token "(~)");    \
-    return op_token (~src); \
+#define SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY(fname,op_token)             \
+SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY_EW(fname,op_token);                 \
+friend constexpr auto operator op_token (Vect X)                                    \
+{                                                                                   \
+    return fname##unary(X.data), X;                                                 \
 }
 
-#define SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY(op_compound_token,op_binary_token)        \
-auto& operator op_compound_token (T k)                                                     \
-{                                                                                               \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("T", #op_compound_token, "");    \
-    for (unsigned i=0; i<N; i++) data[i] op_compound_token k;                                   \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(*this); \
-    return thisVect();                                                                               \
-}                                                                                               \
-friend auto operator op_binary_token (Vect A, T k) \
-{ \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("Vec,T", #op_binary_token, #op_compound_token);    \
-    return A op_compound_token k; \
-}  \
-friend auto operator op_binary_token (const element_wise_type& A, T k) \
-{ \
-    SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("EW,T", #op_binary_token, #op_compound_token);    \
-    return A.copy_vect() op_binary_token k; \
+#define SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY(fscale,op_compound_token,op_binary_token) \
+private:                                                                            \
+static constexpr void fscale (T *data, T coeff)                                     \
+{                                                                                   \
+    SKLIB_INTERNAL_MATH_VECTOR_FOREACH data[i] op_compound_token coeff;             \
+}                                                                                   \
+static constexpr void fscale##alt (T *data, T coeff)                                \
+{                                                                                   \
+    SKLIB_INTERNAL_MATH_VECTOR_FOREACH data[i] = data[i] op_binary_token coeff;     \
+}                                                                                   \
+static constexpr void fscale##alt (T coeff, T *data)                                \
+{                                                                                   \
+    SKLIB_INTERNAL_MATH_VECTOR_FOREACH data[i] = coeff op_binary_token data[i];     \
+}                                                                                   \
+public:                                                                             \
+auto& operator op_compound_token (T coeff)                                          \
+{                                                                                   \
+    return fscale(data, coeff), thisVect();                                         \
+}                                                                                   \
+friend constexpr auto operator op_binary_token (Vect X, T coeff)                    \
+{                                                                                   \
+    return fscale##alt(X.data, coeff), X;                                           \
+}                                                                                   \
+friend constexpr auto operator op_binary_token (element_wise_type X, T coeff)       \
+{                                                                                   \
+    return fscale##alt(X.copy.data, coeff), X.copy;                                 \
 }
 
 namespace opaque
@@ -95,204 +98,149 @@ namespace opaque
     protected:
         T data[N] = {};
 
-        Vect&       thisVect()       { return static_cast<Vect&>(*this); }
-        const Vect& thisVect() const { return static_cast<const Vect&>(*this); }
+        constexpr Vect&       thisVect()       { return static_cast<Vect&>(*this); }
+        constexpr const Vect& thisVect() const { return static_cast<const Vect&>(*this); }
 
         template<class Source>
-        auto& load_array(const Source& input)
-        {
-            for (unsigned i=0; i<N; i++) data[i] = input[i];
-            return thisVect();
-        }
+        constexpr void load_array(const Source& input)
+        { SKLIB_INTERNAL_MATH_VECTOR_FOREACH { data[i] = input[i]; } }
 
     public:
-        vect_impl()                       = default;    // normal predefined transformations
-        vect_impl(const vect_impl& input) = default;
-        vect_impl(vect_impl&& input) noexcept = default;
-        ~vect_impl()                      = default;
+        constexpr vect_impl()                   = default;
+        constexpr vect_impl(const vect_impl&)   = default;
+        vect_impl& operator= (const vect_impl&) = delete;
+        ~vect_impl()                            = default;
+        // the "move" context is deliberately left undefined -  for PODs, identical to copying
 
-        vect_impl& operator= (const vect_impl& input) = delete; //default;
-        vect_impl& operator= (vect_impl&& input)      = delete; //default;
-
-// do we need it at all?
-//        vect_impl            (const std::array<T, N>& input)  { load_array(input); }
-//        vect_impl& operator= (const std::array<T, N>& input)  { return load_array(input); }
-
-        class element_wise_type
+        struct element_wise_type
         {
-        protected:
-            const Vect &mirror;
-
-        public:
-            explicit element_wise_type(const Vect& parent) : mirror(parent)
-            {
-                SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("const Vect&", "EW constructor", "");
-                SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(mirror);
-            }
-            const Vect& get_vect() const { return mirror; }
-            Vect copy_vect() const { return mirror; }
+            Vect copy{};
+            constexpr explicit element_wise_type(const Vect& content) : copy(content) {}
+            ~element_wise_type() = default;
+            element_wise_type& operator= (const element_wise_type&) = delete;
         };
 
-        const element_wise_type operator~ () const
-        {
-            return element_wise_type(thisVect());
-        }
+        constexpr element_wise_type operator~ () const { return element_wise_type(thisVect()); }
 
         // for completeness
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY_EW(~);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY_EW(ftilde, ~);
 
         // common element-wise vector operations
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY(+);
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY(-);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY(f_plus, +);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY(fminus, -);
 
         // common element-wise vector operations
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(+=,+);
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(-=,-);
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(*=,*);
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(/=,/);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(fadd, +=, +);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(fsub, -=, -);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(fmul, *=, *);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(fdiv, /=, /);
 
         // potentially valid for some types
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(%=,%);
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(<<=, <<);
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(>>=, >>);
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(&=,&);
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(|=,|);
-        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(^=,^);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(fmod, %=, %);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(fshl, <<=, <<);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(fshr, >>=, >>);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(fand, &=, &);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(f_or, |=, |);
+        SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY(fxor, ^=, ^);
 
-        // vector-specific operations
+        // vector-specific operations - will reuse helped functions defined above
 
         // addition
-        auto& operator+= (const Vect& src) { return operator+= (~src); }
-        friend auto operator+ (Vect A, const Vect& B) { return A += B; }
+        auto& operator+= (const Vect& X)                        { return fadd(data, X.data), thisVect(); }
+        friend constexpr auto operator+ (Vect A, const Vect& B) { return faddalt(A.data, B.data), A; }
 
         // subtraction
-        auto& operator-= (const Vect& src) { return operator-= (~src); }
-        friend auto operator- (Vect A, const Vect& B) { return A -= B; }
+        auto& operator-= (const Vect& X)                        { return fsub(data, X.data), thisVect(); }
+        friend constexpr auto operator- (Vect A, const Vect& B) { return fsubalt(A.data, B.data), A; }
 
         // scalar product
-        friend auto operator* (const Vect& A, const Vect& B)
+        friend constexpr auto operator* (const Vect& A, const Vect& B)
         {
             auto sum = T();
-            for (unsigned i=0; i<N; i++) sum += A.data[i] * B.data[i];
+            SKLIB_INTERNAL_MATH_VECTOR_FOREACH { sum += A.data[i] * B.data[i]; }
             return sum;
         }
 
-        // length
-        auto abs() const
-        {
-            const Vect& V = thisVect();
-            return std::sqrt(V * V);
-        }
+        // length of vector
+        auto abs() const  { return std::sqrt(thisVect() * thisVect()); }
+        // normalized vector
         auto norm() const { return thisVect() / abs(); }
 
         // angle (radians)
-        friend auto operator^ (const Vect& A, const Vect& B)
-        { return std::acos( (A * B) / (A.abs() * B.abs()) ); }
+        friend constexpr auto operator^ (const Vect& A, const Vect& B)
+        { return std::acos(std::clamp((A * B) / (A.abs() * B.abs()), -1., 1.)); }
 
         // scale
-        SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY(*=,*);
-        SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY(/=,/);
-        friend auto operator* (T k, Vect A) { return A * k; }
-        friend auto operator* (T k, const element_wise_type& A) { return A * k; }
+        SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY(smul, *=, *);
+        SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY(sdiv, /=, /);
+        friend constexpr auto operator* (T coeff, Vect X)              { return smulalt(coeff, X.data), X; }
+        friend constexpr auto operator* (T coeff, element_wise_type X) { return smulalt(coeff, X.copy.data), X.copy; }
     };
 
     template<unsigned N, class T, SKLIB_INTERNAL_ENABLE_IF_CONDITION(N>3)>
     class vect_impl_N : public vect_impl<vect_impl_N<N,T>, N, T>
     {
+        constexpr vect_impl_N()                   = default;
+        constexpr vect_impl_N(const vect_impl_N&) = default;
+        ~vect_impl_N()                            = default;
+
+        constexpr vect_impl_N(const std::array<T, N>& input) { this->load_array(input); }
+        vect_impl_N& operator= (const vect_impl_N& input)    { return this->load_array(input.data), *this; }
     };
 
     template<class T>
     class vect_impl_2 : public vect_impl<vect_impl_2<T>, 2, T>
     {
     public:
-        T& X = this->data[0];
-        T& Y = this->data[1];
+        // vector component, rvalue or lvalue
+        T& X() { return this->data[0]; }
+        T& Y() { return this->data[1]; }
+        constexpr T X() const { return this->data[0]; }
+        constexpr T Y() const { return this->data[1]; }
 
-        vect_impl_2()                         = default;
-        vect_impl_2(const vect_impl_2& input) = default;
-        vect_impl_2(vect_impl_2&& input)      = default;
-        ~vect_impl_2()                        = default;
+        constexpr vect_impl_2()                   = default;
+        constexpr vect_impl_2(const vect_impl_2&) = default;
+        ~vect_impl_2()                            = default;
 
-        vect_impl_2(const std::array<T, 2>& input) : vect_impl<2, T>(input) {}
-        vect_impl_2(T x, T y, T z)                 : vect_impl<2, T>({x, y, z}) {}
+        constexpr vect_impl_2(const std::array<T, 2>& input) { this->load_array(input); }
+        constexpr vect_impl_2(T x, T y)                      { this->load_array(std::array<T, 2>{x, y}); }
+        vect_impl_2& operator= (const vect_impl_2& input)    { return this->load_array(input.data), *this; }
 
-        vect_impl_2& operator= (const vect_impl_2& input) { this->load_array(input.data); return *this; }
-        vect_impl_2& operator= (vect_impl_2&& input) = default;
-
-        friend T operator% (const vect_impl_2& A, const vect_impl_2& B) { return A.X * B.Y - A.Y * B.X; }
+        friend constexpr T operator% (const vect_impl_2& A, const vect_impl_2& B)
+        { return A.X() * B.Y() - A.Y() * B.X(); }
     };
 
     template<class T>
     class vect_impl_3 : public vect_impl<vect_impl_3<T>, 3, T>
     {
-    private:
-        static constexpr int N = 3;
-
     public:
-        T& X = this->data[0];
-        T& Y = this->data[1];
-        T& Z = this->data[2];
+        // vector component, rvalue or lvalue
+        T& X() { return this->data[0]; }
+        T& Y() { return this->data[1]; }
+        T& Z() { return this->data[2]; }
+        constexpr T X() const { return this->data[0]; }
+        constexpr T Y() const { return this->data[1]; }
+        constexpr T Z() const { return this->data[2]; }
 
-        vect_impl_3()  = default;
-        ~vect_impl_3() = default;
+        constexpr vect_impl_3()                   = default;
+        constexpr vect_impl_3(const vect_impl_3&) = default; //: vect_impl<vect_impl_3<T>, 3, T>(input) {}
+        ~vect_impl_3()                            = default;
 
-        vect_impl_3(const vect_impl_3& input) : vect_impl<vect_impl_3<T>, 3, T>(input)
+        constexpr vect_impl_3(const std::array<T, 3>& input) { this->load_array(input); }
+        constexpr vect_impl_3(T x, T y, T z)                 { this->load_array(std::array<T, 3>{x, y, z}); }
+        vect_impl_3& operator= (const vect_impl_3& input)    { return this->load_array(input.data), *this; }
+
+        vect_impl_3& operator%= (const vect_impl_3& U)
         {
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("const Vect&", "constructor", "base constructor");
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(*this);
-        }
-
-        vect_impl_3(vect_impl_3&& input) noexcept : vect_impl<vect_impl_3<T>, 3, T>(input)
-        {
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("Vect&&", "constructor", "base constructor");
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(*this);
-        }
-
-        vect_impl_3(const std::array<T, 3>& input)
-        {
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("const array&", "constructor", "load");
-            this->load_array(input);
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(*this);
-        }
-
-        vect_impl_3(T x, T y, T z)
-        {
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("XYZ", "constructor", "load");
-            this->load_array(std::array<T, 3>{x, y, z});
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(*this);
-        }
-
-        vect_impl_3& operator= (const vect_impl_3& input)
-        {
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("const Vect&", "operator=", "load");
-            this->load_array(input.data);
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_SHOW(*this);
+            T tmpX = Y()*U.Z() - Z()*U.Y();
+            T tmpY = Z()*U.X() - X()*U.Z();
+            Z() = X()*U.Y() - Y()*U.X();
+            X() = tmpX;
+            Y() = tmpY;
             return *this;
         }
 
-#ifndef SKLIB_MATH_VECTOR_DEBUG_CON
-        vect_impl_3& operator= (vect_impl_3&& input) = default;
-#else
-        vect_impl_3& operator= (vect_impl_3&& input)
-        {
-            const vect_impl_3& persist = input;
-            SKLIB_INTERNAL_MATH_VECTOR_DEBUG_CALLS("Vect&&", "operator=", "load");
-            this->load_array(persist.data);
-            return *this;
-        }
-#endif
-
-        vect_impl_3& operator%= (const vect_impl_3& src)
-        {
-            T tmpX = Y*src.Z - Z*src.Y;
-            T tmpY = Z*src.X - X*src.Z;
-            Z = X*src.Y - Y*src.X;
-            X = tmpX;
-            Y = tmpY;
-            return *this;
-        }
-
-        friend vect_impl_3 operator% (vect_impl_3 A, const vect_impl_3& B) { return A %= B; }
+        friend constexpr vect_impl_3 operator% (vect_impl_3 A, const vect_impl_3& B) { return A %= B; }
     };
 
 }; // namespace opaque
@@ -301,6 +249,7 @@ namespace opaque
 #undef SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY
 #undef SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY
 #undef SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY
+#undef SKLIB_INTERNAL_MATH_VECTOR_FOREACH
 
 template<unsigned N, class T = double>
 using Vect =
