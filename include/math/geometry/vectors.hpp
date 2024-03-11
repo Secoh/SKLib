@@ -162,9 +162,9 @@ namespace opaque
         }
 
         // length of vector
-        auto abs() const  { return std::sqrt(thisVect() * thisVect()); }
+        constexpr auto abs() const  { return std::sqrt(thisVect() * thisVect()); }
         // normalized vector
-        auto norm() const { return thisVect() / abs(); }
+        constexpr auto norm() const { return thisVect() / abs(); }
 
         // angle (radians)
         friend constexpr auto operator^ (const Vect& A, const Vect& B)
@@ -193,8 +193,8 @@ namespace opaque
     {
     public:
         // vector component, rvalue or lvalue
-        T& X() { return this->data[0]; }
-        T& Y() { return this->data[1]; }
+        constexpr T& X()      { return this->data[0]; }
+        constexpr T& Y()      { return this->data[1]; }
         constexpr T X() const { return this->data[0]; }
         constexpr T Y() const { return this->data[1]; }
 
@@ -215,9 +215,9 @@ namespace opaque
     {
     public:
         // vector component, rvalue or lvalue
-        T& X() { return this->data[0]; }
-        T& Y() { return this->data[1]; }
-        T& Z() { return this->data[2]; }
+        constexpr T& X()      { return this->data[0]; }
+        constexpr T& Y()      { return this->data[1]; }
+        constexpr T& Z()      { return this->data[2]; }
         constexpr T X() const { return this->data[0]; }
         constexpr T Y() const { return this->data[1]; }
         constexpr T Z() const { return this->data[2]; }
