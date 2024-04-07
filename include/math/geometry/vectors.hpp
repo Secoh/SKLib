@@ -88,6 +88,10 @@ friend constexpr auto operator op_binary_token (element_wise_type X, T coeff)   
     return fscale##alt(X.copy.data, coeff), X.copy;                                 \
 }
 
+#define SKLIB_INTERNAL_MATH_VECTOR_ENSURE_VALID_CRTP                                \
+static_assert(std::is_base_of_v<vect_impl, Vect>,                                   \
+"SKLIB ** INTERNAL ERROR ** Target class must be derived from sklib::opaque::vect_impl");
+
 namespace opaque
 {
     // using Curiously Recurring Template Pattern idiom
@@ -98,8 +102,16 @@ namespace opaque
     protected:
         T data[N] = {};
 
-        constexpr Vect&       thisVect()       { return static_cast<Vect&>(*this); }
-        constexpr const Vect& thisVect() const { return static_cast<const Vect&>(*this); }
+        constexpr Vect& thisVect()
+        {
+            SKLIB_INTERNAL_MATH_VECTOR_ENSURE_VALID_CRTP;
+            return static_cast<Vect&>(*this);
+        }
+        constexpr const Vect& thisVect() const
+        {
+            SKLIB_INTERNAL_MATH_VECTOR_ENSURE_VALID_CRTP;
+            return static_cast<const Vect&>(*this);
+        }
 
         template<class Source>
         constexpr void load_array(const Source& input)
@@ -180,6 +192,7 @@ namespace opaque
     template<unsigned N, class T, SKLIB_INTERNAL_ENABLE_IF_CONDITION(N>3)>
     class vect_impl_N : public vect_impl<vect_impl_N<N,T>, N, T>
     {
+    public:
         constexpr vect_impl_N()                   = default;
         constexpr vect_impl_N(const vect_impl_N&) = default;
         ~vect_impl_N()                            = default;
@@ -230,7 +243,7 @@ namespace opaque
         constexpr vect_impl_3(T x, T y, T z)                 { this->load_array(std::array<T, 3>{x, y, z}); }
         vect_impl_3& operator= (const vect_impl_3& input)    { return this->load_array(input.data), *this; }
 
-        vect_impl_3& operator%= (const vect_impl_3& U)
+        constexpr vect_impl_3& operator%= (const vect_impl_3& U)
         {
             T tmpX = Y()*U.Z() - Z()*U.Y();
             T tmpY = Z()*U.X() - X()*U.Z();
@@ -250,6 +263,7 @@ namespace opaque
 #undef SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_BINARY
 #undef SKLIB_INTERNAL_MATH_VECTOR_SCALE_OPDEF_BINARY
 #undef SKLIB_INTERNAL_MATH_VECTOR_FOREACH
+#undef SKLIB_INTERNAL_MATH_VECTOR_ENSURE_VALID_CRTP
 
 template<unsigned N, class T = double>
 using Vect =
