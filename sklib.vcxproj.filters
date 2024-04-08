@@ -219,7 +219,7 @@
     <ClInclude Include="include\string\safe-std-string.hpp">
       <Filter>Header Files\include\string</Filter>
     </ClInclude>
-    <ClInclude Include="include\bitwise\bconf.hpp">
+    <ClInclude Include="include\bitwise\bprops.hpp">
       <Filter>Header Files\include\bitwise</Filter>
     </ClInclude>
   </ItemGroup>

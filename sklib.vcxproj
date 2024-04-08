@@ -21,7 +21,7 @@
   <ItemGroup>
     <ClInclude Include="include\bitwise.hpp" />
     <ClInclude Include="include\bitwise\base64.hpp" />
-    <ClInclude Include="include\bitwise\bconf.hpp" />
+    <ClInclude Include="include\bitwise\bprops.hpp" />
     <ClInclude Include="include\bitwise\bfstream.hpp" />
     <ClInclude Include="include\bitwise\bmanip.hpp" />
     <ClInclude Include="include\bitwise\bstream.hpp" />

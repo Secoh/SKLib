@@ -24,7 +24,7 @@ namespace sklib
 #include "bitwise/bmanip.hpp"
 #include "bitwise/bstream.hpp"
 #include "bitwise/base64.hpp"
-#include "bitwise/bconf.hpp"
+#include "bitwise/bprops.hpp"
 
 };
 

@@ -8,7 +8,7 @@
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 
-// Provides functions: bits flip, hamming distance, integer rank
+// Provides int-like bit property fields, with strond type check and mutually exclusive composition
 // This is internal SKLib file and must NOT be included directly.
 
 namespace opaque
@@ -110,80 +110,3 @@ public:
     constexpr bit_props_config_type(data_type x = data_type()) : bit_props_group_type<CData, M>((x << S) & M) {}
 };
 
-
-
-/////////// delete later
-
-
-/* example
-
-
-struct my_anchor {};
-using my_props_data = sklib::bit_props_data_type<my_anchor, int>;
-template<class Prev, auto enumCap> using my_props_elem = sklib::bit_props_config_type<my_props_data, Prev, enumCap>;
-
-struct fruit_anchor {};
-using fruit_props_data = sklib::bit_props_data_type<fruit_anchor, int>;
-template<class Prev, auto enumCap> using fruit_props_elem = sklib::bit_props_config_type<fruit_props_data, Prev, enumCap>;
-
-// --
-
-class collection
-{
-private:
-enum { baud_9k, baud_1k, baud_2k, baud_cap };
-enum { data_8, data_6, data_7, data_cap };
-enum { stop_1, stop_2, stop_cap };
-
-enum fruit { apple, orange, plum, peach, banana, lemon, fruit_cap };
-enum color { nocolor, red, yellow, green, blue, brown, color_cap };
-enum taste { notaste, sweet, salty, spicy, sour, taste_cap };
-enum shape { noshape, sphere, cube, pyramid, shape_cap };
-
-public:
-typedef my_props_elem<void,       baud_cap> baud_field;
-typedef my_props_elem<baud_field, data_cap> data_field;
-typedef my_props_elem<data_field, stop_cap> stop_field;
-
-static constexpr baud_field Baud1200 {baud_1k};
-static constexpr baud_field Baud2400 {baud_2k};
-static constexpr baud_field Baud9600 {baud_9k};
-
-static constexpr data_field Data6 {data_6};
-static constexpr auto Data7 = +data_field{data_7};
-static constexpr data_field Data8 {data_8};
-
-static constexpr stop_field Stop1 {stop_1};
-static constexpr stop_field Stop2 {stop_2};
-
-typedef fruit_props_elem<void,        fruit_cap> what_fruit;
-typedef fruit_props_elem<what_fruit,  color_cap> fruit_color;
-typedef fruit_props_elem<fruit_color, taste_cap> fruit_taste;
-typedef fruit_props_elem<fruit_taste, shape_cap> fruit_shape;
-
-static constexpr what_fruit Apple  {apple};
-static constexpr auto Orange = what_fruit{orange} + fruit_shape{}; // example: prohibit Shape when Orange is used
-static constexpr what_fruit Peach  {peach};
-static constexpr what_fruit Banana {banana};
-static constexpr what_fruit Lemon  {lemon};
-
-static constexpr fruit_color Red  {red};
-static constexpr fruit_color Yellow  {yellow};
-static constexpr fruit_color Green  {green};
-static constexpr fruit_color Blue  {blue};
-static constexpr auto Brown = fruit_color{brown}.get();
-
-static constexpr fruit_taste Sweet  {sweet};
-static constexpr fruit_taste Salty  {salty};
-static constexpr fruit_taste Spicy  {spicy};
-static constexpr fruit_taste Sour  {sour};
-
-static constexpr fruit_shape Sphere  {sphere};
-static constexpr fruit_shape Cube  {cube};
-static constexpr fruit_shape Pyramid  {pyramid};
-
-};
-
-
-
-*/
