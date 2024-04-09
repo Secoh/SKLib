@@ -14,6 +14,7 @@
 namespace opaque
 {
     struct bit_props_anchor {};
+    struct bit_props_group_anchor {};
     struct bit_props_config_anchor {};
 };
 
@@ -26,19 +27,39 @@ public:
     typedef T data_type;
     const T data{};
 
+    template<class CTest,
+        SKLIB_INTERNAL_ENABLE_IF_CONDITION((std::is_base_of_v<sklib::opaque::bit_props_group_anchor, CTest>) &&
+                                           (std::is_base_of_v<bit_props_data_type, CTest>))>
+    constexpr bool has(CTest what) const
+    {
+        return ((data & what.mask) == what.data);
+    }
+
+    template<class CTest,
+        SKLIB_INTERNAL_ENABLE_IF_CONDITION((std::is_base_of_v<sklib::opaque::bit_props_group_anchor, CTest>) &&
+                                           (std::is_base_of_v<bit_props_data_type, CTest>))>
+    constexpr bool operator[] (CTest what) const
+    {
+        return has(what);
+    }
+
 protected:
+    // do we need it? // typedef Anchor CallerAnchor;
     constexpr bit_props_data_type(T x) : data(x) {}
 };
 
 template<class CData, CData::data_type gMask, SKLIB_INTERNAL_ENABLE_IF_DERIVED(CData, sklib::opaque::bit_props_anchor)>
-class bit_props_group_type : public CData
+class bit_props_group_type : public CData, public sklib::opaque::bit_props_group_anchor
 {
 protected:
     constexpr bit_props_group_type(CData::data_type x) : CData(x & gMask) {}
 
-public:  // for completeness, return itself in bit_props_group flavor
-    constexpr auto operator+ () const { return *this; }
-    constexpr auto get() const { return *this; }
+public:
+    static constexpr CData::data_type mask = gMask;
+
+    constexpr auto get() const { return *this; }         // for completeness, return itself
+    constexpr auto operator+ () const { return *this; }  // in bit_props_group flavor
+
 };
 
 namespace opaque
@@ -68,7 +89,7 @@ namespace opaque
     };
 
     template<class CData, class CPrevConf, auto enumCap>
-    class bit_props_config_helper
+    class bit_props_config_placement_helper
     {
     private:
         typedef typename CData::data_type data_type;
@@ -79,14 +100,25 @@ namespace opaque
     public:
         static constexpr data_type start = S;
         static constexpr data_type size = static_cast<data_type>((enumCap>1) ? sklib::bits_rank(enumCap-1) : 0);
-        static constexpr data_type mask = static_cast<data_type>(sklib::bits_data_mask_v<data_type, size> << start);
+    };
+
+    template<class CData, class CPrevConf, auto enumCap>
+    class bit_props_config_mask_helper //: public bit_props_config_placement_helper<CData, CPrevConf, enumCap>
+    {
+    private:
+        typedef typename CData::data_type data_type;
+        static constexpr data_type S = bit_props_config_placement_helper<CData, CPrevConf, enumCap>::start;
+        static constexpr data_type L = bit_props_config_placement_helper<CData, CPrevConf, enumCap>::size;
+
+    public:
+        static constexpr data_type mask = static_cast<data_type>(sklib::bits_data_mask_v<data_type, L> << S);
     };
 };
 
 template<class CData, class CPrevConf, auto enumCap>
 class bit_props_config_type
-    : public bit_props_group_type<CData, sklib::opaque::bit_props_config_helper<CData, CPrevConf, enumCap>::mask>
-    , public sklib::opaque::bit_props_config_helper<CData, CPrevConf, enumCap>
+    : public bit_props_group_type<CData, sklib::opaque::bit_props_config_mask_helper<CData, CPrevConf, enumCap>::mask>
+    , public sklib::opaque::bit_props_config_placement_helper<CData, CPrevConf, enumCap>
     , public sklib::opaque::bit_props_config_anchor
 {
     static_assert(std::is_base_of_v<sklib::opaque::bit_props_anchor, CData>,
@@ -97,9 +129,9 @@ class bit_props_config_type
 
 private:
     typedef typename CData::data_type data_type;
-    static constexpr data_type S = sklib::opaque::bit_props_config_helper<CData, CPrevConf, enumCap>::start;
-    static constexpr data_type L = sklib::opaque::bit_props_config_helper<CData, CPrevConf, enumCap>::size;
-    static constexpr data_type M = sklib::opaque::bit_props_config_helper<CData, CPrevConf, enumCap>::mask;
+    static constexpr data_type S = sklib::opaque::bit_props_config_placement_helper<CData, CPrevConf, enumCap>::start;
+    static constexpr data_type L = sklib::opaque::bit_props_config_placement_helper<CData, CPrevConf, enumCap>::size;
+    static constexpr data_type M = sklib::opaque::bit_props_config_mask_helper<CData, CPrevConf, enumCap>::mask;
 
     static_assert(L <= sklib::bits_width_less_sign_v<data_type>,
                   "Third parameter of bit_props_config_type template doesn\'t fit underlying data type");
@@ -108,5 +140,10 @@ private:
 
 public:
     constexpr bit_props_config_type(data_type x = data_type()) : bit_props_group_type<CData, M>((x << S) & M) {}
+
+// need version that strips bits outside gMask
+//    template<data_type gMask>
+//    constexpr bit_props_config_type(bit_props_group_type<CData, gMask> X)
+//        : bit_props_group_type<CData, gMask>((X. << S) & M) {}
 };
 
