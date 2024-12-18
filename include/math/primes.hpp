@@ -12,5 +12,6 @@
 // This is internal SKLib file and must NOT be included directly.
 
 #include "primes/enumeration.hpp"
-
+#include "primes/eratosphenes.hpp"
+#include "primes/pcompressor.hpp"
 

@@ -25,11 +25,17 @@ SKLIB_TEMPLATE_IF_UINT(T) constexpr T prime_candidate(sklib::supplement::do_not_
 
 // Reversal of prime_candidate() function. Actual prime numbers 5 and above can be indexed, too.
 // For numbers that are not prime candidates, returns index of closest greater prime candidate.
-SKLIB_TEMPLATE_IF_UINT(T) constexpr T prime_candidate_to_index(T p)
+SKLIB_TEMPLATE_IF_UINT(T) constexpr T prime_candidate_to_index_ex(T p)
 {
     return (p - 2 - (p & 1)) / 3;
 }
+// Same as above, but works only if the input is a prime candidate (that includes all actual primes)
+// (Note that p>3 is always odd.)
+SKLIB_TEMPLATE_IF_UINT(T) constexpr T prime_candidate_to_index(T p)
+{
+    return p/3 - 1;
+}
 
 SKLIB_TEMPLATE_IF_UINT(T)
-inline constexpr T prime_candidate_index_cap_v = prime_candidate_to_index<T>(sklib::bits_mask_v<T>);
+inline constexpr T prime_candidate_index_cap_v = prime_candidate_to_index_ex<T>(sklib::bits_mask_v<T>);
 

@@ -23,8 +23,10 @@
 #include "include/checksum.hpp"
 #include "include/timer.hpp"
 
+#include "include/cmdpar.hpp"
 #include "include/comms.hpp"
 
+#include "include/math.hpp"
 
 
 #endif // SKLIB_INCLUDED_ALL

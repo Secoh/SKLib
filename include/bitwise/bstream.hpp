@@ -30,7 +30,7 @@ namespace supplement
         unsigned bit_count;
         T data;
 
-        bits_variable_pack_type(T v, unsigned N = sklib::bits_width_v<T>) : data(v), bit_count(N) {}
+        constexpr bits_variable_pack_type(T v, unsigned N = sklib::bits_width_v<T>) : data(v), bit_count(N) {}
     };
 
     template<int N, class T, SKLIB_INTERNAL_ENABLE_IF_INT(T)>
@@ -43,7 +43,7 @@ namespace supplement
         static constexpr unsigned bit_count = N;
         T data;
 
-        bits_fixed_pack_type(T v) : data(v) {}
+        constexpr bits_fixed_pack_type(T v) : data(v) {}
     };
 };
 
@@ -83,7 +83,7 @@ public:
     {}
 
     bits_stream_base_type(void* external_descriptor,
-                          bool (*read_octet_callback)(void*, uint8_t&),         // version for payload at void pointer
+                          bool (*read_octet_callback)(void*, uint8_t&),         // version for payload under void pointer
                           void (*write_octet_callback)(void*, uint8_t),
                           void (*hook_callback)(void*, hook_type) = nullptr)
         : read_octet(read_octet_callback, external_descriptor)

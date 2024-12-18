@@ -166,7 +166,7 @@ namespace sklib
             constexpr T update_integer_msb(D val)
             {
                 typedef typename std::make_unsigned_t<D> uD;
-                auto uval = static_cast<uD>(D);
+                auto uval = static_cast<uD>(val);
                 for (int i=OCTET_MASK*(int)(sizeof(D)-1); i>=0; i-=OCTET_MASK)
                 {
                     uint8_t data = (uint8_t)(uval >> i);
@@ -275,7 +275,8 @@ namespace sklib
     template<class T>
     class crc_type : public ::sklib::supplement::crc_base_type<T>
     {
-        static_assert(SKLIB_TYPES_IS_INTEGER(T), "CRC Polynomial representation must be integer of approptiate size");
+        //SKLIB_TYPES_IS_INTEGER(T)
+        static_assert(sklib::is_integer_v<T>, "CRC Polynomial representation must be integer of approptiate size");
 
     protected:
         sklib::supplement::encapsulated_array_octet_index_type<T> Table;
@@ -292,7 +293,8 @@ namespace sklib
     template<class T, unsigned Length, T Normal_Polynomial, bool mode_MSB = false, T Start_Value = sklib::bits_data_mask_v<T, Length>>
     class crc_fixed_type : public ::sklib::supplement::crc_base_type<T>
     {
-        static_assert(SKLIB_TYPES_IS_INTEGER(T), "CRC Polynomial representation must be integer of approptiate size");
+        //SKLIB_TYPES_IS_INTEGER(T)
+        static_assert(sklib::is_integer_v<T>, "CRC Polynomial representation must be integer of approptiate size");
         static_assert(Length >= 1, "CRC Polynomial must be at least 1 bit long");
         static_assert(sklib::bits_width_less_sign_v<T> >= Length, "Data type for CRC must be large enough to hold the polynomial (sign bit must not be used)");
         static_assert(Normal_Polynomial > 0 && Normal_Polynomial % 2, "CRC Polynomial representation shall be odd positive integer");

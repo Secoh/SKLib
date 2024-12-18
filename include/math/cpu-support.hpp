@@ -222,7 +222,8 @@ namespace opaque
 
     template<class T> struct uint_extend
     {
-        static_assert(SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), "Error: uint_extend<> is only defined for unsigned integers");
+        //SKLIB_TYPES_IS_UNSIGNED_INTEGER(T)
+        static_assert(sklib::is_unsigned_integer_v<T>, "Error: uint_extend<> is only defined for unsigned integers");
         typedef uNNex<uint8_t, uint16_t> type;
     };
     template<> struct uint_extend<uint16_t> { typedef uNNex<uint16_t, uint32_t> type; };

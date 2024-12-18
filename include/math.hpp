@@ -20,9 +20,13 @@
 #include <functional>
 
 #include "types.hpp"
-//sk?! #include "bitwise.hpp"
-
 #include "utility.hpp"
+
+
+// for primes
+#include "bitwise.hpp"
+#include "checksum.hpp"
+#include "timer.hpp"
 
 
 // for debug!

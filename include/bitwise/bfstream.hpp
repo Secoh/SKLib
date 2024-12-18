@@ -25,8 +25,9 @@ private:
     bool is_writeable() const { return (fs_mode & std::ios_base::out); }
 
 public:
-    template<class T, std::enable_if_t<sklib::is_any_string<T>, bool> = true>
-    explicit bits_file_type(const T& filename, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
+/* //sk test
+//    template<class T, std::enable_if_t<sklib::is_any_string<T>, bool> = true>
+    / *explicit* / bits_file_type(const std::filesystem::path& filename, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
         : sklib::bits_stream_base_type(read_byte_proc, write_byte_proc, stream_action)
         , fs_mode(mode)
         , fs(filename, mode | std::ios_base::binary)
@@ -38,10 +39,34 @@ public:
             fs.open(filename, mode | std::ios_base::binary);
         }
     }
+// */
+#define SKLIB_INTERNAL_BFSTREAM_CONSTRUCTOR(name_type) \
+explicit bits_file_type(name_type filename, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out) \
+: sklib::bits_stream_base_type(sklib::bits_file_type::read_byte_proc, sklib::bits_file_type::write_byte_proc, sklib::bits_file_type::stream_action) \
+{ this->initialize(filename, mode); }
+
+    SKLIB_INTERNAL_BFSTREAM_CONSTRUCTOR(const char *);
+    SKLIB_INTERNAL_BFSTREAM_CONSTRUCTOR(const wchar_t *);
+    SKLIB_INTERNAL_BFSTREAM_CONSTRUCTOR(const std::string&);
+    SKLIB_INTERNAL_BFSTREAM_CONSTRUCTOR(const std::wstring&);
 
     std::fstream& file_stream() { return fs; }
 
 private:
+    template<class T> //sk , std::enable_if_t<sklib::is_any_string<T>, bool> = true>
+    void initialize(const T& filename, std::ios_base::openmode mode)
+    {
+        fs_mode = mode;
+        fs.open(filename, mode | std::ios_base::binary);
+
+        if (is_readable() && is_writeable() && !fs.is_open())  // extend RW mode: if file doesn't exist, create
+        {
+            fs.open(filename, std::ios_base::out);
+            fs.close();
+            fs.open(filename, mode | std::ios_base::binary);
+        }
+    }
+
     bool redirect_read_byte(uint8_t& data)
     {
         if (!is_readable() || fs.eof()) return false;

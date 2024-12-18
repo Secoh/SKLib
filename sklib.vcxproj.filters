@@ -222,5 +222,8 @@
     <ClInclude Include="include\bitwise\bprops.hpp">
       <Filter>Header Files\include\bitwise</Filter>
     </ClInclude>
+    <ClInclude Include="include\math\primes\pcompressor.hpp">
+      <Filter>Header Files\include\math\primes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

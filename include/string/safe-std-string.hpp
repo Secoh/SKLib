@@ -11,8 +11,10 @@
 // Provides crash-safe and throw-safe analogs of few std::string function.
 // This is internal SKLib file and must NOT be included directly.
 
-// Copies substring from start, at most length characters.
-std::string safe_substring(const std::string& str, size_t start = 0, size_t length = std::string::npos) noexcept
+// Copies substring from start, at most length characters. No-throw guarantee.
+//sk TODO: make it basic_string<> template
+template<class T>
+std::basic_string<T> safe_substring(const std::basic_string<T>& str, size_t start = 0, size_t length = std::basic_string<T>::npos) noexcept
 {
     if (!length) return {};
 
@@ -20,5 +22,12 @@ std::string safe_substring(const std::string& str, size_t start = 0, size_t leng
     if (srclen <= start) return {};
 
     return str.substr(start, ((length == std::string::npos) ? (srclen-start) : sklib::opaque::alt_min(srclen-start, length)));
+}
+
+constexpr std::wstring to_wstring(const std::string_view& str) noexcept
+{
+    std::wstring R{};
+    for (const auto& c : str) R += (wchar_t)(unsigned char)c;
+    return R;
 }
 

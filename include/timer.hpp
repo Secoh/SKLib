@@ -22,6 +22,8 @@
 #include <ratio>
 #include <type_traits>
 
+#include "types.hpp"
+
 // 1. Convert time in certain real-world units to C++ time representation
 
 // reminder: to use the time units conversions directly, use the standard statement:
