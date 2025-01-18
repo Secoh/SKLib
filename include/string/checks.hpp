@@ -13,7 +13,7 @@
 
 // ==================================== Comparison
 
-namespace opaque
+namespace priv
 {
     SKLIB_TEMPLATE_IF_INT(V)
     constexpr bool strcmp_impl_test_and_dec_if_int_else_true(V& n)
@@ -65,7 +65,7 @@ namespace opaque
 template<class T1, class T2>
 constexpr auto strcmp(const T1* str1, const T2* str2)
 {
-    return ::sklib::opaque::strcmp_impl<T1, T2, void*, false>(str1, str2, nullptr);
+    return sklib::priv::strcmp_impl<T1, T2, void*, false>(str1, str2, nullptr);
 }
 
 // Unicode-aware version of standard stricmp() (or strcasecmp())
@@ -76,7 +76,7 @@ constexpr auto strcmp(const T1* str1, const T2* str2)
 template<class T1, class T2>
 constexpr auto stracmp(const T1* str1, const T2* str2)
 {
-    return ::sklib::opaque::strcmp_impl<T1, T2, void*, true>(str1, str2, nullptr);
+    return sklib::priv::strcmp_impl<T1, T2, void*, true>(str1, str2, nullptr);
 }
 
 // Unicode-aware version of standard strncmp()
@@ -87,7 +87,7 @@ constexpr auto stracmp(const T1* str1, const T2* str2)
 template<class T1, class T2, class V>
 constexpr auto strncmp(const T1* str1, const T2* str2, V n)
 {
-    return ::sklib::opaque::strcmp_impl<T1, T2, std::decay_t<V>, false>(str1, str2, n);
+    return sklib::priv::strcmp_impl<T1, T2, std::decay_t<V>, false>(str1, str2, n);
 }
 
 // Unicode-aware case-insensitive strncmp() (crossbreed with stricmp()/strcasecmp())
@@ -99,7 +99,7 @@ constexpr auto strncmp(const T1* str1, const T2* str2, V n)
 template<class T1, class T2, class V>
 constexpr auto strancmp(const T1* str1, const T2* str2, V n)
 {
-    return ::sklib::opaque::strcmp_impl<T1, T2, std::decay_t<V>, true>(str1, str2, n);
+    return sklib::priv::strcmp_impl<T1, T2, std::decay_t<V>, true>(str1, str2, n);
 }
 
 // ------------------------------------  strequ family, test for equilibrium (derivative)
@@ -161,7 +161,7 @@ constexpr bool stranequ(const T1* str1, const T2* str2, V n)
 template<class V = size_t, class T = char>
 constexpr auto strlen(const T* str)
 {
-    static_assert(is_integer_v<T>, "SKLIB ** Strings are represented by arrays of integers (e.g. chars)");
+    static_assert(sklib::is_integer_v<T>, "SKLIB ** Strings are represented by arrays of integers (e.g. chars)");
 
     std::decay_t<V> N = 0;
     while (*str++) N++;

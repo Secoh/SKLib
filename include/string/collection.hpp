@@ -11,7 +11,7 @@
 // Constexpr function(s) to create static array of null-terminated strings from initializer-like list without memory allocations.
 // This is internal SKLib file and must NOT be included directly.
 
-namespace supplement
+namespace aux
 {
     struct collection_cstring_check_type
     {};
@@ -24,7 +24,7 @@ namespace supplement
 
         constexpr collection_cstring_type() = default;
 
-        constexpr collection_cstring_type(const collection_cstring_type<::sklib::opaque::alt_max(N, 2u) - 1>& in)   // for completeness, only N >= 2 are used
+        constexpr collection_cstring_type(const collection_cstring_type<sklib::priv::alt_max(N, 2u) - 1>& in)   // for completeness, only N >= 2 are used
         {
             for (unsigned k = 0; k < in.N; k++) text[k] = in.text[k];
         }
@@ -36,20 +36,20 @@ namespace supplement
     };
 };
 
-namespace opaque
+namespace priv
 {
     template<unsigned N>
-    constexpr auto partial_collection_cstring(const ::sklib::supplement::collection_cstring_type<N>& A, const char* str)
+    constexpr auto partial_collection_cstring(const sklib::aux::collection_cstring_type<N>& A, const char* str)
     {
-        ::sklib::supplement::collection_cstring_type<N + 1> R{ A };
+        sklib::aux::collection_cstring_type<N + 1> R{ A };
         R.text[N] = str;
         return R;
     }
 
     template<unsigned N, class ...Args>
-    constexpr auto partial_collection_cstring(const ::sklib::supplement::collection_cstring_type<N>& A, const char* str, Args... args)
+    constexpr auto partial_collection_cstring(const sklib::aux::collection_cstring_type<N>& A, const char* str, Args... args)
     {
-        ::sklib::supplement::collection_cstring_type<N + 1> R{ A };
+        sklib::aux::collection_cstring_type<N + 1> R{ A };
         R.text[N] = str;
         return partial_collection_cstring(R, args...);
     }
@@ -58,15 +58,15 @@ namespace opaque
 template<class ...Args>
 constexpr auto collection_cstring(const char* str, Args... args)
 {
-    ::sklib::supplement::collection_cstring_type<1> R;
+    sklib::aux::collection_cstring_type<1> R;
     R.text[0] = str;
-    return ::sklib::opaque::partial_collection_cstring(R, args...);
+    return sklib::priv::partial_collection_cstring(R, args...);
 }
 
 template<>
 constexpr auto collection_cstring(const char* str)
 {
-    ::sklib::supplement::collection_cstring_type<1> R;
+    sklib::aux::collection_cstring_type<1> R;
     R.text[0] = str;
     return R;
 }

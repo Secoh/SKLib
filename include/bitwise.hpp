@@ -26,8 +26,13 @@ namespace sklib
 #include "bitwise/base64.hpp"
 #include "bitwise/bprops.hpp"
 
+
 };
 
+
+
+//sk: move all inside bfstream
+#include "configure.hpp"
 #ifndef SKLIB_TARGET_MCU
 
 #include <iostream>

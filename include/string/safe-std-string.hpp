@@ -21,7 +21,7 @@ std::basic_string<T> safe_substring(const std::basic_string<T>& str, size_t star
     size_t srclen = str.length();
     if (srclen <= start) return {};
 
-    return str.substr(start, ((length == std::string::npos) ? (srclen-start) : sklib::opaque::alt_min(srclen-start, length)));
+    return str.substr(start, ((length == std::string::npos) ? (srclen-start) : sklib::priv::alt_min(srclen-start, length)));
 }
 
 constexpr std::wstring to_wstring(const std::string_view& str) noexcept

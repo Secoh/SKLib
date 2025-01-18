@@ -1,0 +1,79 @@
+--
+SKLib provides several data types that behave similar to integer numbers
+(but they may have specific traits, like very large bit size, or it is a modular field)
+All compound integer types carry:
+1. the bit count - amount of bits that is enough to represent the largest positive number,
+2. whether the type is signed
+The compound integer type must provide the following functions:
++-*/% ?=
+<> == <= >=
+|&^ ^= |= &= << >> <<= >>=
+bit_test(unsigned), bit_set, bit_clear
+<list>
+
+
+
+The compound integer type must be derived from compound_integer_base which, in turn
+sklib::supplement::compound_integer_base<unsigned unsigned_bits_count, bool is_type_signed>
+--
+
+
+==============================================================================================
+
+true if T is fundamental integer type, otherwise false
+is_native_integer_v<T>
+
+true if T is SKLib-backed class with behavior similar to integer number, otherwise false
+is_compound_integer_v<T>
+
+true if T is fundamental or SKLib integer, otherwise false
+is_integer_v<T>
+
+true if T is any signed interer supported by SKLib
+is_signed_v<T>
+
+is_signed_integer_v
+is_unsigned_integer_v
+is_signed_native_integer_v
+is_unsigned_native_integer_v
+
+Becomes unsigned integer type if T is integer, otherwise stays itself. Support of SKLib integers is possible
+make_unsigned_if_integer_type<T>
+
+make_signed_if_integer_type
+
+If input variable is integer, converts it to unsigned integer according to C++ rule 6.3.1.3; 2) otherwise, leaves unchanged
+constexpr auto to_unsigned_if_integer(const T&)
+
+
+
+
+
+
+====================================================
+
+Type-enable macros.
+Helper macros to exploit SFINAE for functions. The function is visible for compiler
+if and only if the associated condition is met.
+To be used in place of return type:
+template<class T ...> [keywords ...] return_type function_name(parameters ...);
+
+Function is enabled with return type "rtype" if the "condition" is met
+SKLIB_TYPE_ENABLE_IF_CONDITION(rtype,condition)
+
+Function is enabled if T is any integer recognized by SKLib
+SKLIB_TYPE_ENABLE_IF_INT(T,rtype)
+
+Function is enabled if T is any fundamental integer
+SKLIB_TYPE_ENABLE_IF_NATIVE_INT
+
+Function is enabled if T is SKLib-specific integer
+SKLIB_TYPE_ENABLE_IF_COMPOUND_INT
+
+SKLIB_TYPE_ENABLE_IF_UINT ... any unsigned integer
+SKLIB_TYPE_ENABLE_IF_SINT ... any signed integer
+SKLIB_TYPE_ENABLE_IF_NATIVE_UINT
+SKLIB_TYPE_ENABLE_IF_NATIVE_SINT
+
+
+

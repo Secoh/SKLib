@@ -14,7 +14,7 @@
 // Euclidean domains
 // Operators defined: addition, subtraction, multiplication, and representation according to Euclid's division lemma
 // For each Euclidean type, the function sklib::edivrem() is defined: for A divided by B, get quotent, remainder
-// For purpose of correction in certain operations, function sklib::supplement::e_isnegative() is introduced
+// For purpose of correction in certain operations, function sklib::aux::e_isnegative() is introduced
 // NB: In some Euclidean rings, there are no "negative" elements
 
 #include "algebra/edom-int.hpp"             // support for regular C++ integers

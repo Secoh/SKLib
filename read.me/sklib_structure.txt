@@ -1,0 +1,52 @@
+Структура SKLib
+
+А)
+
+sklib.hpp включает пачку тематических файлов-заголовков, порядок не важен (см. ниже)
+м.б. сгруппировано и упорядочено по здравому смыслу
+namespace - нет
+guard - SKLIB_INCLUDED_ALL
+
+тематический файл-заголовок, например, types.hpp
+
+1. случай, когда разбивается на более мелкие:
+включает компоненты тематического пакета, заголовки нижнего уровня
+namespace - нет
+guard - SKLIB_INCLUDED_<имязаголовка>_HPP, например, SKLIB_INCLUDED_TYPES_HPP
+#include заголовков STL - нет (!)
+
+2. тематический заголовок, содержащий код
+(то же самое, для заголовков нижнего уровня)
+
+а. приветствие и лицензия
+б. guard - SKLIB_INCLUDED_<имязаголовка>_<имякомпонента>_HPP, например, SKLIB_INCLUDED_TYPES_INTCONV_HPP
+   для заголовка без компонентов, см. выше, SKLIB_INCLUDED_<имязаголовка>_HPP
+в. #include заголовки STL, которые будут использованы в коде (но не в других включениях!)
+   возможно, некоторые включения - через условия #ifdef
+   например, #include "detect-type.hpp"
+г. #include других тематических заголовков SKLib, если надо, например, #include "../configure.hpp"
+д. для компонентов нижнего уровня: если надо, включение других компонентов того же тематического заголовка
+   (избегаем зацикливания)
+е. namespace sklib { без отступа, пустая строка
+ж. код как обычно, начиная с отступа 0
+
+закрывающие скобки:
+}; // namespace что-то
+#endif // НАЗВАНИЕ
+
+объекты адресуются относительными путями - кроме случая, когда имя объекта напоминает имя из STL,
+в этом случае дается полная адресация, начиная с sklib::
+
+Б)
+
+приветствие и лицензия должны быть во всех файлах:
+
+// This file is part of SKLib: https://github.com/Secoh/SKLib
+// Copyright [2020-2025] Secoh
+//
+// Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
+// You may not use this file except in compliance with the License.
+// Software is distributed on "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// Special exception from GNU LGPL terms: you don't have to publish the compiled object binary file(s) for SKLib.
+// Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
+// published under the same terms as the original one(s), but you don't have to inherit the special exception above.

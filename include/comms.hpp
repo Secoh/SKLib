@@ -27,17 +27,17 @@
 #ifndef SKLIB_INCLUDED_COMMS_HPP
 #define SKLIB_INCLUDED_COMMS_HPP
 
-#include<cstdint>
-#include<memory>
-#include<string>
+#include <cstdint>
+#include <memory>
+#include <string>
 
 /*  //sk
-#include<type_traits>
-#include<limits>
-#include<utility>
+#include <type_traits>
+#include <limits>
+#include <utility>
 
-#include"types.hpp"
-#include"math.hpp"
+#include "types.hpp"
+#include "math.hpp"
 */
 
 namespace sklib

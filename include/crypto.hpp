@@ -12,8 +12,8 @@
 #ifndef SKLIB_INCLUDED_CRYPTO_HPP
 #define SKLIB_INCLUDED_CRYPTO_HPP
 
-#include<algorithm>
-//#include<string>
+#include <algorithm>
+//#include <string>
 
 #include "bitwise.hpp"
 
@@ -21,10 +21,10 @@
 
 namespace sklib
 {
-    namespace supplement
+    namespace aux
     {
         // synonym for the span addressed by a byte
-//sk        static constexpr unsigned crypto_page_size = (unsigned)OCTET_ADDRESS_SPAN;
+//sk        inline constexpr unsigned crypto_page_size = (unsigned)OCTET_ADDRESS_SPAN;
 #define SKLIB_INTERNAL_CRYPTO_PAGE_FOR_ALL(k) for (unsigned k=0; k<(unsigned)OCTET_ADDRESS_SPAN; k++)
 #define SKLIB_INTERNAL_CRYPTO_PAGE_SIZE ((unsigned)OCTET_ADDRESS_SPAN)
 

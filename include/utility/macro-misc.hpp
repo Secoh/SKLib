@@ -8,9 +8,13 @@
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 
-// -------------------------------------------------------
+#ifndef SKLIB_INCLUDED_UTILITY_MACRO_MISC_HPP
+#define SKLIB_INCLUDED_UTILITY_MACRO_MISC_HPP
+
 // Helper macro to expand another macro X to ASCIIZ strings containing its text
 
-#define SKLIB_SUPPLEMENT_TOKEN_TO_STRING(X) #X
-#define SKLIB_MACRO_EXPAND_TO_STRING(X) SKLIB_SUPPLEMENT_TOKEN_TO_STRING(X)
+#define SKLIB_AUX_TOKEN_TO_STRING(X) #X
+#define SKLIB_MACRO_EXPAND_TO_STRING(X) SKLIB_AUX_TOKEN_TO_STRING(X)
+
+#endif // SKLIB_INCLUDED_UTILITY_MACRO_MISC_HPP
 

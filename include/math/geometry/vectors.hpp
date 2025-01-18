@@ -90,9 +90,9 @@ friend constexpr auto operator op_binary_token (element_wise_type X, T coeff)   
 
 #define SKLIB_INTERNAL_MATH_VECTOR_ENSURE_VALID_CRTP                                \
 static_assert(std::is_base_of_v<vect_impl, Vect>,                                   \
-"SKLIB ** INTERNAL ERROR ** Target class must be derived from sklib::opaque::vect_impl");
+"SKLIB ** INTERNAL ERROR ** Target class must be derived from sklib::priv::vect_impl");
 
-namespace opaque
+namespace priv
 {
     // using Curiously Recurring Template Pattern idiom
     // see, for example https://en.cppreference.com/w/cpp/language/crtp
@@ -256,7 +256,7 @@ namespace opaque
         friend constexpr vect_impl_3 operator% (vect_impl_3 A, const vect_impl_3& B) { return A %= B; }
     };
 
-}; // namespace opaque
+}; // namespace priv
 
 #undef SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY_EW
 #undef SKLIB_INTERNAL_MATH_VECTOR_ELEMWISE_OPDEF_UNARY
@@ -268,11 +268,11 @@ namespace opaque
 template<unsigned N, class T = double>
 using Vect =
     std::conditional_t<std::less<int>{}(N, 3),
-        std::conditional_t<std::less<int>{}(N, 2), T, sklib::opaque::vect_impl_2<T> >,
-        std::conditional_t<std::less<int>{}(N, 4), sklib::opaque::vect_impl_3<T>, sklib::opaque::vect_impl_N<N, T> > >;
+        std::conditional_t<std::less<int>{}(N, 2), T, sklib::priv::vect_impl_2<T> >,
+        std::conditional_t<std::less<int>{}(N, 4), sklib::priv::vect_impl_3<T>, sklib::priv::vect_impl_N<N, T> > >;
 
-using Vect2d = sklib::opaque::vect_impl_2<double>;
-using Vect3d = sklib::opaque::vect_impl_3<double>;
+using Vect2d = sklib::priv::vect_impl_2<double>;
+using Vect3d = sklib::priv::vect_impl_3<double>;
 
 // useful stuff
 

@@ -12,17 +12,17 @@
 //sk?
 #pragma once
 
-#include"../rs232.hpp"
+#include "../rs232.hpp"
 
 #include <Windows.h>
 
 namespace sklib
 {
-    namespace opaque
+    namespace priv
     {
-        using namespace ::sklib::opaque::rs232_indexes;   // lets keep it local to the short block
+        using namespace sklib::priv::rs232_indexes;   // lets keep it local to the short block
 
-        struct rs232_opaque_workspace_type
+        struct rs232_internal_workspace_type
         {
             HANDLE hCom;
         };
@@ -187,7 +187,7 @@ namespace sklib
             int64_t timeout_ms_recv = novalue;
             int64_t timeout_ms_send = novalue;
 
-            unsigned index_norm(const ::sklib::opaque::rs232_indexes::props_group& group, unsigned mode, unsigned grp_count)
+            unsigned index_norm(const sklib::priv::rs232_indexes::props_group& group, unsigned mode, unsigned grp_count)
             {
                 if (mode < 0) mode = 0;
                 unsigned idx = (mode >> group.offset) & group.mask;
@@ -195,7 +195,7 @@ namespace sklib
             }
 
             template<class T, unsigned N>
-            auto index_2_value(const ::sklib::opaque::rs232_indexes::props_group& group, unsigned mode, const T (&arr)[N], const T* option = nullptr)
+            auto index_2_value(const sklib::priv::rs232_indexes::props_group& group, unsigned mode, const T (&arr)[N], const T* option = nullptr)
             {
                 auto R = arr[index_norm(group, mode, N)];
                 return (R >= 0 ? R : (option ? *option : arr[0]));
@@ -205,11 +205,11 @@ namespace sklib
             // If "custom" option is called but custom_options_ptr is nullprt, this option assumes default value
             // Indexes for default values, if any, are replaced with actual default values
 
-            constexpr rs232_props(unsigned mode, ::sklib::supplement::rs232_custom_options_type* option)
+            constexpr rs232_props(unsigned mode, sklib::aux::rs232_custom_options_type* option)
             {
 #define PMEMBER(pack,field) ((pack) ? &((pack)->field) : nullptr)
 
-                using namespace ::sklib::opaque::rs232_indexes;   // keep local
+                using namespace sklib::priv::rs232_indexes;   // keep local
 
                 baud_rate = index_2_value(baud_rate_gp, mode, TAB.baud_rate, PMEMBER(option, baud_rate));
                 data_bits = index_2_value(data_bits_gp, mode, TAB.data_bits);
@@ -229,8 +229,8 @@ namespace sklib
 
                 if (data_bits == TAB.data_bits[dt5] && stop_bits != ONESTOPBIT) stop_bits = ONE5STOPBITS;
 
-                xon_sym = ::sklib::ascii::XON;
-                xoff_sym = ::sklib::ascii::XOFF;
+                xon_sym = sklib::ascii::XON;
+                xoff_sym = sklib::ascii::XOFF;
                 if (xon_xoff_special && option)
                 {
                     xon_sym = option->xon_char;
@@ -243,15 +243,15 @@ namespace sklib
 
 sklib::serial_io_type::serial_io_type() : error_state(false), break_state(false), system_error_code(ERROR_SUCCESS), port_no(0)
 {
-    typedef ::sklib::opaque::rs232_opaque_workspace_type workspace_type;
+    typedef sklib::priv::rs232_internal_workspace_type workspace_type;
     port_data = std::unique_ptr<workspace_type>(new workspace_type);
 
     port_data->hCom = INVALID_HANDLE_VALUE;
 }
 
-bool sklib::serial_io_type::open(unsigned com_port_no, unsigned mode, ::sklib::supplement::rs232_custom_options_type* option)
+bool sklib::serial_io_type::open(unsigned com_port_no, unsigned mode, sklib::aux::rs232_custom_options_type* option)
 {
-    using namespace ::sklib::opaque::rs232_indexes;   // keep local
+    using namespace sklib::priv::rs232_indexes;   // keep local
 
     if (is_open()) close();
 
@@ -269,7 +269,7 @@ bool sklib::serial_io_type::open(unsigned com_port_no, unsigned mode, ::sklib::s
         return false;
     }
 
-    ::sklib::opaque::rs232_props Props{ mode, option };
+    sklib::priv::rs232_props Props{ mode, option };
 
     DCB sdcb;
     if (!GetCommState(port_data->hCom, &sdcb)) return get_error_and_close_hcom();

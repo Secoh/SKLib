@@ -18,7 +18,7 @@
 
 namespace sklib
 {
-    namespace opaque
+    namespace priv
     {
         namespace rs232_indexes
         {
@@ -32,7 +32,7 @@ namespace sklib
                 constexpr props_group(int idx_count)   // this assumes starting index = 0
                 {
                     count = idx_count;
-                    width = ::sklib::bits_rank<unsigned>(idx_count - 1);
+                    width = sklib::bits_rank<unsigned>(idx_count - 1);
                     mask = sklib::bits_data_mask<unsigned>(width);
                 }
 
@@ -120,7 +120,7 @@ namespace sklib
             static constexpr props_group timeout_send_gp    { timeout_recv_gp, timeout_send_idx_count };
 
             static constexpr props_group available_gp       { timeout_send_gp };
-            static_assert(available_gp.offset < sklib::bits_width_less_sign_v<unsigned>,
+            static_assert(available_gp.offset < sklib::bits_width_v<unsigned>,
                           "SKLIB -- INTERNAL ERROR -- RS232: Line properties don\'t fit target type (unsigned int)");
 
 
@@ -130,12 +130,12 @@ namespace sklib
 
 // -------------------------- exposed -----------------------------
 
-    namespace opaque
+    namespace priv
     {
-        struct rs232_opaque_workspace_type;
+        struct rs232_internal_workspace_type;
     };
 
-    namespace supplement
+    namespace aux
     {
         struct rs232_custom_options_type
         {
@@ -155,10 +155,10 @@ namespace sklib
         serial_io_type();
         ~serial_io_type() { close(); }
 
-        serial_io_type(unsigned com_port_no, unsigned mode = 0, ::sklib::supplement::rs232_custom_options_type* option = nullptr) : serial_io_type()
+        serial_io_type(unsigned com_port_no, unsigned mode = 0, sklib::aux::rs232_custom_options_type* option = nullptr) : serial_io_type()
         { open(com_port_no, mode, option); }
 
-        bool open(unsigned com_port_no, unsigned mode = 0, ::sklib::supplement::rs232_custom_options_type* option = nullptr);
+        bool open(unsigned com_port_no, unsigned mode = 0, sklib::aux::rs232_custom_options_type* option = nullptr);
         void close() { if (is_open()) get_error_and_close_hcom(false); }
 
         bool is_open() const;
@@ -177,7 +177,7 @@ namespace sklib
 
     protected:
         int port_no;
-        std::unique_ptr<::sklib::opaque::rs232_opaque_workspace_type> port_data;
+        std::unique_ptr<sklib::priv::rs232_internal_workspace_type> port_data;
         bool error_state;
         bool break_state;
         int system_error_code;    // set to ERROR_SUCCESS=0 by default;
@@ -192,10 +192,10 @@ namespace sklib
 
         serial_usb_io_type() {}
 
-        serial_usb_io_type(unsigned vid, unsigned pid, unsigned mode = 0, ::sklib::supplement::rs232_custom_options_type* option = nullptr)
+        serial_usb_io_type(unsigned vid, unsigned pid, unsigned mode = 0, sklib::aux::rs232_custom_options_type* option = nullptr)
             : serial_io_type(get_com_port_no(vid, pid), mode, option) {}
 
-        bool open(unsigned vid, unsigned pid, unsigned mode = 0, ::sklib::supplement::rs232_custom_options_type* option = nullptr)
+        bool open(unsigned vid, unsigned pid, unsigned mode = 0, sklib::aux::rs232_custom_options_type* option = nullptr)
         { return serial_io_type::open(get_com_port_no(vid, pid), mode, option); }
     };
 };

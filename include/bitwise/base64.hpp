@@ -12,11 +12,11 @@
 // Base64 implementation on top of bits_stream_base_type class
 // This is internal SKLib file and must NOT be included directly.
 
-namespace opaque
+namespace priv
 {
     class base64_property_type
     {
-        friend constexpr sklib::supplement::encapsulated_array_octet_index_type<uint8_t> generate_dictionary_inverse_table();
+        friend constexpr sklib::aux::encapsulated_array_octet_index_type<uint8_t> generate_dictionary_inverse_table();
 
     public:
         static constexpr int encoding_bit_length = 6;
@@ -33,9 +33,9 @@ namespace opaque
         static constexpr uint8_t Bad_code   = 0xFF;     // invalid input
     };
 
-    constexpr sklib::supplement::encapsulated_array_octet_index_type<uint8_t> generate_dictionary_inverse_table()
+    constexpr sklib::aux::encapsulated_array_octet_index_type<uint8_t> generate_dictionary_inverse_table()
     {
-        sklib::supplement::encapsulated_array_octet_index_type<uint8_t> R = { 0 };
+        sklib::aux::encapsulated_array_octet_index_type<uint8_t> R = { 0 };
         for (int k=0; k<=' '; k++) R.data[k] = base64_property_type::Space_code;
         for (int k=' '+1; k<OCTET_ADDRESS_SPAN; k++) R.data[k] = base64_property_type::Bad_code;
         for (size_t k=0; k< base64_property_type::dictionary_size; k++) R.data[base64_property_type::dictionary[k]] = (uint8_t)k;
@@ -43,10 +43,10 @@ namespace opaque
         return R;
     }
 
-    static constexpr sklib::supplement::encapsulated_array_octet_index_type<uint8_t> b64_dictionary_inverse = generate_dictionary_inverse_table();
+    inline constexpr sklib::aux::encapsulated_array_octet_index_type<uint8_t> b64_dictionary_inverse = generate_dictionary_inverse_table();
 };
 
-class base64_type : protected sklib::bits_stream_base_type, public sklib::opaque::base64_property_type
+class base64_type : protected sklib::bits_stream_base_type, public sklib::priv::base64_property_type
 {                      // make underlying members hidden from caller but allow further class derivation, include global constants
 protected:
     // octet (or character) I/O is communicated as integers, just like as ANSI C does
@@ -93,13 +93,13 @@ protected:
     }
 
 private:
-    sklib::supplement::callback_type<base64_type, bool, int&> read_proc;
-    sklib::supplement::callback_type<base64_type, void, int> write_proc;
+    sklib::aux::callback_type<base64_type, bool, int&> read_proc;
+    sklib::aux::callback_type<base64_type, void, int> write_proc;
 
     //bool (* const read_proc)(base64_type*, int&);
     //void (* const write_proc)(base64_type*, int);
 
-    ::sklib::supplement::bits_fixed_pack_type<encoding_bit_length, uint8_t> exchg{ 0 };
+    sklib::aux::bits_fixed_pack_type<encoding_bit_length, uint8_t> exchg{ 0 };
 
 public:
     // This class mimics C functions to read from, and write to, a stream
@@ -173,7 +173,7 @@ public:
         int c;
         if (!read_proc(c)) return false;
 
-        c = (c < 0 ? EOL_code : ::sklib::opaque::b64_dictionary_inverse.data[c & OCTET_MASK]);
+        c = (c < 0 ? EOL_code : sklib::priv::b64_dictionary_inverse.data[c & OCTET_MASK]);
 
         if (c == EOL_code)  // EOF
         {
@@ -192,7 +192,7 @@ public:
             encoder_errors = true;
         }
 
-        write(::sklib::supplement::bits_fixed_pack_type<encoding_bit_length, uint8_t>((uint8_t)c));
+        write(sklib::aux::bits_fixed_pack_type<encoding_bit_length, uint8_t>((uint8_t)c));
 
         if (decoded_data_accumulator >= 0)
         {
@@ -292,8 +292,8 @@ public:
         }
         else
         {
-            uint8_t uc = ::sklib::opaque::b64_dictionary_inverse.data[(uint8_t)data];
-            if (uc < dictionary_size) write(::sklib::supplement::bits_fixed_pack_type<encoding_bit_length, uint8_t>(uc));
+            uint8_t uc = sklib::priv::b64_dictionary_inverse.data[(uint8_t)data];
+            if (uc < dictionary_size) write(sklib::aux::bits_fixed_pack_type<encoding_bit_length, uint8_t>(uc));
             if (uc == Bad_code) encoder_errors = true;
             if (decoded_data_accumulator >= 0) write_proc(decoded_data_accumulator);
         }
@@ -301,6 +301,6 @@ public:
 
     static constexpr const uint8_t* get_inverse_table()
     {
-        return ::sklib::opaque::b64_dictionary_inverse.data;
+        return sklib::priv::b64_dictionary_inverse.data;
     }
 };

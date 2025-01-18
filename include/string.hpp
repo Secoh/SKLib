@@ -12,17 +12,20 @@
 #ifndef SKLIB_INCLUDED_STRING_HPP
 #define SKLIB_INCLUDED_STRING_HPP
 
-#include<cstdint>
-#include<type_traits>
-#include<limits>
-#include<utility>
+#include <cstdint>
+#include <type_traits>
+#include <limits>
+#include <utility>
 
-#include"types.hpp"
-#include"math.hpp"
+#include "types.hpp"
+#include "math.hpp"
 
+
+//sk move inside safe-std-string
+#include "configure.hpp"
 #ifndef SKLIB_TARGET_MCU
-#include<string>
-#endif # SKLIB_TARGET_MCU
+#include <string>
+#endif // SKLIB_TARGET_MCU
 
 namespace sklib
 {
@@ -33,9 +36,10 @@ namespace sklib
 #include "string/numbers.hpp"
 #include "string/collection.hpp"
 
+//sk move inside safe-std-string
 #ifndef SKLIB_TARGET_MCU
 #include "string/safe-std-string.hpp"
-#endif # SKLIB_TARGET_MCU
+#endif // SKLIB_TARGET_MCU
 
 };
 

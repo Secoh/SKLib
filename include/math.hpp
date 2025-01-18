@@ -14,8 +14,8 @@
 
 #include <random>
 #include <type_traits>
-#include <intrin.h>
-#include <immintrin.h>
+//sk ... #include <intrin.h>
+//sk ... #include <immintrin.h>
 #include <array>
 #include <functional>
 
@@ -37,11 +37,8 @@ namespace sklib
 {
 
 #include "math/cpu-support.hpp"
-
 #include "math/algebra.hpp"
-
 #include "math/primes.hpp"
-
 #include "math/geometry.hpp"
 
 };

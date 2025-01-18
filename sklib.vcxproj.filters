@@ -189,7 +189,7 @@
     <ClInclude Include="include\utility\std-func.hpp">
       <Filter>Header Files\include\utility</Filter>
     </ClInclude>
-    <ClInclude Include="include\utility\random-size-int.hpp">
+    <ClInclude Include="include\utility\testing-random-size-int.hpp">
       <Filter>Header Files\include\utility</Filter>
     </ClInclude>
     <ClInclude Include="include\utility\testing-specific.hpp">
@@ -224,6 +224,9 @@
     </ClInclude>
     <ClInclude Include="include\math\primes\pcompressor.hpp">
       <Filter>Header Files\include\math\primes</Filter>
+    </ClInclude>
+    <ClInclude Include="include\configure.hpp">
+      <Filter>Header Files\include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,5 +1,5 @@
 // This file is part of SKLib: https://github.com/Secoh/SKLib
-// Copyright [2020-2023] Secoh
+// Copyright [2020-2025] Secoh
 //
 // Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
 // You may not use this file except in compliance with the License.
@@ -8,10 +8,19 @@
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 
+#ifndef SKLIB_INCLUDED_TYPES_MISC_HPP
+#define SKLIB_INCLUDED_TYPES_MISC_HPP
+
+#include <type_traits>
+
+#include "int-bits.hpp"
+
+namespace sklib {
+
 // Uncategorized stuff related to C/C++ types.
 // This is internal SKLib file and must NOT be included directly.
 
-namespace supplement
+namespace aux
 {
 // -------------------------------------------------------
 // Self-explanatory name for standard STL template
@@ -46,7 +55,12 @@ namespace supplement
 // Thus, the following explicit re-implementation
 
     template<class T, size_t N> struct encapsulated_array_type { T data[N]; };
-    SKLIB_TEMPLATE_IF_INT(T) using encapsulated_array_octet_index_type = encapsulated_array_type<T, sklib::OCTET_ADDRESS_SPAN>;
+    template<class T> using encapsulated_array_octet_index_type = encapsulated_array_type<T, OCTET_ADDRESS_SPAN>;
+    template<class T> using encapsulated_array_width_index_type = encapsulated_array_type<T, bits_width_v<T>>;
 
-}; // namespace supplement
+}; // namespace aux
+
+}; // namespace sklib
+
+#endif // SKLIB_INCLUDED_TYPES_MISC_HPP
 

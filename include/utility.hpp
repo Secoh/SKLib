@@ -7,35 +7,17 @@
 // Special exception from GNU LGPL terms: you don't have to publish the compiled object binary file(s) for SKLib.
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
-//
 
 #ifndef SKLIB_INCLUDED_UTILITY_HPP
 #define SKLIB_INCLUDED_UTILITY_HPP
 
-#include <type_traits>
-
-namespace sklib
-{
 #include "utility/std-func.hpp"
 #include "utility/macro-overloading.hpp"
 #include "utility/macro-misc.hpp"
 #include "utility/misc-helpers.hpp"
-};
 
-#if defined(SKLIB_TARGET_TEST) && !defined(SKLIB_TARGET_MCU)
-
-#include <string>
-#include <iostream>
-#include <iomanip>
-#include <random>
-
-namespace sklib
-{
-#include "utility/random-size-int.hpp"
+#include "utility/testing-random-size-int.hpp"
 #include "utility/testing-specific.hpp"
-};
-
-#endif // SKLIB_TARGET_TEST not SKLIB_TARGET_MCU
 
 #endif // SKLIB_INCLUDED_UTILITY_HPP
 

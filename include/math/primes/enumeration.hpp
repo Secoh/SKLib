@@ -18,7 +18,7 @@
 // There is reversible function that represens a member of the sequence by its 0-based index.
 
 // Sequence 6n+-1 in ascending order, starting with 5, by 0-based index
-SKLIB_TEMPLATE_IF_UINT(T) constexpr T prime_candidate(sklib::supplement::do_not_deduce<T> idx)
+SKLIB_TEMPLATE_IF_UINT(T) constexpr T prime_candidate(sklib::aux::do_not_deduce<T> idx)
 {
     return 3*idx + 5 - (idx & 1);
 }

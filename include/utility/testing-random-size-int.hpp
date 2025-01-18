@@ -8,13 +8,30 @@
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 
+#ifndef SKLIB_INCLUDED_UTILITY_TST_RNDSZINT_HPP
+#define SKLIB_INCLUDED_UTILITY_TST_RNDSZINT_HPP
+
+#include "../configure.hpp"
+#ifdef SKLIB_TARGET_TEST
+
+#include <type_traits>
+#include <random>
+
+namespace sklib {
+
 // Provides helper for random integers / random range for testing.
 // This is internal SKLib file and must NOT be included directly.
 
-namespace opaque
+namespace priv
 {
-    template<class T, int N_down>
+    template<class T, int N_down, typename = void>
     class random_size_integer_device_unsigned
+    {
+        static_assert(false, "SKLIB ** INTERNAL ERROR ** Random size integers are available only for fundamental types");
+    };
+
+    template<class T, int N_down>
+    class random_size_integer_device_unsigned<T, N_down, std::enable_if_t<is_native_integer_v<T>>>
     {
     private:
         // https://en.cppreference.com/w/cpp/numeric/random/uniform_int_distribution
@@ -45,10 +62,16 @@ namespace opaque
             return (pos ? V1 : -V1);
         }
     };
-}; // namespace opaque
+}; // namespace priv
 
-template<class T, int N_down, std::enable_if_t<sklib::is_integer_v<T>, bool> = true>
-using random_size_integer_device = std::conditional_t<std::is_signed_v<T>,
-    sklib::opaque::random_size_integer_device_signed<T, N_down>,
-    sklib::opaque::random_size_integer_device_unsigned<T, N_down>>;
+template<class T, int N_down>
+using random_size_integer_device = std::conditional_t<sklib::is_signed_v<T>,
+    sklib::priv::random_size_integer_device_signed<T, N_down>,
+    sklib::priv::random_size_integer_device_unsigned<T, N_down>>;
+
+}; // namespace sklib
+
+#endif // SKLIB_TARGET_TEST
+
+#endif // SKLIB_INCLUDED_UTILITY_TST_RNDSZINT_HPP
 

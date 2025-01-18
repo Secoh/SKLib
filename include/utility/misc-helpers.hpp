@@ -8,18 +8,23 @@
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 
+#ifndef SKLIB_INCLUDED_UTILITY_MISC_HPP
+#define SKLIB_INCLUDED_UTILITY_MISC_HPP
+
+namespace sklib {
+
 // Provides misc. helper types and/or classes.
 // This is internal SKLib file and must NOT be included directly.
 
-namespace supplement
+namespace aux
 {
 // -------------------------------------------------------
 // Provides member type for a class depending on class declaration, so the name of the type is known
 
-#define SKLIB_SUPPLEMENT_DECLARE_TYPE_CONDUIT(type_conduit_name,type_reflection_name) \
+#define SKLIB_AUX_DECLARE_TYPE_CONDUIT(type_conduit_name,type_reflection_name) \
 template<class T> class type_conduit_name { protected: typedef T type_reflection_name; };
 
-    SKLIB_SUPPLEMENT_DECLARE_TYPE_CONDUIT(type_conduit, self_type)
+    SKLIB_AUX_DECLARE_TYPE_CONDUIT(type_conduit, self_type)
 
 // Example how to use
 // -----------------------
@@ -87,5 +92,9 @@ template<class T> class type_conduit_name { protected: typedef T type_reflection
 //        template<class CA, class FR, class ...FA>
 //        struct callback_type<CA, FR(*)(FA...)>        { ... };
 
-}; // supplement
+}; // aux
+
+}; // namespace sklib
+
+#endif // SKLIB_INCLUDED_UTILITY_MISC_HPP
 

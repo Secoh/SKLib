@@ -19,31 +19,31 @@ namespace primes_compressor
     // 1111 1111 1111 + 7 bit: 46 and up, known maximum is 111 (see primes-32 list)
 
     // bit lengths to encode data in different frequency tiers
-    static constexpr int zone0 = 4; // the most frequent selections
-    static constexpr int zoneA = 4;
-    static constexpr int zoneB = 4;
-    static constexpr int zoneC = 7; // the least frequent selections...
+    inline constexpr int zone0 = 4; // the most frequent selections
+    inline constexpr int zoneA = 4;
+    inline constexpr int zoneB = 4;
+    inline constexpr int zoneC = 7; // the least frequent selections...
     // ...AND there is no data that need longer encodings
 
-    static constexpr int cutA = zone0;
-    static constexpr int cutB = cutA + zoneA;
-    static constexpr int cutC = cutB + zoneB;
-    static constexpr int cut_cap = cutC + zoneC;
+    inline constexpr int cutA = zone0;
+    inline constexpr int cutB = cutA + zoneA;
+    inline constexpr int cutC = cutB + zoneB;
+    inline constexpr int cut_cap = cutC + zoneC;
 
-    static constexpr auto onesA = sklib::bits_pack<cutA>(sklib::bits_data_mask<int>(cutA));
-    static constexpr auto onesB = sklib::bits_pack<cutB>(sklib::bits_data_mask<int>(cutB));
-    static constexpr auto onesC = sklib::bits_pack<cutC>(sklib::bits_data_mask<int>(cutC));
-    static constexpr auto ones_cap = sklib::bits_pack<cut_cap>(sklib::bits_data_mask<int>(cut_cap));
+    inline constexpr auto onesA = sklib::bits_pack<cutA>(sklib::bits_data_mask<int>(cutA));
+    inline constexpr auto onesB = sklib::bits_pack<cutB>(sklib::bits_data_mask<int>(cutB));
+    inline constexpr auto onesC = sklib::bits_pack<cutC>(sklib::bits_data_mask<int>(cutC));
+    inline constexpr auto ones_cap = sklib::bits_pack<cut_cap>(sklib::bits_data_mask<int>(cut_cap));
 
-    static constexpr auto onesB_overA = sklib::bits_pack<zoneA>(sklib::bits_data_mask<int>(zoneA));
-    static constexpr auto onesC_overB = sklib::bits_pack<zoneB>(sklib::bits_data_mask<int>(zoneB));
-    static constexpr auto ones_overC = sklib::bits_pack<zoneC>(sklib::bits_data_mask<int>(zoneC));
+    inline constexpr auto onesB_overA = sklib::bits_pack<zoneA>(sklib::bits_data_mask<int>(zoneA));
+    inline constexpr auto onesC_overB = sklib::bits_pack<zoneB>(sklib::bits_data_mask<int>(zoneB));
+    inline constexpr auto ones_overC = sklib::bits_pack<zoneC>(sklib::bits_data_mask<int>(zoneC));
 
     // codes in zone0 starts with 0; codes in zones A, B, etc, start with argument = tier A, B, etc
-    static constexpr int tierA = sklib::bits_data_mask<int>(zone0);
-    static constexpr int tierB = sklib::bits_data_mask<int>(zoneA) + tierA;
-    static constexpr int tierC = sklib::bits_data_mask<int>(zoneB) + tierB;
-    static constexpr int tier_cap = sklib::bits_data_mask<int>(zoneC) + tierC;
+    inline constexpr int tierA = sklib::bits_data_mask<int>(zone0);
+    inline constexpr int tierB = sklib::bits_data_mask<int>(zoneA) + tierA;
+    inline constexpr int tierC = sklib::bits_data_mask<int>(zoneB) + tierB;
+    inline constexpr int tier_cap = sklib::bits_data_mask<int>(zoneC) + tierC;
 }
 
 enum class primes_decoder_status_type

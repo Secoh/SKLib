@@ -17,14 +17,14 @@
 // Unpack byte stream into sequence of objects representing bit packs
 // (bytes are considered MSB; leading bit in the stream corresponds to leading bit in the pack)
 
-namespace opaque
+namespace priv
 {
     struct bits_variable_pack_anchor {};
 };
 
-namespace supplement
+namespace aux
 {
-    SKLIB_TEMPLATE_IF_INT(T) class bits_variable_pack_type : public sklib::opaque::bits_variable_pack_anchor
+    SKLIB_TEMPLATE_IF_INT(T) class bits_variable_pack_type : public sklib::priv::bits_variable_pack_anchor
     {
     public:
         unsigned bit_count;
@@ -34,7 +34,7 @@ namespace supplement
     };
 
     template<int N, class T, SKLIB_INTERNAL_ENABLE_IF_INT(T)>
-    class bits_fixed_pack_type : public sklib::opaque::bits_variable_pack_anchor
+    class bits_fixed_pack_type : public sklib::priv::bits_variable_pack_anchor
     {
         static_assert(N <= sklib::bits_width_v<T>,
                       "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bits");
@@ -50,13 +50,13 @@ namespace supplement
 template<int N, class T, SKLIB_INTERNAL_ENABLE_IF_INT(T)>
 constexpr auto bits_pack(T v)
 {
-    return sklib::supplement::bits_fixed_pack_type<N, T>(v);
+    return sklib::aux::bits_fixed_pack_type<N, T>(v);
 }
 
 SKLIB_TEMPLATE_IF_INT(T)
 constexpr auto bits_pack(T v, unsigned N = sklib::bits_width_v<T>)
 {
-    return sklib::supplement::bits_variable_pack_type<T>(v, N);
+    return sklib::aux::bits_variable_pack_type<T>(v, N);
 }
 
 // --------------------------------------------------
@@ -69,9 +69,9 @@ protected:
     enum class hook_type { after_reset = 0, after_flush, before_rewind };
 
 private:
-    sklib::supplement::callback_type<bits_stream_base_type, bool, uint8_t&> read_octet;
-    sklib::supplement::callback_type<bits_stream_base_type, void, uint8_t> write_octet;
-    sklib::supplement::callback_type<bits_stream_base_type, void, hook_type> hook_action;
+    sklib::aux::callback_type<bits_stream_base_type, bool, uint8_t&> read_octet;
+    sklib::aux::callback_type<bits_stream_base_type, void, uint8_t> write_octet;
+    sklib::aux::callback_type<bits_stream_base_type, void, hook_type> hook_action;
 
 public:
     bits_stream_base_type(bool (*read_octet_callback)(bits_stream_base_type*, uint8_t&),         // derived class provides function to read next octet from stream
@@ -108,7 +108,7 @@ public:
         if (hook_action) hook_action(hook_type::after_reset);
     }
 
-    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::opaque::bits_variable_pack_anchor)
+    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::priv::bits_variable_pack_anchor)
     bits_stream_base_type& write(const TT& input)
     {
         auto data_size = input.bit_count;
@@ -131,7 +131,7 @@ public:
         return *this;
     }
 
-    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::opaque::bits_variable_pack_anchor)
+    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::priv::bits_variable_pack_anchor)
     bits_stream_base_type& operator<< (const TT& input)
     {
         return write(input);
@@ -158,7 +158,7 @@ public:
         return (bit_count <= available_bits_receiver);
     }
 
-    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::opaque::bits_variable_pack_anchor)
+    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::priv::bits_variable_pack_anchor)
     bool can_read_without_input_stream(const TT& request) const
     {
         return can_read_without_input_stream(request.bit_count);
@@ -180,13 +180,13 @@ public:
         return true;
     }
 
-    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::opaque::bits_variable_pack_anchor)
+    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::priv::bits_variable_pack_anchor)
     bool can_read(const TT& request)
     {
         return can_read(request.bit_count);
     }
 
-    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::opaque::bits_variable_pack_anchor)
+    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::priv::bits_variable_pack_anchor)
     bits_stream_base_type& read(TT& request)    // size is input, data is output
     {
         request.data = 0;
@@ -213,14 +213,14 @@ public:
         return *this;
     }
 
-    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::opaque::bits_variable_pack_anchor)
+    SKLIB_TEMPLATE_IF_DERIVED(TT, sklib::priv::bits_variable_pack_anchor)
     bits_stream_base_type& operator>> (TT& request)
     {
         return read(request);
     }
 
 protected:
-    static constexpr uint8_t byte_low_mask[sklib::OCTET_BITS + 1] = { 0,
+    static constexpr uint8_t byte_low_mask[sklib::OCTET_BITS + 1] = { 0,   //sk! use update from bmanip for bit test arrays
         sklib::bits_data_mask_v<uint8_t, 1>,
         sklib::bits_data_mask_v<uint8_t, 2>,
         sklib::bits_data_mask_v<uint8_t, 3>,

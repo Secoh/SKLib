@@ -11,14 +11,20 @@
 // Provides template basic math functions that can be constexpr.
 // This is internal SKLib file and must NOT be included directly.
 
-template<class R, class V, std::enable_if_t<sklib::is_integer_v<V>, bool> = true>
+template<class R, class V, SKLIB_INTERNAL_ENABLE_IF_INT(V)>   //sk  std::enable_if_t<sklib::is_integer_v<V>, bool> = true>
 constexpr auto upow(R x, V p)
 {
     R z = R(1);
+    if (p<0) return z;
 
-    while (p > 0)
+    //sk!! need to search for nonzero bit starting from above
+    // then go from 0 to the limit, may be lower than max
+
+    unsigned N = sklib::bits_width_v<R>;
+    for (; )
+    while (p)
     {
-        if (p % 2) z *= x;
+        if (bit_test<R, 0>(p)) z *= x;
         x *= x;
         p /= 2;
     }
@@ -29,7 +35,7 @@ constexpr auto upow(R x, V p)
 template<class R, class V, std::enable_if_t<sklib::is_signed_integer_v<V>, bool> = true>
 constexpr auto ipow(R x, V p)
 {
-    typedef make_unsigned_if_integer_type<V> uV;
+    typedef sklib::make_unsigned_if_integer_type<V> uV;
     return (p<0) ? upow(1/x, (uV)-p) : upow(x, (uV)p);
 }
 

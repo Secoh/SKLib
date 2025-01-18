@@ -16,14 +16,15 @@
 
 namespace sklib
 {
-    namespace opaque
+    namespace priv
     {
-        template<class T> static constexpr T crc_make_polynomial(bool mode_msb, unsigned length, T polynomial)
-        { return (mode_msb ? polynomial : ::sklib::supplement::bits_flip_bruteforce<T>(polynomial, length)); }
+        template<class T>
+        constexpr T crc_make_polynomial(bool mode_msb, unsigned length, T polynomial)
+        { return (mode_msb ? polynomial : sklib::aux::bits_flip_bruteforce<T>(polynomial, length)); }
 
         // see: https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks#Multi-bit_computation
         template<class T>
-        static constexpr void crc_generate_table(T(&U)[OCTET_ADDRESS_SPAN], unsigned length, T polynomial, bool msb = false)
+        constexpr void crc_generate_table(T(&U)[OCTET_ADDRESS_SPAN], unsigned length, T polynomial, bool msb = false)
         {
             const T high_bit = sklib::bits_data_high_1<T>(length);
             const T mask = sklib::bits_data_mask<T>(length);
@@ -61,21 +62,21 @@ namespace sklib
         }
 
         template<class T>
-        static constexpr auto crc_create_table(unsigned L, T P, bool msb)
+        constexpr auto crc_create_table(unsigned L, T P, bool msb)
         {
-            sklib::supplement::encapsulated_array_octet_index_type<T> R = { 0 };
+            sklib::aux::encapsulated_array_octet_index_type<T> R = { 0 };
             crc_generate_table<T>(R.data, L, P, msb);
             return R;
         }
     };
 
-    namespace supplement
+    namespace aux
     {
         template<class T>
         class crc_base_type     //sk !! move it to Internal
         {
         private:
-            const sklib::supplement::encapsulated_array_octet_index_type<T>& Table;
+            const sklib::aux::encapsulated_array_octet_index_type<T>& Table;
 
             template<class T1> static constexpr bool tiny_container_v = (sklib::bits_width_v<T1> <= OCTET_BITS);
 
@@ -93,13 +94,13 @@ namespace sklib
             const unsigned Polynomial_Degree;
             const T Polynomial;
 
-            constexpr crc_base_type(const sklib::supplement::encapsulated_array_octet_index_type<T>& table_in, bool mode_MSB, unsigned Length, T Normal_Polynomial, T Start_Value)
+            constexpr crc_base_type(const sklib::aux::encapsulated_array_octet_index_type<T>& table_in, bool mode_MSB, unsigned Length, T Normal_Polynomial, T Start_Value)
                 : Table(table_in)
                 , MSB(mode_MSB)
                 , mask(sklib::bits_data_mask<T>(Length))
                 , high_bit(sklib::bits_data_high_1<T>(Length))
                 , Polynomial_Degree(Length)
-                , Polynomial(::sklib::opaque::crc_make_polynomial<T>(mode_MSB, Length, (Normal_Polynomial & mask)))   // mask is declared before Polynomial and others
+                , Polynomial(sklib::priv::crc_make_polynomial<T>(mode_MSB, Length, (Normal_Polynomial & mask)))   // mask is declared before Polynomial and others
                 , msb_shift(Length > OCTET_BITS ? Length - OCTET_BITS : OCTET_BITS - Length)
                 , start_crc(Start_Value & mask)
                 , vcrc(start_crc)
@@ -141,7 +142,7 @@ namespace sklib
             // fast but implementation-dependent Update for fundamental types and *packed* POD's
             // deprecated anywhere where portability is critical
             template<class D>
-            constexpr T update_packed(const ::sklib::supplement::do_not_deduce<D>& data)
+            constexpr T update_packed(const sklib::aux::do_not_deduce<D>& data)
             {
                 static_assert(sizeof(uint8_t) == 1, "This cannot happen, size of byte is 1 by definition");
                 return update(reinterpret_cast<const uint8_t *>(&data), sizeof(D));
@@ -273,36 +274,36 @@ namespace sklib
 
 
     template<class T>
-    class crc_type : public ::sklib::supplement::crc_base_type<T>
+    class crc_type : public sklib::aux::crc_base_type<T>
     {
         //SKLIB_TYPES_IS_INTEGER(T)
         static_assert(sklib::is_integer_v<T>, "CRC Polynomial representation must be integer of approptiate size");
 
     protected:
-        sklib::supplement::encapsulated_array_octet_index_type<T> Table;
+        sklib::aux::encapsulated_array_octet_index_type<T> Table;
 
     public:
         typedef T type;
 
         constexpr crc_type(unsigned Length, T Normal_Polynomial, bool mode_MSB = false, T Start_Value = ~T(0))
-            : ::sklib::supplement::crc_base_type<T>(Table, mode_MSB, Length, Normal_Polynomial, Start_Value)
-            , Table(::sklib::opaque::crc_create_table<T>(Length, Normal_Polynomial, mode_MSB))
+            : sklib::aux::crc_base_type<T>(Table, mode_MSB, Length, Normal_Polynomial, Start_Value)
+            , Table(sklib::priv::crc_create_table<T>(Length, Normal_Polynomial, mode_MSB))
         {}
     };
 
     template<class T, unsigned Length, T Normal_Polynomial, bool mode_MSB = false, T Start_Value = sklib::bits_data_mask_v<T, Length>>
-    class crc_fixed_type : public ::sklib::supplement::crc_base_type<T>
+    class crc_fixed_type : public sklib::aux::crc_base_type<T>
     {
         //SKLIB_TYPES_IS_INTEGER(T)
         static_assert(sklib::is_integer_v<T>, "CRC Polynomial representation must be integer of approptiate size");
         static_assert(Length >= 1, "CRC Polynomial must be at least 1 bit long");
-        static_assert(sklib::bits_width_less_sign_v<T> >= Length, "Data type for CRC must be large enough to hold the polynomial (sign bit must not be used)");
+        static_assert(sklib::bits_width_v<T> >= Length, "Data type for CRC must be large enough to hold the polynomial (sign bit must not be used)");
         static_assert(Normal_Polynomial > 0 && Normal_Polynomial % 2, "CRC Polynomial representation shall be odd positive integer");
         static_assert(Normal_Polynomial <= sklib::bits_data_mask_v<T, Length>, "CRC Polynomial representation must be within the specified length");
 
     protected:
-        static constexpr sklib::supplement::encapsulated_array_octet_index_type<T> Table =
-                             sklib::opaque::crc_create_table<T>(Length, Normal_Polynomial, mode_MSB);   // this data block becomes statically linked
+        static constexpr sklib::aux::encapsulated_array_octet_index_type<T> Table =
+                             sklib::priv::crc_create_table<T>(Length, Normal_Polynomial, mode_MSB);   // this data block becomes statically linked
 
     public:
         typedef T type;
@@ -310,11 +311,11 @@ namespace sklib
         static constexpr bool MSB = mode_MSB;
         static constexpr unsigned Polynomial_Degree = Length;
         static constexpr T Polynomial =
-            ::sklib::opaque::crc_make_polynomial<T>(mode_MSB, Length, (Normal_Polynomial & sklib::bits_data_mask<T>(Length)));
+            sklib::priv::crc_make_polynomial<T>(mode_MSB, Length, (Normal_Polynomial & sklib::bits_data_mask<T>(Length)));
 
         static constexpr const T* get_table() { return Table.data; }
 
-        constexpr crc_fixed_type() : ::sklib::supplement::crc_base_type<T>(Table, mode_MSB, Length, Normal_Polynomial, Start_Value) {}
+        constexpr crc_fixed_type() : sklib::aux::crc_base_type<T>(Table, mode_MSB, Length, Normal_Polynomial, Start_Value) {}
     };
 
     // standard CRC types

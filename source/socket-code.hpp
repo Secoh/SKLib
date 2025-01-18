@@ -31,9 +31,9 @@
 
 namespace sklib
 {
-    namespace opaque
+    namespace priv
     {
-        struct stream_tcpip_opaque_workspace_type
+        struct stream_tcpip_internal_workspace_type
         {
             WSADATA wsaData;
             SOCKET ListenSocket = INVALID_SOCKET;
@@ -56,7 +56,7 @@ sklib::stream_tcpip_type::stream_tcpip_type(bool server, uint16_t port_no, const
 {
     system_error_code = ERROR_SUCCESS;
 
-    typedef ::sklib::opaque::stream_tcpip_opaque_workspace_type workspace_type;
+    typedef sklib::priv::stream_tcpip_internal_workspace_type workspace_type;
     stream_data = std::unique_ptr<workspace_type>(new workspace_type);
 
     // 2021: the supported Winsock version is 2.2.x since 1996

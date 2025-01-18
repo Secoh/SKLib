@@ -24,27 +24,27 @@
 #if defined(_MSC_VER)
 #ifndef _WINDOWS_
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
-#include<windows.h>
+#include <windows.h>
 #endif
 
 #elif defined(__GNUC__)
-#include<errno.h>
-#include<dlfcn.h>
+#include <errno.h>
+#include <dlfcn.h>
 
 #endif
 
-struct sklib::opaque::dll_opaque_workspace_type
+struct sklib::priv::dll_internal_workspace_type
 {
     HMODULE hdll = NULL;
 };
 
-// constructor and destructor may visit the default destructor for the Opaque type
-sklib::opaque::dll_interface_helper::dll_interface_helper() {}
-sklib::opaque::dll_interface_helper::~dll_interface_helper() {}
+// constructor and destructor may visit the default destructor for the "internal" type
+sklib::priv::dll_interface_helper::dll_interface_helper() {}
+sklib::priv::dll_interface_helper::~dll_interface_helper() {}
 
-bool sklib::opaque::dll_interface_helper::open_dll_impl(const SKLIB_INTERNAL_DLL_FILENAME_CHAR_TYPE* dll_name, uint32_t caller_mode, bool request_mode_check)
+bool sklib::priv::dll_interface_helper::open_dll_impl(const SKLIB_INTERNAL_DLL_FILENAME_CHAR_TYPE* dll_name, uint32_t caller_mode, bool request_mode_check)
 {
-    if (!handle) handle = std::make_unique<dll_opaque_workspace_type>();
+    if (!handle) handle = std::make_unique<dll_internal_workspace_type>();
     if (is_dll_open()) close_dll();
 
     handle->hdll = ::LoadLibrary(dll_name);
@@ -72,7 +72,7 @@ bool sklib::opaque::dll_interface_helper::open_dll_impl(const SKLIB_INTERNAL_DLL
     return false;
 }
 
-void sklib::opaque::dll_interface_helper::close_dll(bool update_load_status)
+void sklib::priv::dll_interface_helper::close_dll(bool update_load_status)
 {
     if (!is_dll_open()) return;
 
@@ -83,13 +83,13 @@ void sklib::opaque::dll_interface_helper::close_dll(bool update_load_status)
     if (update_load_status) dll_info.dll_load_status = dll_info.dll_status_code.NOT_LOADED;
 }
 
-bool sklib::opaque::dll_interface_helper::is_dll_open()
+bool sklib::priv::dll_interface_helper::is_dll_open()
 {
     return handle && handle->hdll;
 }
 
-void sklib::opaque::dll_interface_helper::get_address(const char* symbol, bool required,
-                                                        ::sklib::opaque::dll_generic_entry& address, unsigned& sys_load_error)
+void sklib::priv::dll_interface_helper::get_address(const char* symbol, bool required,
+                                                        sklib::priv::dll_generic_entry& address, unsigned& sys_load_error)
 {
     if (is_dll_open())
     {

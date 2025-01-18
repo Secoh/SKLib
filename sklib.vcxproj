@@ -30,6 +30,7 @@
     <ClInclude Include="include\comms.hpp" />
     <ClInclude Include="include\comms\rs232.hpp" />
     <ClInclude Include="include\comms\socket.hpp" />
+    <ClInclude Include="include\configure.hpp" />
     <ClInclude Include="include\crypto.hpp" />
     <ClInclude Include="include\dll.hpp" />
     <ClInclude Include="include\ham.hpp" />
@@ -65,7 +66,7 @@
     <ClInclude Include="include\utility.hpp" />
     <ClInclude Include="include\utility\macro-misc.hpp" />
     <ClInclude Include="include\utility\macro-overloading.hpp" />
-    <ClInclude Include="include\utility\random-size-int.hpp" />
+    <ClInclude Include="include\utility\testing-random-size-int.hpp" />
     <ClInclude Include="include\utility\std-func.hpp" />
     <ClInclude Include="include\utility\testing-specific.hpp" />
     <ClInclude Include="include\utility\misc-helpers.hpp" />

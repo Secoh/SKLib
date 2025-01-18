@@ -19,11 +19,11 @@
 
 namespace sklib
 {
-    static constexpr uint16_t ham_morse_code_point_base = ::sklib::ascii::SPC;
-    static constexpr int      ham_morse_code_point_width = 6;
-    static constexpr uint16_t ham_morse_code_point_range = sklib::bits_data_cap_v<int16_t, ham_morse_code_point_width>;
-    static constexpr uint16_t ham_morse_code_max_length = 7;
-    static constexpr int      ham_morse_code_length_width = ::sklib::bits_rank(ham_morse_code_max_length);
+    inline constexpr uint16_t ham_morse_code_point_base = sklib::ascii::SPC;
+    inline constexpr int      ham_morse_code_point_width = 6;
+    inline constexpr uint16_t ham_morse_code_point_range = sklib::bits_data_cap<int16_t>(ham_morse_code_point_width);
+    inline constexpr uint16_t ham_morse_code_max_length = 7;
+    inline constexpr int      ham_morse_code_length_width = sklib::bits_rank(ham_morse_code_max_length);
     static_assert(ham_morse_code_point_width + ham_morse_code_max_length + ham_morse_code_length_width <= sklib::bits_width_v<uint16_t>,
         "SKLIB ** INTERNAL ERROR ** Data type must be large enough to hold Morse encoding package");
 
@@ -54,7 +54,7 @@ namespace sklib
 
         code_point <<= (total_bits - ham_morse_code_point_width);
 
-        const size_t size = ::sklib::strlen(ditdah);
+        const size_t size = sklib::strlen(ditdah);
         if (size > ham_morse_code_max_length) return 0;
         const uint16_t sz = static_cast<uint16_t>(size);
 
@@ -86,7 +86,7 @@ namespace sklib
     {
         constexpr auto total_bits = sklib::bits_width_v<decltype(ham_package_morse_sequence(""))>;
 
-        const size_t size = ::sklib::strlen(ditdah);
+        const size_t size = sklib::strlen(ditdah);
         if (size >= total_bits) return 0;
         const uint8_t sz = static_cast<uint16_t>(size);
 
@@ -103,7 +103,7 @@ namespace sklib
         return code;
     }
 
-    static constexpr void generate_table(const std::initializer_list<std::pair<char, const char*>>& config, sklib::supplement::encapsulated_array_type<uint8_t, ham_morse_code_point_range>& table)
+    constexpr void generate_table(const std::initializer_list<std::pair<char, const char*>>& config, sklib::aux::encapsulated_array_type<uint8_t, ham_morse_code_point_range>& table)
     {
         for (const auto& elem : config)
         {
@@ -119,14 +119,14 @@ namespace sklib
         }
     }
 
-    static constexpr auto create_table(const std::initializer_list<std::pair<char, const char*>>& config)
+    constexpr auto create_table(const std::initializer_list<std::pair<char, const char*>>& config)
     {
-        sklib::supplement::encapsulated_array_type<uint8_t, ham_morse_code_point_range> R{ 0 };
+        sklib::aux::encapsulated_array_type<uint8_t, ham_morse_code_point_range> R{ 0 };
         generate_table(config, R);
         return R;
     }
 
-    static constexpr auto create_standard_latin_table()
+    constexpr auto create_standard_latin_table()
     {
         return create_table({
                 { 'A', ".-" },      { 'M', "--" },      { 'Y', "-.--" },    { '.', ".-.-.-" },
@@ -144,21 +144,21 @@ namespace sklib
     }
 
 
-    static constexpr uint16_t L2 = ham_package_morse_symbol('L', ".-..");
-    static constexpr uint8_t L1 = ham_package_morse_sequence(".-..");
+    inline constexpr uint16_t L2 = ham_package_morse_symbol('L', ".-..");
+    inline constexpr uint8_t L1 = ham_package_morse_sequence(".-..");
 
     struct ham_morse_code_standard_table
     {
-        static constexpr sklib::supplement::encapsulated_array_type<uint8_t, ham_morse_code_point_range> Codes = create_standard_latin_table();
+        static constexpr sklib::aux::encapsulated_array_type<uint8_t, ham_morse_code_point_range> Codes = create_standard_latin_table();
     };
 
     struct ham_morse_code_table
     {
-        const sklib::supplement::encapsulated_array_type<uint8_t, ham_morse_code_point_range> Codes = create_standard_latin_table();
+        const sklib::aux::encapsulated_array_type<uint8_t, ham_morse_code_point_range> Codes = create_standard_latin_table();
         constexpr ham_morse_code_table(const std::initializer_list<std::pair<char, const char*>>& config) : Codes(create_table(config)) {}
         constexpr ham_morse_code_table() = default;
     };
 
-    static constexpr auto XYZ = ham_morse_code_table().Codes;
+    inline constexpr auto XYZ = ham_morse_code_table().Codes;  //sk wtf?!
 };
 

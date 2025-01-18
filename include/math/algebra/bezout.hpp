@@ -13,7 +13,7 @@
 
 // Finds D=GCD(A,B) in a Euclidean ring, and their Bezout coefficients in form D=A*ka+B*kb
 // The following operations must be defined for this function to work:
-//   - Euclidean division in form ::sklib::supplement::divmod() (see examples)
+//   - Euclidean division in form sklib::aux::divmod() (see examples)
 //   - comparison to zero: operator!
 //   - multiplication: operator*
 //   - subtraction: operator-=
@@ -49,7 +49,7 @@ T bezout(T A, T B, T& ka, T& kb)
     }
 
     A = *r[k];
-    if (sklib::supplement::e_isnegative(A))
+    if (sklib::aux::e_isnegative(A))
     {
         A = -A;
         ka = -ka;

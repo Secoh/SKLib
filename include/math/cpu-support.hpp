@@ -21,7 +21,7 @@
 //static_assert(false, "ERROR ** SKLib only supports 128-64 operations on x64 architecture and for GNU C++ or MSVC compilers");
 #endif
 
-namespace opaque
+namespace priv
 {
     // Divides A >= 0 by B > 0 and returns quotent in the name, remainder in R
     // The function attempts to use the fact that hardware DIV instruction computes both in the same time
@@ -114,7 +114,7 @@ namespace opaque
     inline uint64_t udiv128_64(uint64_t Ahi, uint64_t Alo, uint64_t B, uint64_t& Qhi, uint64_t& Qlo, uint64_t& R)
     {
         Qhi = uidivrem(Ahi, B, &Ahi);
-        Qlo = sklib::opaque::platform_AMD_x64::cpu_udiv128_64(Ahi, Alo, B, &R);
+        Qlo = sklib::priv::platform_AMD_x64::cpu_udiv128_64(Ahi, Alo, B, &R);
     }
 
     // "Extended" uint limited support
@@ -191,13 +191,13 @@ namespace opaque
 
         u64ex& add(const u64ex& X)
         {
-            sklib::opaque::platform_AMD_x64::cpu_uadd128_64(data_hi, data_lo, X.data_hi, X.data_lo, data_hi, data_lo);
+            sklib::priv::platform_AMD_x64::cpu_uadd128_64(data_hi, data_lo, X.data_hi, X.data_lo, data_hi, data_lo);
             return *this;
         }
 
         u64ex& sub(const u64ex& X)
         {
-            sklib::opaque::platform_AMD_x64::cpu_usub128_64(data_hi, data_lo, X.data_hi, X.data_lo, data_hi, data_lo);
+            sklib::priv::platform_AMD_x64::cpu_usub128_64(data_hi, data_lo, X.data_hi, X.data_lo, data_hi, data_lo);
             return *this;
         }
 
@@ -205,7 +205,7 @@ namespace opaque
         // ignores high portion of the data, if any
         u64ex& mul(uint64_t x)
         {
-            sklib::opaque::platform_AMD_x64::cpu_umul128_64(data_lo, x, &data_hi, &data_lo);
+            sklib::priv::platform_AMD_x64::cpu_umul128_64(data_lo, x, &data_hi, &data_lo);
             return *this;
         }
 
@@ -213,7 +213,7 @@ namespace opaque
         // high portion of the quotent MUST be zero, otherwise UB
         u64ex& div(uint64_t x, uint64_t* rem = nullptr)
         {
-            data_lo = sklib::opaque::platform_AMD_x64::cpu_udiv128_64(data_hi, data_lo, x, rem);
+            data_lo = sklib::priv::platform_AMD_x64::cpu_udiv128_64(data_hi, data_lo, x, rem);
             data_hi = 0;
             return *this;
         }
@@ -233,5 +233,5 @@ namespace opaque
     template<class T> using uint_extend_t = uint_extend<T>::type;
 
 
-}; // namespace opaque
+}; // namespace priv
 

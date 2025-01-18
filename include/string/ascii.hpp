@@ -13,51 +13,51 @@
 
 namespace ascii   // ASCII designators (useful subset)
 {
-    static constexpr uint8_t NUL = '\0';
-    static constexpr uint8_t STX = '\x02';   // Start of Text
-    static constexpr uint8_t ETX = '\x03';   // End of Text
-    static constexpr uint8_t EOT = '\x04';   // End of Transmission
-    static constexpr uint8_t ENQ = '\x05';   // Enquiry
-    static constexpr uint8_t ACK = '\x06';   // Acknowledge
-    static constexpr uint8_t NAK = '\x15';   // Negative Acknowledgement
-    static constexpr uint8_t BEL = '\a';     // Bell
-    static constexpr uint8_t BS  = '\b';
-    static constexpr uint8_t TAB = '\t';
-    static constexpr uint8_t LF  = '\n';
-    static constexpr uint8_t CR  = '\r';
-    static constexpr uint8_t VTAB= '\v';    // Vertical Tab
-    static constexpr uint8_t FF  = '\f';      // Form Feed
-    static constexpr uint8_t XON = '\x11';
-    static constexpr uint8_t XOFF= '\x13';
-    static constexpr uint8_t CAN = '\x18';   // Cancel
-    static constexpr uint8_t ESC = '\x1B';
-    static constexpr uint8_t DEL = '\x7F';
-    static constexpr uint8_t SPC = ' ';      // Space
+    inline constexpr uint8_t NUL = '\0';
+    inline constexpr uint8_t STX = '\x02';   // Start of Text
+    inline constexpr uint8_t ETX = '\x03';   // End of Text
+    inline constexpr uint8_t EOT = '\x04';   // End of Transmission
+    inline constexpr uint8_t ENQ = '\x05';   // Enquiry
+    inline constexpr uint8_t ACK = '\x06';   // Acknowledge
+    inline constexpr uint8_t NAK = '\x15';   // Negative Acknowledgement
+    inline constexpr uint8_t BEL = '\a';     // Bell
+    inline constexpr uint8_t BS  = '\b';
+    inline constexpr uint8_t TAB = '\t';
+    inline constexpr uint8_t LF  = '\n';
+    inline constexpr uint8_t CR  = '\r';
+    inline constexpr uint8_t VTAB= '\v';    // Vertical Tab
+    inline constexpr uint8_t FF  = '\f';      // Form Feed
+    inline constexpr uint8_t XON = '\x11';
+    inline constexpr uint8_t XOFF= '\x13';
+    inline constexpr uint8_t CAN = '\x18';   // Cancel
+    inline constexpr uint8_t ESC = '\x1B';
+    inline constexpr uint8_t DEL = '\x7F';
+    inline constexpr uint8_t SPC = ' ';      // Space
 
-    static constexpr uint8_t A = 'A';
-    static constexpr uint8_t a = 'a';
-    static constexpr uint8_t Z = 'Z';
-    static constexpr uint8_t z = 'z';
+    inline constexpr uint8_t A = 'A';
+    inline constexpr uint8_t a = 'a';
+    inline constexpr uint8_t Z = 'Z';
+    inline constexpr uint8_t z = 'z';
 
     static_assert(a > A, "SKLIB ** INTERNAL ERROR ** Alphabet does not start with ASCII, this cannot happen.");
-    static constexpr uint8_t high_to_low_offset = a - A;
+    inline constexpr uint8_t high_to_low_offset = a - A;
     static_assert(z == Z + high_to_low_offset, "SKLIB ** INTERNAL ERROR ** Alphabet does not start with ASCII, this cannot happen.");
 
-    static constexpr uint8_t n0 = '0';
-    static constexpr uint8_t n9 = '9';
+    inline constexpr uint8_t n0 = '0';
+    inline constexpr uint8_t n9 = '9';
     static_assert(n9 == n0 + 9, "SKLIB ** INTERNAL ERROR ** Alphabet does not start with ASCII, this cannot happen.");
 };
 
 template<class T>
 constexpr bool is_ascii_upper(T c)
 {
-    return is_clamped<make_unsigned_if_integer_type<T>>(to_unsigned_if_integer(c), ascii::A, ascii::Z);
+    return is_clamped<sklib::make_unsigned_if_integer_type<T>>(to_unsigned_if_integer(c), ascii::A, ascii::Z);
 }
 
 template<class T>
 constexpr bool is_ascii_lower(T c)
 {
-    return is_clamped<make_unsigned_if_integer_type<T>>(to_unsigned_if_integer(c), ascii::a, ascii::z);
+    return is_clamped<sklib::make_unsigned_if_integer_type<T>>(to_unsigned_if_integer(c), ascii::a, ascii::z);
 }
 
 template<class T>
@@ -69,7 +69,7 @@ constexpr bool is_ascii_alpha(T c)
 template<class T>
 constexpr bool is_num(T c)
 {
-    return is_clamped<make_unsigned_if_integer_type<T>>(to_unsigned_if_integer(c), ascii::n0, ascii::n9);
+    return is_clamped<sklib::make_unsigned_if_integer_type<T>>(to_unsigned_if_integer(c), ascii::n0, ascii::n9);
 }
 
 template<class T>

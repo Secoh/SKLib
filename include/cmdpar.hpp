@@ -12,7 +12,7 @@
 #ifndef SKLIB_INCLUDED_CMDPAR_HPP
 #define SKLIB_INCLUDED_CMDPAR_HPP
 
-#include<type_traits>
+#include <type_traits>
 
 #include "string.hpp"
 #include "utility.hpp"
@@ -89,7 +89,7 @@ sklib_internal_H9V8GG33G51W7JJ93VO2SI2HQG288040_alternative_prefix_setter
 //
 
 #define SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_TWO(name,type) \
-    struct name : public ::sklib::opaque::SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE<type>
+    struct name : public sklib::priv::SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE<type>
 #define SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_ONE(name) SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_TWO(name,char)
 #define SKLIB_DECLARE_CMD_PARAMS(...) SKLIB_MACRO_SELECT_ONE_TWO(SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_ONE, \
                                                                  SKLIB_INTERNAL_CMDPAR_DECLARE_CMD_PARAMS_TWO, __VA_ARGS__)
@@ -97,9 +97,9 @@ sklib_internal_H9V8GG33G51W7JJ93VO2SI2HQG288040_alternative_prefix_setter
 // === Parameters, Options declarations
 
 #define SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,suffix,name,...) \
-    ::sklib::opaque::cmdpar_param_##suffix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE, std::decay_t<decltype(*name)>> \
+    sklib::priv::cmdpar_param_##suffix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE, std::decay_t<decltype(*name)>> \
     SKLIB_MACRO_SELF(SKLIB_INTERNAL_CMDPAR_USE_PARAM_PREFIX)##x \
-    { ::sklib::opaque::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), name, __VA_ARGS__ };
+    { sklib::priv::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), name, __VA_ARGS__ };
 
 #define SKLIB_OPTION_SWITCH(x)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,switch,#x)
 
@@ -152,9 +152,9 @@ sklib_internal_H9V8GG33G51W7JJ93VO2SI2HQG288040_alternative_prefix_setter
 #define SKLIB_OPTION_HELP_ALT_NAME(x,m)      SKLIB_INTERNAL_CMDPAR_DECLARE_NAMED_TYPED_OPTION(x,help,m)
 
 #define SKLIB_CMD_PARAMS_ALT_PREFIX(c) \
-    ::sklib::opaque::cmdpar_parser_prefix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE> \
+    sklib::priv::cmdpar_parser_prefix<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE> \
     SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_ALTERNATIVE_PREFIX_SETTER \
-    { ::sklib::opaque::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), c };
+    { sklib::priv::cmdpar_table_to_params_list_header<SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE>(this), c };
 
 #define SKLIB_CMD_PARAMS_INITIALIZER(name) name() = default; \
     name(int argn, const SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE* const* argc, int arg_start = 1, bool do_reset = true) \
@@ -195,7 +195,7 @@ namespace sklib
         static constexpr uint8_t is_help       = 0x80;  // hack: this bit signals that the option is used in help subsystem
     };
 
-    namespace opaque
+    namespace priv
     {
     // ====================================================================================================
     // === Parser Status Data and I/O
@@ -214,8 +214,8 @@ namespace sklib
             cmdpar_table_to_params_list_header(SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE<letter_type>*);
 
 #define SKLIB_INTERNAL_CMDPAR_DECLARE_CONTROL_TYPES(letter_type) \
-    typedef ::sklib::cmdpar_option_flags oflags;                 \
-    typedef ::sklib::cmdpar_parser_flags pflags;                 \
+    typedef sklib::cmdpar_option_flags oflags;                   \
+    typedef sklib::cmdpar_parser_flags pflags;                   \
     typedef cmdpar_param_base<letter_type> param_base;           \
     typedef cmdpar_status_base<letter_type> status_base;
 
@@ -233,7 +233,7 @@ namespace sklib
         };
 
 
-        SKLIB_SUPPLEMENT_DECLARE_TYPE_CONDUIT(SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE_CONDUIT, SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE);
+        SKLIB_AUX_DECLARE_TYPE_CONDUIT(SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE_CONDUIT, SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE);
 
     // ====================================================================================================
     // === Parameters Descriptors - Base
@@ -314,7 +314,7 @@ namespace sklib
         // minimum, and also make a name likely to be unique.
 
         template<class letter_type = char>
-        class SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE : public ::sklib::opaque::SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE_CONDUIT<letter_type>
+        class SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_TABLE_BASE_TYPE : public sklib::priv::SKLIB_INTERNAL_CMDPAR_UNIQUE_NAME_LETTER_TYPE_CONDUIT<letter_type>
         {
             static_assert(std::is_same_v<letter_type, std::decay_t<letter_type>>, "SKLIB ** Data type representing a character must have no qualifiers.");
             static_assert(sklib::is_integer_v<letter_type>, "SKLIB ** Data type representing a character must be integer.");
@@ -392,7 +392,7 @@ namespace sklib
                     select->option_status |= ((select->is_help() && !select->help_requested()) ? oflags::help_request : oflags::present);
 
                     unsigned len = select->name_len;
-                    bool same_argument = (::sklib::strlen<unsigned>(opt) > len);
+                    bool same_argument = (sklib::strlen<unsigned>(opt) > len);
                     auto value_start = (same_argument ? opt + len : next_arg);
                     auto value_end = select->do_decode(value_start);
 
@@ -405,7 +405,7 @@ namespace sklib
                     }
 
                     // only the body of the value must be in the string, otherwise it is error
-                    if (value_end - value_start != ::sklib::strlen<unsigned>(next_arg)) select->option_status |= oflags::error_partial;
+                    if (value_end - value_start != sklib::strlen<unsigned>(next_arg)) select->option_status |= oflags::error_partial;
                     return -1;
                 }
 
@@ -424,7 +424,7 @@ namespace sklib
                     select->option_status |= oflags::present;
 
                     auto value_end = select->do_decode(opt);
-                    if (!value_end || value_end - opt != ::sklib::strlen<unsigned>(opt)) select->option_status |= oflags::error_partial;
+                    if (!value_end || value_end - opt != sklib::strlen<unsigned>(opt)) select->option_status |= oflags::error_partial;
                     // only the body of the value must be in the string, otherwise it is error
 
                     return true;
@@ -457,7 +457,7 @@ namespace sklib
 
                         if (*arg_cur == Status.cur_prefix && !signal_plain)
                         {
-                            unsigned arg_len = ::sklib::strlen<unsigned>(arg_cur);
+                            unsigned arg_len = sklib::strlen<unsigned>(arg_cur);
                             for (unsigned t = 1; t < arg_len; t++)
                             {
                                 if (arg_cur[t] == Status.cur_prefix)
@@ -557,7 +557,7 @@ namespace sklib
                             if (ptr->help_requested())
                             {
                                 const letter_type* argument = ptr->get_string_value();
-                                unsigned argument_length = ::sklib::strlen<unsigned>(argument);
+                                unsigned argument_length = sklib::strlen<unsigned>(argument);
                                 if (!argument_length) continue;
 
                                 bool help_argument_taken = false;
@@ -624,7 +624,7 @@ namespace sklib
 
             bool is_match(const input_letter_type* arg) const
             {
-                return ::sklib::strnequ(arg, name_store, this->name_len);
+                return sklib::strnequ(arg, name_store, this->name_len);
             }
 
         public:
@@ -634,7 +634,7 @@ namespace sklib
                                                        const name_letter_type* param_name,
                                                        bool param_required)
                 : name_store(param_name)
-                , cmdpar_param_base<input_letter_type>(root, ::sklib::strlen<unsigned>(param_name), param_required)
+                , cmdpar_param_base<input_letter_type>(root, sklib::strlen<unsigned>(param_name), param_required)
             {}
         };
 
@@ -667,7 +667,7 @@ namespace sklib
             const input_letter_type* do_decode(const input_letter_type* arg)        \
             {                                                                       \
                 unsigned pstop = 0;                                                 \
-                value_store = ::sklib::parser<type>(arg, &pstop);                   \
+                value_store = sklib::parser<type>(arg, &pstop);                     \
                 if (!pstop) this->option_status |= oflags::error_empty;             \
                 return arg + pstop;                                                 \
             }                                                                       \
@@ -737,7 +737,7 @@ namespace sklib
             const input_letter_type* do_decode(const input_letter_type* arg)
             {
                 value_store = arg;
-                return arg + ::sklib::strlen<unsigned>(arg);
+                return arg + sklib::strlen<unsigned>(arg);
             }
 
             const input_letter_type* get_string_value() const { return value_store; }

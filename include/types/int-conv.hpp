@@ -1,5 +1,5 @@
 // This file is part of SKLib: https://github.com/Secoh/SKLib
-// Copyright [2020-2023] Secoh
+// Copyright [2020-2025] Secoh
 //
 // Licensed under the GNU Lesser General Public License, Version 2.1 or later. See: https://www.gnu.org/licenses/
 // You may not use this file except in compliance with the License.
@@ -8,48 +8,64 @@
 // Modified source code and/or any derivative work requirements are still in effect. All such file(s) must be openly
 // published under the same terms as the original one(s), but you don't have to inherit the special exception above.
 
+#ifndef SKLIB_INCLUDED_TYPES_INTCONV_HPP
+#define SKLIB_INCLUDED_TYPES_INTCONV_HPP
+
+#include <type_traits>
+
+#include "detect-type.hpp"
+
+namespace sklib {
+
 // Provides constants, macros, and templates for detection of C/C++ types.
 // This is internal SKLib file and must NOT be included directly.
 
-namespace supplement
+namespace priv
 {
-    // if integer and not bool, return self; otherwise, return int (as just any random integer type)
-    template<class T>
-    struct integer_or_int
+    // Selective materialization of template class depending on arbitrary condition
+    // using Partial specialization and SFINAE
+    // see: https://stackoverflow.com/questions/72197242/what-is-wrong-with-my-application-of-sfinae-when-trying-to-implement-a-type-trai
+
+    template<class T, typename = void>
+    struct make_unsigned_if_int
     {
-        typedef typename std::conditional_t<sklib::is_integer_v<T>, T, int> type;
+        using type = T;
+        static constexpr auto conv(const T& v) const { return v; }
     };
 
-    template<class T> using integer_or_int_type = integer_or_int<T>::type;
-
-    template<class T>
-    class make_unsigned_if_integer
+    template<class T, typename = void>
+    struct make_signed_if_int
     {
-    private:
-        using T2 = typename std::make_unsigned_t<sklib::supplement::integer_or_int_type<T>>;
-    public:
-        using type = typename std::conditional_t<sklib::is_integer_v<T>, T2, T>;
+        using type = T;
     };
 
     template<class T>
-    class make_signed_if_integer
+    struct make_unsigned_if_int<T, std::enable_if_t<is_native_integer_v<T>>>
     {
-    private:
-        using T2 = typename std::make_signed_t<sklib::supplement::integer_or_int_type<T>>;
-    public:
-        using type = typename std::conditional_t<sklib::is_integer_v<T>, T2, T>;
+        using type = typename std::make_unsigned_t<T>;
+        static constexpr auto conv(const T& v) const { return static_cast<type>(v); }
     };
 
-}; // namespace supplement
+    template<class T>
+    struct make_signed_if_int<T, std::enable_if_t<is_native_integer_v<T>>>
+    {
+        using type = typename std::make_signed_t<T>;
+    };
 
-// if integer, not bool, provide matching unsigned type, otherwise, leave type unchanged
+    // Compound integer types will be introduced on case by case basis
+
+}; // namespace priv
+
+// If integer, not bool, provide matching unsigned type, otherwise, leave type unchanged
+// This name resembles its analog from STL, must always fully address it
 template<class T>
-using make_unsigned_if_integer_type = typename sklib::supplement::make_unsigned_if_integer<T>::type;
+using make_unsigned_if_integer_type = typename priv::make_unsigned_if_int<T>::type;
 
-// if integer, not bool, provide matching signed type, otherwise, leave type unchanged
-// notably, it preserves signed status for floating-point types
+// If integer, not bool, provide matching signed type, otherwise, leave type unchanged
+// Notably, it preserves signed status for floating-point types
+// This name resembles its analog from STL, must always fully address it
 template<class T>
-using make_signed_if_integer_type = typename sklib::supplement::make_signed_if_integer<T>::type;
+using make_signed_if_integer_type = typename priv::make_signed_if_int<T>::type;
 
 // Casts to itself unless T is signed integer type, in which case it returns unsigned value
 // Note C++ rule 6.3.1.3 Signed and unsigned integers, paragraph 2:
@@ -57,6 +73,10 @@ using make_signed_if_integer_type = typename sklib::supplement::make_signed_if_i
 template<class T>
 constexpr auto to_unsigned_if_integer(const T& v)
 {
-    return static_cast<make_unsigned_if_integer_type<T>>(v);
+    return priv::make_unsigned_if_int<T>::conv(v);
 }
+
+}; // namespace sklib
+
+#endif // SKLIB_INCLUDED_TYPES_INTCONV_HPP
 

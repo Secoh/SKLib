@@ -14,6 +14,10 @@
 // typeless time input must be in seconds!
 // new timer type: checkpoint - like timeout but resets itself after returning true
 
+//sk
+//TODO:
+// if timer is checked in the close loop, we need option for interleave: only N-th call "check timer" actually calls system timer
+
 #ifndef SKLIB_INCLUDED_TIMER_HPP
 #define SKLIB_INCLUDED_TIMER_HPP
 
@@ -274,8 +278,8 @@ namespace sklib
             template<class tRep, class tPeriod = std::ratio<1>>
             duration_helper_type(const std::chrono::duration<tRep, tPeriod>& input) : value(std::chrono::duration_cast<std::chrono::steady_clock::duration>(input)) {}
 
-            template<class T, std::enable_if_t<(std::is_integral_v<T> || std::is_floating_point_v<T>), bool> = true>
-            duration_helper_type(const T& input) : value(std::chrono::duration_cast<std::chrono::steady_clock::duration>(::sklib::time_milliseconds(input))) {}
+            template<class T, std::enable_if_t<std::is_arithmetic_v<T>, bool> = true>
+            duration_helper_type(const T& input) : value(std::chrono::duration_cast<std::chrono::steady_clock::duration>(sklib::time_milliseconds(input))) {}
         };
 
     private:

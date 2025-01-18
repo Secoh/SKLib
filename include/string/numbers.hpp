@@ -83,7 +83,7 @@
 
 // This is internal SKLib file and must NOT be included directly.
 
-namespace opaque   // stoi-specific helpers
+namespace priv   // stoi-specific helpers
 {
     // Compute the cutoff value between legal numbers and illegal numbers. That is the largest legal value, divided by
     // the base. An input number that is greater than this value, if followed by a legal input character, is too big.
@@ -103,24 +103,26 @@ namespace opaque   // stoi-specific helpers
     //
     // While data types shall be all fundamental at this point, keep using template safety on type casting
 
+    //sk TODO: rework with compound integers in mind
+
     template<class target_type>
     struct stoi_bounds_positive_type
     {
-        typedef supplement::integer_or_int_type<target_type> bounds_type;
+        typedef aux::integer_or_int_type<target_type> bounds_type;
         static constexpr bounds_type typemax = std::numeric_limits<bounds_type>::max();
         static_assert(typemax > 0, "SKLIB ** INTERNAL ERROR ** Maximum value of a numerical type must be positive.");
         static constexpr bounds_type cutmax = (std::is_integral_v<target_type> ? typemax : 0);
         const bounds_type cutoff = 0;
         const int8_t      cutlim = 0;
 
-        constexpr stoi_bounds_positive_type(int8_t base) : cutoff(cutmax / base), cutlim(int8_t(cutmax% base)) {}
+        constexpr stoi_bounds_positive_type(int8_t base) : cutoff(cutmax / base), cutlim(int8_t(cutmax % base)) {}
     };
 
     template<class target_type>
     struct stoi_bounds_negative_type
     {
-        typedef supplement::integer_or_int_type<target_type> bounds_type;
-        typedef make_unsigned_if_integer_type<bounds_type> bounds_unsigned_type;
+        typedef aux::integer_or_int_type<target_type> bounds_type;
+        typedef sklib::make_unsigned_if_integer_type<bounds_type> bounds_unsigned_type;
         static constexpr bounds_type typemin = std::numeric_limits<bounds_type>::min();
         static_assert(std::is_unsigned_v<target_type> || typemin < 0, "SKLIB ** INTERNAL ERROR ** Minimum value of a signed type must be negative.");
         static constexpr bounds_type cutmin = (std::is_integral_v<target_type> ? typemin : 0);
@@ -129,7 +131,7 @@ namespace opaque   // stoi-specific helpers
         const bounds_type cutoff = 0;   // 2nd
 
         // for cutoff, make division without remainder
-        constexpr stoi_bounds_negative_type(int8_t base) : cutlim(int8_t(cutabs% base)), cutoff((cutmin + cutlim) / base) {}
+        constexpr stoi_bounds_negative_type(int8_t base) : cutlim(int8_t(cutabs % base)), cutoff((cutmin + cutlim) / base) {}
     };
 
     // turn ASCII letter into integer digit
@@ -232,9 +234,9 @@ constexpr auto stoi(const letter_type* str, length_type_ptr endpos = nullptr, in
     typedef std::conditional_t<std::is_null_pointer_v<length_type_ptr>, size_t,
                                std::decay_t<std::remove_pointer_t<length_type_ptr>> > length_type;
 
-    static_assert(is_numeric_v<result_type>, "SKLIB ** Result of stoi() must be a numerical value");
-    static_assert(is_integer_v<letter_type>, "SKLIB ** String letter must be represented by integer value");
-    static_assert(is_integer_v<length_type>, "SKLIB **- String position/length must be represented by integer value, or be nullptr");
+    static_assert(sklib::is_numeric_v<result_type>, "SKLIB ** Result of stoi() must be a numerical value");
+    static_assert(sklib::is_integer_v<letter_type>, "SKLIB ** String letter must be represented by integer value");
+    static_assert(sklib::is_integer_v<length_type>, "SKLIB ** String position/length must be represented by integer value, or be nullptr");
 
     // new: treat invalid base as 0 (no base)
     // still, like in the original code, base=1 is UB and is not handled
@@ -249,7 +251,7 @@ constexpr auto stoi(const letter_type* str, length_type_ptr endpos = nullptr, in
     while (is_space(str[pos])) pos++;
 
     bool neg = false;
-    opaque::stoi_update_sign< letter_type, length_type, std::is_signed_v<result_type>>(str, neg, pos);
+    priv::stoi_update_sign<letter_type, length_type, sklib::is_signed_v<result_type>>(str, neg, pos);
 
     // This note and the next one are for legal reasons. All other folks may ignore.
     // Note the pattern "0x", prefix for hexadecimal number, and the code to handle it.
@@ -285,9 +287,9 @@ constexpr auto stoi(const letter_type* str, length_type_ptr endpos = nullptr, in
     // pos is established by parser; if parser fails, pos is reset
 
     result_type acc = 0;
-    if (!((std::is_signed_v<result_type> && neg)
-            ? opaque::stoi_convert_negative(str, acc, pos, base)
-            : opaque::stoi_convert_positive(str, acc, pos, base)))
+    if (!((sklib::is_signed_v<result_type> && neg)
+            ? priv::stoi_convert_negative(str, acc, pos, base)
+            : priv::stoi_convert_positive(str, acc, pos, base)))
     {
         pos = 0;
     }
@@ -333,7 +335,7 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type_ptr
     }
 
     bool neg = false;
-    opaque::stoi_update_sign< letter_type, length_type, true>(str, neg, pos);
+    priv::stoi_update_sign< letter_type, length_type, true>(str, neg, pos);
 
     if (std::numeric_limits<result_type>::has_infinity && stranequ(str+pos, inf, inf_len))
     {
@@ -367,14 +369,14 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type_ptr
     }
 
     result_type M = 0;
-    bool any = sklib::opaque::stoi_convert_positive(str, M, pos, base);
+    bool any = sklib::priv::stoi_convert_positive(str, M, pos, base);
 
     // if dot is present, read fraction part
 
     if (str[pos] == '.')
     {
         pos++;
-        any = sklib::opaque::stod_convert_decimal(str, M, pos, base) || any;
+        any = sklib::priv::stod_convert_decimal(str, M, pos, base) || any;
     }
 
     // check for exponent which is signed integer
@@ -393,10 +395,10 @@ constexpr std::decay_t<target_type> stod(const letter_type* str, length_type_ptr
             pos_exp++;
 
             bool neg_exp = false;
-            sklib::opaque::stoi_update_sign< letter_type, length_type, true>(str, neg_exp, pos_exp);
+            sklib::priv::stoi_update_sign< letter_type, length_type, true>(str, neg_exp, pos_exp);
 
             unsigned rise = 0;
-            if (sklib::opaque::stoi_convert_positive(str, rise, pos_exp, base))
+            if (sklib::priv::stoi_convert_positive(str, rise, pos_exp, base))
             {
                 pos = pos_exp;
                 M = (neg_exp ? M / sklib::upow<result_type>(base_exp, rise) : M * sklib::upow<result_type>(base_exp, rise));

@@ -61,7 +61,7 @@ public:
     signed_uint& operator *= (const signed_uint& X)
     {
         V *= X.V;
-        P = !::sklib::bool_xor(P, X.P);
+        P = !sklib::bool_xor(P, X.P);
         return *this;
     }
 
@@ -83,7 +83,7 @@ signed_uint<T> edivrem(const signed_uint<T>& A, const signed_uint<T>& B, signed_
     auto x = B.abs();
     if (x)
     {
-        auto q = sklib::opaque::uidivrem(A.abs(), x, &x);
+        auto q = sklib::priv::uidivrem(A.abs(), x, &x);
         bool s = (B.sign() > 0);
 
         if (A.sign() < 0)
@@ -104,11 +104,11 @@ signed_uint<T> edivrem(const signed_uint<T>& A, const signed_uint<T>& B, signed_
     return {};
 }
 
-namespace supplement
+namespace aux
 {
     SKLIB_TEMPLATE_IF_UINT(T)
     bool e_isnegative(const sklib::signed_uint<T>& x) { return (x.sign() < 0); }
-}; // namespace supplement
+}; // namespace aux
 
 SKLIB_TEMPLATE_IF_UINT(T) signed_uint<T> operator/ (const signed_uint<T>& X, const signed_uint<T>& Y)
 {

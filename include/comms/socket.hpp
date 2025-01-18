@@ -14,9 +14,9 @@
 //      FAQ: https://tangentsoft.net/wskfaq/
 //      I/O example: https://tangentsoft.net/wskfaq/examples/basics/select-server.cpp
 
-namespace opaque
+namespace priv
 {
-    struct stream_tcpip_opaque_workspace_type;
+    struct stream_tcpip_internal_workspace_type;
 };
 
 class stream_tcpip_type
@@ -46,7 +46,7 @@ public:
 private:
     static const int MAXSOCKS_PIPE = 3;   // some small number
 
-    std::unique_ptr<::sklib::opaque::stream_tcpip_opaque_workspace_type> stream_data;
+    std::unique_ptr<sklib::priv::stream_tcpip_internal_workspace_type> stream_data;
 
     // close all sockets, shutdown service, and set error state
     bool net_cleanup_with_error();

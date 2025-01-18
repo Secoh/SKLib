@@ -11,7 +11,7 @@
 // Provides int-like bit property fields, with strond type check and mutually exclusive composition
 // This is internal SKLib file and must NOT be included directly.
 
-namespace opaque
+namespace priv
 {
     struct bit_props_anchor {};
     struct bit_props_group_anchor {};
@@ -19,7 +19,7 @@ namespace opaque
 };
 
 template<class Anchor, class T>
-class bit_props_data_type : public Anchor, public sklib::opaque::bit_props_anchor
+class bit_props_data_type : public Anchor, public sklib::priv::bit_props_anchor
 {
     static_assert(sklib::is_integer_v<T>, "Second parameter of bit_props_data_type template must be integer");
 
@@ -28,7 +28,7 @@ public:
     const T data{};
 
     template<class CTest,
-        SKLIB_INTERNAL_ENABLE_IF_CONDITION((std::is_base_of_v<sklib::opaque::bit_props_group_anchor, CTest>) &&
+        SKLIB_INTERNAL_ENABLE_IF_CONDITION((std::is_base_of_v<sklib::priv::bit_props_group_anchor, CTest>) &&
                                            (std::is_base_of_v<bit_props_data_type, CTest>))>
     constexpr bool has(CTest what) const
     {
@@ -36,7 +36,7 @@ public:
     }
 
     template<class CTest,
-        SKLIB_INTERNAL_ENABLE_IF_CONDITION((std::is_base_of_v<sklib::opaque::bit_props_group_anchor, CTest>) &&
+        SKLIB_INTERNAL_ENABLE_IF_CONDITION((std::is_base_of_v<sklib::priv::bit_props_group_anchor, CTest>) &&
                                            (std::is_base_of_v<bit_props_data_type, CTest>))>
     constexpr bool operator[] (CTest what) const
     {
@@ -48,8 +48,8 @@ protected:
     constexpr bit_props_data_type(T x) : data(x) {}
 };
 
-template<class CData, CData::data_type gMask, SKLIB_INTERNAL_ENABLE_IF_DERIVED(CData, sklib::opaque::bit_props_anchor)>
-class bit_props_group_type : public CData, public sklib::opaque::bit_props_group_anchor
+template<class CData, CData::data_type gMask, SKLIB_INTERNAL_ENABLE_IF_DERIVED(CData, sklib::priv::bit_props_anchor)>
+class bit_props_group_type : public CData, public sklib::priv::bit_props_group_anchor
 {
 protected:
     constexpr bit_props_group_type(CData::data_type x) : CData(x & gMask) {}
@@ -62,7 +62,7 @@ public:
 
 };
 
-namespace opaque
+namespace priv
 {
     template<class CData, CData::data_type gMask>
     struct bit_props_group_helper : public bit_props_group_type<CData, gMask>
@@ -73,13 +73,13 @@ namespace opaque
 };
 
 template<class CData, CData::data_type gMask1, CData::data_type gMask2,
-    SKLIB_INTERNAL_ENABLE_IF_CONDITION((std::is_base_of_v<sklib::opaque::bit_props_anchor, CData>) && !(gMask1 & gMask2))>
+    SKLIB_INTERNAL_ENABLE_IF_CONDITION((std::is_base_of_v<sklib::priv::bit_props_anchor, CData>) && !(gMask1 & gMask2))>
 constexpr auto operator+ (bit_props_group_type<CData, gMask1> X, bit_props_group_type<CData, gMask2> Y)
 {
-    return sklib::opaque::bit_props_group_helper<CData, (gMask1 | gMask2)>(X.data | Y.data).get();
+    return sklib::priv::bit_props_group_helper<CData, (gMask1 | gMask2)>(X.data | Y.data).get();
 }
 
-namespace opaque
+namespace priv
 {
     template<class T>
     struct bit_props_dummy_config_type
@@ -117,25 +117,25 @@ namespace opaque
 
 template<class CData, class CPrevConf, auto enumCap>
 class bit_props_config_type
-    : public bit_props_group_type<CData, sklib::opaque::bit_props_config_mask_helper<CData, CPrevConf, enumCap>::mask>
-    , public sklib::opaque::bit_props_config_placement_helper<CData, CPrevConf, enumCap>
-    , public sklib::opaque::bit_props_config_anchor
+    : public bit_props_group_type<CData, sklib::priv::bit_props_config_mask_helper<CData, CPrevConf, enumCap>::mask>
+    , public sklib::priv::bit_props_config_placement_helper<CData, CPrevConf, enumCap>
+    , public sklib::priv::bit_props_config_anchor
 {
-    static_assert(std::is_base_of_v<sklib::opaque::bit_props_anchor, CData>,
+    static_assert(std::is_base_of_v<sklib::priv::bit_props_anchor, CData>,
                   "First parameter of bit_props_config_type template must be caller specification of bit_props_data_type");
-    static_assert(std::is_same_v<CPrevConf, void> || std::is_base_of_v<sklib::opaque::bit_props_config_anchor, CPrevConf>,
+    static_assert(std::is_same_v<CPrevConf, void> || std::is_base_of_v<sklib::priv::bit_props_config_anchor, CPrevConf>,
                   "Second parameter of bit_props_config_type template must be either void "
                   "or previous declaration of bit_props_config_type");
 
 private:
     typedef typename CData::data_type data_type;
-    static constexpr data_type S = sklib::opaque::bit_props_config_placement_helper<CData, CPrevConf, enumCap>::start;
-    static constexpr data_type L = sklib::opaque::bit_props_config_placement_helper<CData, CPrevConf, enumCap>::size;
-    static constexpr data_type M = sklib::opaque::bit_props_config_mask_helper<CData, CPrevConf, enumCap>::mask;
+    static constexpr data_type S = sklib::priv::bit_props_config_placement_helper<CData, CPrevConf, enumCap>::start;
+    static constexpr data_type L = sklib::priv::bit_props_config_placement_helper<CData, CPrevConf, enumCap>::size;
+    static constexpr data_type M = sklib::priv::bit_props_config_mask_helper<CData, CPrevConf, enumCap>::mask;
 
-    static_assert(L <= sklib::bits_width_less_sign_v<data_type>,
+    static_assert(L <= sklib::bits_width_v<data_type>,
                   "Third parameter of bit_props_config_type template doesn\'t fit underlying data type");
-    static_assert(S + L <= sklib::bits_width_less_sign_v<data_type>,
+    static_assert(S + L <= sklib::bits_width_v<data_type>,
                   "Collecting bit pack with bit_props_config_type: overall data set doesn\'t fit underlying data type");
 
 public:
