@@ -52,6 +52,9 @@
     <Filter Include="Header Files\include\math\geometry">
       <UniqueIdentifier>{84809b4b-5e57-46ad-8497-466136c24683}</UniqueIdentifier>
     </Filter>
+    <Filter Include="How To">
+      <UniqueIdentifier>{158b8689-9a1d-452b-8a23-ef110aa76f90}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sklib.hpp">
@@ -228,5 +231,10 @@
     <ClInclude Include="include\configure.hpp">
       <Filter>Header Files\include</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="txt\howto\howto_alt_ints.txt">
+      <Filter>How To</Filter>
+    </Text>
   </ItemGroup>
 </Project>

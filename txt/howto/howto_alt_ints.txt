@@ -1,0 +1,130 @@
+How To -- Alternative Integers, generalized functions
+
+Also, accomodation for future types addition into templated functions and constants,
+e.g. types unknown at the time of writing original framework/code.
+
+Lets show it with integers in mind. We'll use the template partial specialization.
+SKLIB constant is_native_integer_v<T> is true if and only if T is a fundamental integer type, except bool.
+Assuming "topic" is the name for a section of the SKLib library, lets introduce type-dependent function
+"int topic_func(int x)" and constant "uint64_t topic_data", relevant to the existing and future integers.
+We call helper (selector) class "select_topic". Additional suffix is optional if there are subsections.
+
+Reference:
+//sk: add honorable mention web link where I found it
+
+Note that the family name is not necessary inside the class select_topic:
+------------------------------------------------
+namespace priv
+{
+    // error fallback
+    //
+    template<class T, typename = void>
+    struct select_topic
+    {
+        static_assert(false, "SKLIB ** INTERNAL ERROR ** Functions and constants such and such are defined only for integer types");
+    };
+
+    // definition for native integers
+    //
+    template<class T>
+    struct select_topic<T, std::enable_if_t<is_native_integer_v<T>>>
+    {
+        static constexpr int func(int x) { /* calculate something then return answer */ return value; }
+        static constexpr uint64_t data = constant_expression;
+    };
+};
+
+// now, rephrase for general use
+// note that function must be static, and may or may not be constexpr
+//
+template<class T>
+constexpr int topic_func(int x)
+{
+    return priv::select_topic<T>::func(x);
+}
+
+// note that we could use static constexpr constant or function, or static consteval function for "topic_data"
+//
+template<class T>
+inline constexpr uint64_t topic_data = priv::select_topic<T>::data;
+------------------------------------------------
+
+Now, topic_func(x) and constant topic_data are defined for C/C++ fundamental integers.
+To extend that later on in the compilation unit, we must specify "select_topic" structure for our new integer class.
+Normally, we'd have a family of similar classes (i.e. template), rather than a single class as a new integer type.
+If that is the case, we need and anchor helper class to identify the family. Skip anchor for the single class.
+Lets name the new integer class "my_int".
+
+------------------------------------------------
+namespace priv
+{
+    // for this idea to work properly, the use of my_int_anchor MUST be strictly specific to my_int classes
+    //
+    struct my_int_anchor {};
+};
+
+// for sake of argument, make up some template
+// class must have default constructor, AND data constructor(s)
+// all constructors and all functions must be constexpr             //sk: verify about functions!
+//
+template<class T>
+class my_int : public priv::my_int_anchor
+{
+private:
+    T A;
+    /* more data */
+
+public:
+    constexpr my_int() = default;
+
+    constexpr my_int( /* some parameters */ )
+    {
+        /* some initialization */
+    }
+
+    /* we must have arithmetic function, including interactions with fundamental integers */
+};
+
+namespace priv
+{
+    // similar to earlier case with native integers, define "func()" and "data" for my_int family
+    // this template kicks in if T is my_int<any>
+    //
+    template<class T>
+    struct select_topic<T, std::enable_if_t<std::is_base_of_v<priv::my_int_anchor, T>>>
+    {
+        // usually, all classes of my_int family have members with the same name,
+        // but keep in mind that we don't know which one my_int we receive here
+        //
+        static constexpr int func(int x) { /* calculate and return specific to my_int */ }
+        static constexpr uint64_t data = my_int_specific_expression;
+    };
+};
+------------------------------------------------
+
+Finally, we may need to access my_int template parameters from select_topic template specialization.
+There are several options:
+
+1. Define public types and constants inside my_int.
+Advantage: simplicity.
+Disadvantage: exposed stray class members.
+Example, in public section of my_int template: typedef typename T underlying_type;
+
+2. Template parameters are normally used in the templated class.In such case, we can use my_int member
+variables to recover the template parameters. Since data classes and specialized access classes always
+come together, the details of the data class are always known to the implementation of the helper class.
+Advantage: simplicity, no stray members in my_int.
+Disadvantage: it is not always possible, depends on my_int members.
+Example: typedef typename decltype(T::A) underlying_type;
+
+3. Use template deduction to revert from my_int<T> to T.
+Advantage: no requirements for my_int, flexibility: my_int and select_topic can be edited independently.
+Disadvantage: complexity.
+Example A:
+    template<class TT> static constexpr auto sample(const my_int<TT>&) { return TT{}; }
+    typedef typename decltype(sample(T{})) underlying_type;
+Example B:
+    typedef typename decltype([]<class TT>(const my_int<TT>&) { return TT{}; }(T{})) underlying_type;
+
+
+

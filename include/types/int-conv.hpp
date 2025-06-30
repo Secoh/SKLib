@@ -27,27 +27,27 @@ namespace priv
     // see: https://stackoverflow.com/questions/72197242/what-is-wrong-with-my-application-of-sfinae-when-trying-to-implement-a-type-trai
 
     template<class T, typename = void>
-    struct make_unsigned_if_int
+    struct select_make_unsigned_if_int
     {
         using type = T;
         static constexpr auto conv(const T& v) const { return v; }
     };
 
     template<class T, typename = void>
-    struct make_signed_if_int
+    struct select_make_signed_if_int
     {
         using type = T;
     };
 
     template<class T>
-    struct make_unsigned_if_int<T, std::enable_if_t<is_native_integer_v<T>>>
+    struct select_make_unsigned_if_int<T, std::enable_if_t<is_native_integer_v<T>>>
     {
         using type = typename std::make_unsigned_t<T>;
         static constexpr auto conv(const T& v) const { return static_cast<type>(v); }
     };
 
     template<class T>
-    struct make_signed_if_int<T, std::enable_if_t<is_native_integer_v<T>>>
+    struct select_make_signed_if_int<T, std::enable_if_t<is_native_integer_v<T>>>
     {
         using type = typename std::make_signed_t<T>;
     };
@@ -59,13 +59,13 @@ namespace priv
 // If integer, not bool, provide matching unsigned type, otherwise, leave type unchanged
 // This name resembles its analog from STL, must always fully address it
 template<class T>
-using make_unsigned_if_integer_type = typename priv::make_unsigned_if_int<T>::type;
+using select_make_unsigned_if_integer_type = typename priv::select_make_unsigned_if_int<T>::type;
 
 // If integer, not bool, provide matching signed type, otherwise, leave type unchanged
 // Notably, it preserves signed status for floating-point types
 // This name resembles its analog from STL, must always fully address it
 template<class T>
-using make_signed_if_integer_type = typename priv::make_signed_if_int<T>::type;
+using select_make_signed_if_integer_type = typename priv::select_make_signed_if_int<T>::type;
 
 // Casts to itself unless T is signed integer type, in which case it returns unsigned value
 // Note C++ rule 6.3.1.3 Signed and unsigned integers, paragraph 2:
@@ -73,7 +73,7 @@ using make_signed_if_integer_type = typename priv::make_signed_if_int<T>::type;
 template<class T>
 constexpr auto to_unsigned_if_integer(const T& v)
 {
-    return priv::make_unsigned_if_int<T>::conv(v);
+    return priv::select_make_unsigned_if_int<T>::conv(v);
 }
 
 }; // namespace sklib

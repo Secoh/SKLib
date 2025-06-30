@@ -78,6 +78,9 @@
     <ClInclude Include="source\rs232-code.hpp" />
     <ClInclude Include="source\w32-audio-code.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="txt\howto\howto_alt_ints.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

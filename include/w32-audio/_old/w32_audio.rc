@@ -1,0 +1,222 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#ifndef APSTUDIO_INVOKED
+#include "targetver.h"
+#endif
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Russian resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+#ifdef _WIN32
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#ifndef APSTUDIO_INVOKED\r\n"
+    "#include ""targetver.h""\r\n"
+    "#endif\r\n"
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1251)\r\n"
+    "#include ""res\\w32_audio.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""afxres.rc""     // Standard components\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Russian resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+IDR_W32AUDIODLL_VERSION VERSIONINFO
+ FILEVERSION 1,0,0,2
+ PRODUCTVERSION 1,0,0,2
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904e4"
+        BEGIN
+            VALUE "CompanyName", "Lakeshore"
+            VALUE "FileDescription", "Simple Wave In Engine DLL"
+            VALUE "FileVersion", "1.0.0.2"
+            VALUE "InternalName", "w32_audio.dll"
+            VALUE "LegalCopyright", "GNU GPL @ 2010 or Later (c) Secoh 2012"
+            VALUE "OriginalFilename", "w32_audio.dll"
+            VALUE "ProductName", "Simple Wave In Engine"
+            VALUE "ProductVersion", "1.0.0.2"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_W32AUDIODLL_DIALOG_AUDIO_INPUT_SELECT DIALOGEX 0, 0, 368, 127
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Audio Input Select"
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
+BEGIN
+    COMBOBOX        IDC_W32AUDIODLL_COMBO_MIXER,67,7,294,280,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_W32AUDIODLL_COMBO_MXLINE,67,25,294,273,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CTEXT           "55%",IDC_W32AUDIODLL_STATIC_VOLUME_PCT,311,84,50,12,SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CONTROL         "",IDC_W32AUDIODLL_PROGRESS_DUTY_CYCLE,"msctls_progress32",PBS_SMOOTH,67,84,232,12
+    COMBOBOX        IDC_W32AUDIODLL_COMBO_WAVEIN,67,44,294,307,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Mixer Source",IDC_STATIC,6,7,42,12,SS_CENTERIMAGE
+    LTEXT           "Channel Source",IDC_STATIC,6,25,51,12,SS_CENTERIMAGE
+    LTEXT           "Duty Peak",IDC_STATIC,6,84,34,12,SS_CENTERIMAGE
+    LTEXT           "Input Device",IDC_STATIC,6,44,42,12,SS_CENTERIMAGE
+    LTEXT           "Sampling",IDC_STATIC,6,64,29,12,SS_CENTERIMAGE
+    COMBOBOX        IDC_W32AUDIODLL_COMBO_SAMPLING,67,64,232,306,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Show All",IDC_W32AUDIODLL_CHECK_SHOW_ALL,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,311,64,50,13
+    DEFPUSHBUTTON   "OK",IDOK,311,106,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,249,106,50,14
+    CONTROL         "Write File...",IDC_W32AUDIODLL_WRITE_FILE,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,67,106,71,14
+END
+
+IDD_W32AUDIODLL_DIALOG_AUDIO_OUTPUT_SELECT DIALOGEX 0, 0, 368, 159
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Audio I/O Select"
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
+BEGIN
+    COMBOBOX        IDC_W32AUDIODLL_COMBO_WAVEOUT,64,7,294,307,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_W32AUDIODLL_COMBO_OUT_SAMPLING,64,27,232,306,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Show All",IDC_W32AUDIODLL_CHECK_OUT_SHOW_ALL,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,308,27,50,13
+    COMBOBOX        IDC_COMBO_OUT_MODE_PUT,64,48,232,207,CBS_DROPDOWNLIST | WS_TABSTOP
+    PUSHBUTTON      "Test",IDC_BUTTON_OTST,308,48,50,13
+    COMBOBOX        IDC_W32AUDIODLL_COMBO_WAVEIN,64,77,294,307,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_W32AUDIODLL_COMBO_SAMPLING,64,97,232,306,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Show All",IDC_W32AUDIODLL_CHECK_SHOW_ALL,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,308,97,50,13
+    CONTROL         "Write File...",IDC_W32AUDIODLL_WRITE_FILE,"Button",BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,64,139,71,14
+    PUSHBUTTON      "Cancel",IDCANCEL,246,139,50,14
+    DEFPUSHBUTTON   "OK",IDOK,308,139,50,14
+    CTEXT           "55%",IDC_W32AUDIODLL_STATIC_VOLUME_PCT,308,117,50,12,SS_CENTERIMAGE,WS_EX_STATICEDGE
+    CONTROL         "",IDC_W32AUDIODLL_PROGRESS_DUTY_CYCLE,"msctls_progress32",PBS_SMOOTH,64,117,232,12
+    LTEXT           "Output Device",IDC_STATIC,10,7,48,12,SS_CENTERIMAGE
+    LTEXT           "Loading Mode",IDC_STATIC,10,48,47,12,SS_CENTERIMAGE
+    LTEXT           "Duty Peak",IDC_STATIC,10,117,34,12,SS_CENTERIMAGE
+    LTEXT           "Input Device",IDC_STATIC,10,77,42,12,SS_CENTERIMAGE
+    LTEXT           "Sampling",IDC_STATIC,10,97,29,12,SS_CENTERIMAGE
+    LTEXT           "Sampling",IDC_STATIC,10,27,29,12,SS_CENTERIMAGE
+    CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,6,68,355,1
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_W32AUDIODLL_DIALOG_AUDIO_INPUT_SELECT, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 361
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 120
+    END
+
+    IDD_W32AUDIODLL_DIALOG_AUDIO_OUTPUT_SELECT, DIALOG
+    BEGIN
+        LEFTMARGIN, 6
+        RIGHTMARGIN, 361
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 152
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1251)
+#include "res\w32_audio.rc2"  // non-Microsoft Visual C++ edited resources
+#include "afxres.rc"     // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,83 @@
+types
+---------------------------
+
+is_complete
+SKLIB_SUPPLEMENT_DECLARE_TYPE_CONDUIT
+type_conduit
+
+X #define SKLIB_TYPES_IS_INTEGER(T)           (std::is_integral_v<T> && !std::is_same_v<std::remove_cv_t<T>, bool>)
+X #define SKLIB_TYPES_IS_SIGNED_INTEGER(T)    (SKLIB_TYPES_IS_INTEGER(T) && std::is_signed_v<T>)
+X #define SKLIB_TYPES_IS_UNSIGNED_INTEGER(T)  (SKLIB_TYPES_IS_INTEGER(T) && std::is_unsigned_v<T>)
+X #define SKLIB_TYPES_IS_INTEGER_OF_SIZE(T,U) (SKLIB_TYPES_IS_INTEGER(T) && sizeof(T) == sizeof(U))
+X #define SKLIB_TYPES_IS_FLOATING_POINT(T)    (std::is_floating_point_v<T>)
+X #define SKLIB_TYPES_IS_NUMBER(T)            (SKLIB_TYPES_IS_INTEGER(T) || SKLIB_TYPES_IS_FLOATING_POINT(T))
+X #define SKLIB_TYPES_IS_ANYCHAR(T)           (std::is_same_v<std::remove_cv_t<T>, char> || std::is_same_v<std::remove_cv_t<T>, wchar_t>)
+X #define SKLIB_INTERNAL_TEMPLATE_IF_INT(T)   template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
+X #define SKLIB_INTERNAL_TEMPLATE_IF_INT_T    template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER(T), bool> = true>
+X #define SKLIB_INTERNAL_TEMPLATE_IF_UINT_T   template<class T, std::enable_if_t<SKLIB_TYPES_IS_UNSIGNED_INTEGER(T), bool> = true>
+X #define SKLIB_INTERNAL_FEATURE_IF_INT_T     SKLIB_INTERNAL_TEMPLATE_IF_INT_T static constexpr       /* useful shortcuts */
+X #define SKLIB_INTERNAL_FEATURE_IF_UINT_T    SKLIB_INTERNAL_TEMPLATE_IF_UINT_T static constexpr      /* "class feature" rather than just member item */
+
+X+ #define SKLIB_TYPES_IS_CSTRING(T)           (std::is_pointer_v<T> && (std::is_same_v<std::remove_cv_t<std::remove_pointer_t<T>>, char>))
+X+ #define SKLIB_TYPES_IS_WSTRING(T)           (std::is_pointer_v<T> && (std::is_same_v<std::remove_cv_t<std::remove_pointer_t<T>>, wchar_t>))
+X+ #define SKLIB_TYPES_IS_STRING(T)            (SKLIB_TYPES_IS_CSTRING(T) || SKLIB_TYPES_IS_WSTRING(T))
+X+ #define SKLIB_TYPES_IS_STDCSTRING(T)        (std::is_same_v<std::remove_cv_t<T>, std::string>)
+X+ #define SKLIB_TYPES_IS_STDWSTRING(T)        (std::is_same_v<std::remove_cv_t<T>, std::wstring>)
+X+ #define SKLIB_TYPES_IS_STDSTRING(T)         (SKLIB_TYPES_IS_STDCSTRING(T) || SKLIB_TYPES_IS_STDWSTRING(T)) 
+X+ #define SKLIB_TYPES_IS_ANYSTRING(T)         (SKLIB_TYPES_IS_STRING(T) || SKLIB_TYPES_IS_STDSTRING(T))
+
+X+ #define SKLIB_TYPES_IS_INTEGER_64(T)        (std::is_same_v<std::remove_cv_t<T>, int64_t> || std::is_same_v<std::remove_cv_t<T>, uint64_t>)
+X+ #define SKLIB_TYPES_IS_INTEGER_NOT_64(T)    (SKLIB_TYPES_IS_INTEGER(T) && !SKLIB_TYPES_IS_INTEGER_64(T))
+
+X+ #define SKLIB_INTERNAL_TEMPLATE_IF_INT_T_OF_SIZE(match_type)  template<class T, std::enable_if_t<SKLIB_TYPES_IS_INTEGER_OF_SIZE(T, match_type), bool> = true>
+X+ #define SKLIB_INTERNAL_TEMPLATE_IF_DERIVED(T,BAS) template<class T, std::enable_if_t<std::is_base_of_v<BAS, T>, bool> = true>
+
+do_not_deduce
+
+is_integer_v
+is_signed_integer_v
+is_unsigned_integer_v
+
+is_integer_of_size_v
+is_numeric_v
+is_any_char_v
+
+#define SKLIB_TEMPLATE_IF_INT(T)    template<class T, std::enable_if_t<sklib::is_integer_v<T>, bool> = true>
+#define SKLIB_TEMPLATE_IF_UINT(T)   template<class T, std::enable_if_t<sklib::is_unsigned_integer_v<T>, bool> = true>
+#define SKLIB_TEMPLATE_IF_SINT(T)   template<class T, std::enable_if_t<sklib::is_signed_integer_v<T>, bool> = true>
+
+integer_or_int
+make_unsigned_if_integer
+make_signed_if_integer
+make_unsigned_if_integer_type
+make_signed_if_integer_type
+
+to_unsigned_if_integer
+
+
+
+utility
+------------------------
+
+SKLIB_SUPPLEMENT_TOKEN_TO_STRING
+SKLIB_MACRO_EXPAND_TO_STRING
+
+SKLIB_SUPPLEMENT_EXPAND_COMMA
+SKLIB_MACRO_SELF
+SKLIB_MACRO_CONCAT_TWO
+SKLIB_MACRO_SELECT_ONE_TWO
+
+callback_type
+
+bool_xor
+
+alternate_maximum
+alternate_minimum
+is_clamped
+is_clamped_cap
+abs
+random_size_integer_device
+
+?!
+table256_print
+

@@ -15,13 +15,16 @@
 #ifndef SKLIB_INCLUDED_BITWISE_HPP
 #define SKLIB_INCLUDED_BITWISE_HPP
 
+#include "bitwise/bmanip.hpp"
+
+
 #include "types.hpp"
 #include "utility.hpp"
+
 
 namespace sklib
 {
 
-#include "bitwise/bmanip.hpp"
 #include "bitwise/bstream.hpp"
 #include "bitwise/base64.hpp"
 #include "bitwise/bprops.hpp"

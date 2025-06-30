@@ -29,13 +29,13 @@ static_assert(CHAR_BIT >= OCTET_BITS, "SKLIB ** INTERNAL ERROR ** char size must
 namespace priv
 {
     template<class T, typename = void>
-    struct int_bit_state
+    struct select_int_bit_state
     {
         static_assert(false, "SKLIB ** INTERNAL ERROR ** Integer bit placement is defined only for integer types");
     };
 
     template<class T>
-    struct int_bit_state<T, std::enable_if_t<is_native_integer_v<T>>>
+    struct select_int_bit_state<T, std::enable_if_t<is_native_integer_v<T>>>
     {
         static constexpr T data_cap(unsigned width) { return (T(1) << width); }
     };
@@ -44,12 +44,12 @@ namespace priv
     // template<class T> struct integer_bit_state<T, std::enable_if_t<is_compound_integer_v<T>>> {};
 };
 
-template<class T> constexpr SKLIB_TYPE_ENABLE_IF_INT(T, T) bits_data_cap(unsigned width)
+template<class T> constexpr T bits_data_cap(unsigned width)
 {
-    return priv::int_bit_state<T>::data_cap(width);
+    return priv::select_int_bit_state<T>::data_cap(width);
 }
 
-template<class T> constexpr SKLIB_TYPE_ENABLE_IF_INT(T, T) bits_data_high_1(unsigned width)
+template<class T> constexpr T bits_data_high_1(unsigned width)
 {
     return (width ? bits_data_cap<T>(width-1) : T(0));
 }
@@ -63,13 +63,13 @@ namespace priv
     }
 
     template<class T, typename = void>
-    struct int_features
+    struct select_int_features
     {
         static_assert(false, "SKLIB ** INTERNAL ERROR ** Integer bit span is defined only for integer types");
     };
 
     template<class T>
-    struct int_features<T, std::enable_if_t<is_native_integer_v<T>>>
+    struct select_int_features<T, std::enable_if_t<is_native_integer_v<T>>>
     {
         // guaranteed by these definitions: unsigned int bit count is always even,
         // and positive_width always equals to total_width for unsigned types
@@ -83,7 +83,7 @@ namespace priv
     };
 
     template<class T>
-    struct int_features<T, std::enable_if_t<is_compound_integer_v<T>>>
+    struct select_int_features<T, std::enable_if_t<is_compound_integer_v<T>>>
     {
         static constexpr unsigned total_width = T::positive_width;
         static constexpr unsigned positive_width = total_width;
@@ -110,9 +110,9 @@ namespace priv
 // SKLib compound integer - the declared bit width
 // All other types - compilation error
 template<class T>
-inline constexpr unsigned bits_width_v = priv::int_features<T>::positive_width;
+inline constexpr unsigned bits_width_v = priv::select_int_features<T>::positive_width;
 
-template<class T> constexpr SKLIB_TYPE_ENABLE_IF_INT(T, T) bits_data_mask(unsigned width)
+template<class T> constexpr T bits_data_mask(unsigned width)
 {
     if (!width) return T(0);
     if (width >= bits_width_v<T>) return priv::data_mask<T>(bits_width_v<T>);
@@ -130,14 +130,14 @@ inline constexpr size_t  OCTET_ADDRESS_SPAN = OCTET_MASK + 1;
 
 namespace priv
 {
-    template<class T, unsigned Width> consteval SKLIB_TYPE_ENABLE_IF_INT(T, T) data_cap_select()
+    template<class T, unsigned Width> consteval T data_cap_select()
     {
         static_assert(Width < bits_width_v<T>,
             "SKLIB ** INTERNAL ERROR ** Size of data type must be enough to hold specified number of bits");
         return bits_data_cap<T>(Width);
     }
 
-    template<class T, unsigned Width> consteval SKLIB_TYPE_ENABLE_IF_INT(T, T) data_high_1_select()
+    template<class T, unsigned Width> consteval T data_high_1_select()
     {
         static_assert(Width > 0, "SKLIB ** INTERNAL ERROR ** Bit count must be nonzero");
         static_assert(Width <= bits_width_v<T>,
@@ -145,19 +145,19 @@ namespace priv
         return bits_data_high_1<T>(Width);
     }
 
-    template<class T, unsigned Width> consteval SKLIB_TYPE_ENABLE_IF_INT(T, T) data_mask_select()
+    template<class T, unsigned Width> consteval T data_mask_select()
     {
         auto A = data_high_1_select<T, Width>();
         return A | (A-1);
     }
-
+        
     template<class T, typename = void>
-    struct int_even_length
+    struct select_int_even_length
     {
         static_assert(false, "SKLIB ** INTERNAL ERROR ** Expected integer with even bit count");
     };
     template<class T>
-    struct int_even_length<T, std::enable_if_t<bits_width_v<T> % 2 == 0>>
+    struct select_int_even_length<T, std::enable_if_t<bits_width_v<T> % 2 == 0>>
     {
         consteval unsigned half_length() { return bits_width_v<T> / 2; }
     };
@@ -177,9 +177,9 @@ template<class T, unsigned Width>
 inline constexpr T bits_data_mask_v = priv::data_mask_select<T, Width>();
 
 template<class T>
-inline constexpr T bits_low_half_v = bits_data_mask<T>(priv::int_even_length<T>::half_length());
+inline constexpr T bits_low_half_v = bits_data_mask<T>(priv::select_int_even_length<T>::half_length());
 template<class T>
-inline constexpr T bits_high_half_v = (bits_low_half_v<T> << priv::int_even_length<T>::half_length());
+inline constexpr T bits_high_half_v = (bits_low_half_v<T> << priv::select_int_even_length<T>::half_length());
 
 
 // how it works: if high and low bounds are the same, enable if T is equal or smaller than bound

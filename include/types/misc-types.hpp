@@ -54,7 +54,12 @@ namespace aux
 // However, we do need guarantee that it uses only C/C++ language structure and keywords
 // Thus, the following explicit re-implementation
 
-    template<class T, size_t N> struct encapsulated_array_type { T data[N]; };
+    template<class T, size_t N> struct encapsulated_array_type
+    {
+        static constexpr auto size = N;
+        T data[N];
+    };
+
     template<class T> using encapsulated_array_octet_index_type = encapsulated_array_type<T, OCTET_ADDRESS_SPAN>;
     template<class T> using encapsulated_array_width_index_type = encapsulated_array_type<T, bits_width_v<T>>;
 

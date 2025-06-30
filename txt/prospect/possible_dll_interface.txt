@@ -1,0 +1,24 @@
+DLL_DECLARE_INTERFACE(classname)
+{
+DLL_FUNC(type,funcname,params...);
+DLL_GLOBAL(type,globalvariable);   =or=   DLL_GLOBAL(type,globalvariable,initialvalue);
+};
+
+classname *instance = ...
+
+=>
+
+will call
+()(.something., params...)
+
+receiver
+
+type funcname(.something., params...)
+{
+access: THIS.globalvariable
+
+If you have renters insurance then this fee ($60) will not apply.
+
+
+
+hjlhjgutr76opgyinb                
